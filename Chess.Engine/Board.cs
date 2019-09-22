@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Text;
 
 namespace Chess.Engine
 {
@@ -24,5 +25,64 @@ namespace Chess.Engine
         private ulong rooks;
         private ulong queens;
         private ulong kings;
+
+        public bool IsWhiteAt(uint i) => ((long)white & (1 << (int)i)) != 0;
+        public bool IsBlackAt(uint i) => ((long)black & (1 << (int)i)) != 0;
+        public bool IsEmptyAt(uint i) => !IsWhiteAt(i) && !IsBlackAt(i);
+        public bool IsPawnAt(uint i) => ((long)pawns & (1 << (int)i)) != 0;
+        public bool IsKnightAt(uint i) => ((long)knights & (1 << (int)i)) != 0;
+        public bool IsBishopAt(uint i) => ((long)bishops & (1 << (int)i)) != 0;
+        public bool IsRookAt(uint i) => ((long)rooks & (1 << (int)i)) != 0;
+        public bool IsQueenAt(uint i) => ((long)queens & (1 << (int)i)) != 0;
+        public bool IsKingAt(uint i) => ((long)kings & (1 << (int)i)) != 0;
+
+        public Piece PieceAt(uint i)
+        {
+            if (IsWhiteAt(i))
+            {
+                if (IsPawnAt(i))
+                    return Piece.White & Piece.Pawn;
+                if (IsKnightAt(i))
+                    return Piece.White & Piece.Knight;
+                if (IsBishopAt(i))
+                    return Piece.White & Piece.Bishop;
+                if (IsRookAt(i))
+                    return Piece.White & Piece.Rook;
+                if (IsQueenAt(i))
+                    return Piece.White & Piece.Queen;
+                if (IsKingAt(i))
+                    return Piece.White & Piece.King;
+            }
+            if (IsBlackAt(i))
+            {
+                if (IsPawnAt(i))
+                    return Piece.Black & Piece.Pawn;
+                if (IsKnightAt(i))
+                    return Piece.Black & Piece.Knight;
+                if (IsBishopAt(i))
+                    return Piece.Black & Piece.Bishop;
+                if (IsRookAt(i))
+                    return Piece.Black & Piece.Rook;
+                if (IsQueenAt(i))
+                    return Piece.Black & Piece.Queen;
+                if (IsKingAt(i))
+                    return Piece.Black & Piece.King;
+            }
+            return Piece.None;
+        }
+
+        public override string ToString()
+        {
+            var str = new StringBuilder();
+            for (uint i = 0; i < 64; i++)
+            {
+                var ch = this.PieceAt(i).ToChar();
+                str.Append(ch);
+                if (i % 8 == 0) {
+                    str.Append(Environment.NewLine);
+                }
+            }
+            return str.ToString();
+        }
     }
 }
