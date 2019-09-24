@@ -62,17 +62,17 @@ func (b Board) PieceAt(i uint8) Piece {
 	if b.IsWhiteAt(i) {
 		switch {
 		case b.IsPawnAt(i):
-			return PieceWhite | PiecePawn
+			return PieceWhitePawn
 		case b.IsKnightAt(i):
-			return PieceWhite | PieceKnight
+			return PieceWhiteKnight
 		case b.IsBishopAt(i):
-			return PieceWhite | PieceBishop
+			return PieceWhiteBishop
 		case b.IsRookAt(i):
-			return PieceWhite | PieceRook
+			return PieceWhiteRook
 		case b.IsQueenAt(i):
-			return PieceWhite | PieceQueen
+			return PieceWhiteQueen
 		case b.IsKingAt(i):
-			return PieceWhite | PieceKing
+			return PieceWhiteKing
 		default:
 			panic(b) // invalid board state
 		}
@@ -80,17 +80,17 @@ func (b Board) PieceAt(i uint8) Piece {
 	if b.IsBlackAt(i) {
 		switch {
 		case b.IsPawnAt(i):
-			return PieceBlack | PiecePawn
+			return PieceBlackPawn
 		case b.IsKnightAt(i):
-			return PieceBlack | PieceKnight
+			return PieceBlackKnight
 		case b.IsBishopAt(i):
-			return PieceBlack | PieceBishop
+			return PieceBlackBishop
 		case b.IsRookAt(i):
-			return PieceBlack | PieceRook
+			return PieceBlackRook
 		case b.IsQueenAt(i):
-			return PieceBlack | PieceQueen
+			return PieceBlackQueen
 		case b.IsKingAt(i):
-			return PieceBlack | PieceKing
+			return PieceBlackKing
 		default:
 			panic(b) // invalid board state
 		}

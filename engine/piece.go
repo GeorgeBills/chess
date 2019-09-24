@@ -14,36 +14,50 @@ const (
 	PieceRook   Piece = 0b00000100
 	PieceQueen  Piece = 0b00000010
 	PieceKing   Piece = 0b00000001
+
+	PieceWhitePawn   Piece = PieceWhite | PiecePawn
+	PieceWhiteKnight Piece = PieceWhite | PieceKnight
+	PieceWhiteBishop Piece = PieceWhite | PieceBishop
+	PieceWhiteRook   Piece = PieceWhite | PieceRook
+	PieceWhiteQueen  Piece = PieceWhite | PieceQueen
+	PieceWhiteKing   Piece = PieceWhite | PieceKing
+
+	PieceBlackPawn   Piece = PieceBlack | PiecePawn
+	PieceBlackKnight Piece = PieceBlack | PieceKnight
+	PieceBlackBishop Piece = PieceBlack | PieceBishop
+	PieceBlackRook   Piece = PieceBlack | PieceRook
+	PieceBlackQueen  Piece = PieceBlack | PieceQueen
+	PieceBlackKing   Piece = PieceBlack | PieceKing
 )
 
 // Rune returns a rune that uniquely represents the piece colour and type.
 func (p Piece) Rune() rune {
-	switch {
-	case p == PieceNone:
+	switch p {
+	case PieceNone:
 		return '□'
-	case p&PieceWhite != 0 && p&PiecePawn != 0:
+	case PieceWhitePawn:
 		return '♙'
-	case p&PieceWhite != 0 && p&PieceRook != 0:
+	case PieceWhiteRook:
 		return '♖'
-	case p&PieceWhite != 0 && p&PieceBishop != 0:
+	case PieceWhiteBishop:
 		return '♗'
-	case p&PieceWhite != 0 && p&PieceKnight != 0:
+	case PieceWhiteKnight:
 		return '♘'
-	case p&PieceWhite != 0 && p&PieceKing != 0:
+	case PieceWhiteKing:
 		return '♔'
-	case p&PieceWhite != 0 && p&PieceQueen != 0:
+	case PieceWhiteQueen:
 		return '♕'
-	case p&PieceBlack != 0 && p&PiecePawn != 0:
+	case PieceBlackPawn:
 		return '♟'
-	case p&PieceBlack != 0 && p&PieceRook != 0:
+	case PieceBlackRook:
 		return '♜'
-	case p&PieceBlack != 0 && p&PieceBishop != 0:
+	case PieceBlackBishop:
 		return '♝'
-	case p&PieceBlack != 0 && p&PieceKnight != 0:
+	case PieceBlackKnight:
 		return '♞'
-	case p&PieceBlack != 0 && p&PieceKing != 0:
+	case PieceBlackKing:
 		return '♚'
-	case p&PieceBlack != 0 && p&PieceQueen != 0:
+	case PieceBlackQueen:
 		return '♛'
 	default:
 		panic(p) // invalid piece
