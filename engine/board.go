@@ -4,7 +4,17 @@ import "strings"
 
 // Board represents an 8×8 chess board.
 //
-// The 0th index represents A1 and the 64th index represents H8.
+// The 0th index represents A1 and the 63rd index represents H8.
+//
+//          A  B  C  D  E  F  G  H
+//     8 | 56 57 58 59 60 61 62 63
+//     7 | 48 49 50 51 52 53 54 55
+//     6 | 40 41 42 43 44 45 46 47
+//     5 | 32 33 34 35 36 37 38 39
+//     4 | 24 25 26 27 28 29 30 31
+//     3 | 16 17 18 19 20 21 22 23
+//     2 |  8  9 10 11 12 13 14 15
+//     1 |  0  1  2  3  4  5  6  7
 type Board struct {
 	black   uint64
 	white   uint64
@@ -19,8 +29,8 @@ type Board struct {
 // NewBoard returns a board in the initial state.
 func NewBoard() Board {
 	return Board{
-		white:   0b11111111_11111111_00000000_00000000_00000000_00000000_00000000_00000000,
-		black:   0b00000000_00000000_00000000_00000000_00000000_00000000_11111111_11111111,
+		white:   0b00000000_00000000_00000000_00000000_00000000_00000000_11111111_11111111,
+		black:   0b11111111_11111111_00000000_00000000_00000000_00000000_00000000_00000000,
 		pawns:   0b00000000_11111111_00000000_00000000_00000000_00000000_11111111_00000000,
 		knights: 0b01000010_00000000_00000000_00000000_00000000_00000000_00000000_01000010,
 		bishops: 0b00100100_00000000_00000000_00000000_00000000_00000000_00000000_00100100,
@@ -98,6 +108,9 @@ func (b Board) PieceAt(i uint8) Piece {
 	return 0
 }
 
+// String renders the board from blacks perspective, because that was much
+// simpler (from whites perspective we would need to output indexes 56, 57, ...,
+// 63, 48, 49, ..., 55, 40, ...). If it's documented then it's not a bug.
 func (b Board) String() string {
 	var sb strings.Builder
 	var i uint8
