@@ -108,9 +108,7 @@ func (b Board) PieceAt(i uint8) Piece {
 	return 0
 }
 
-// String renders the board from blacks perspective, because that was much
-// simpler (from whites perspective we would need to output indexes 56, 57, ...,
-// 63, 48, 49, ..., 55, 40, ...). If it's documented then it's not a bug.
+// String renders the board from whites perspective.
 func (b Board) String() string {
 	var sb strings.Builder
 	var i uint8
@@ -118,7 +116,8 @@ func (b Board) String() string {
 		if i != 0 && i%8 == 0 {
 			sb.WriteRune('\n')
 		}
-		r := b.PieceAt(i).Rune()
+		idx := i + 56 - 16*(i/8)
+		r := b.PieceAt(idx).Rune()
 		sb.WriteRune(r)
 	}
 	return sb.String()

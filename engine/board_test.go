@@ -70,13 +70,13 @@ func TestNewBoardEmptyAt(t *testing.T) {
 
 func TestNewBoardToString(t *testing.T) {
 	str := engine.NewBoard().String()
-	expected := `♖♘♗♕♔♗♘♖
-♙♙♙♙♙♙♙♙
-□□□□□□□□
-□□□□□□□□
-□□□□□□□□
-□□□□□□□□
+	expected := `♜♞♝♛♚♝♞♜
 ♟♟♟♟♟♟♟♟
-♜♞♝♛♚♝♞♜`
+□□□□□□□□
+□□□□□□□□
+□□□□□□□□
+□□□□□□□□
+♙♙♙♙♙♙♙♙
+♖♘♗♕♔♗♘♖`
 	assert.Equal(t, expected, str)
 }
