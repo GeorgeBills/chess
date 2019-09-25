@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+// Colour is used to represent each colour.
+type Colour byte
+
+// White and Black are constants defined for the colours.
+const (
+	White = 0b00000000
+	Black = 0b00000001
+)
+
 // Board represents an 8×8 chess board.
 //
 // The 0th index represents A1 and the 63rd index represents H8.
@@ -27,7 +36,17 @@ type Board struct {
 	rooks   uint64
 	queens  uint64
 	kings   uint64
+	half    uint8
+	full    uint8
+	meta    byte
 }
+
+const (
+	wcks = 0b00000010
+	wcqs = 0b00000100
+	bcks = 0b00001000
+	bcqs = 0b00010000
+)
 
 // NewBoard returns a board in the initial state.
 func NewBoard() Board {
@@ -40,6 +59,9 @@ func NewBoard() Board {
 		rooks:   0b10000001_00000000_00000000_00000000_00000000_00000000_00000000_10000001,
 		queens:  0b00001000_00000000_00000000_00000000_00000000_00000000_00000000_00001000,
 		kings:   0b00010000_00000000_00000000_00000000_00000000_00000000_00000000_00010000,
+		half:    0,
+		full:    1,
+		meta:    wcks | wcqs | bcks | bcqs | White,
 	}
 }
 
@@ -110,6 +132,34 @@ func (b Board) PieceAt(i uint8) Piece {
 	}
 	return 0
 }
+
+// ToMove returns the colour whose move it is.
+func (b Board) ToMove() Colour {
+	if b.meta&Black != 0 {
+		return Black
+	}
+	return White
+}
+
+// CanWhiteCastleKingSide returns true iff white can castle king side.
+func (b Board) CanWhiteCastleKingSide() bool { return b.meta&wcks != 0 }
+
+// CanWhiteCastleQueenSide returns true iff white can castle queen side.
+func (b Board) CanWhiteCastleQueenSide() bool { return b.meta&wcqs != 0 }
+
+// CanBlackCastleKingSide returns true iff black can castle king side.
+func (b Board) CanBlackCastleKingSide() bool { return b.meta&bcks != 0 }
+
+// CanBlackCastleQueenSide returns true iff black can castle queen side.
+func (b Board) CanBlackCastleQueenSide() bool { return b.meta&bcqs != 0 }
+
+// HalfMoves returns the number of half moves (moves by one player) since the
+// last pawn moved or piece was captured. This is used for determining if a draw
+// can be claimed by the fifty move rule.
+func (b Board) HalfMoves() int { return int(b.half) }
+
+// FullMoves returns the number of full moves (moves by both players).
+func (b Board) FullMoves() int { return int(b.full) }
 
 // String renders the board from whites perspective.
 func (b Board) String() string {

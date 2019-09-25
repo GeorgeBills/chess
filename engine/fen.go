@@ -56,9 +56,50 @@ func (b Board) FEN() string {
 		case PieceNone:
 			empty++
 		default:
-			panic(p) // invalid piece
+			panic(fmt.Sprintf("invalid piece: %b", p))
 		}
 	}
+
+	sb.WriteRune(' ')
+
+	if b.ToMove() == White {
+		sb.WriteRune('w')
+	} else {
+		sb.WriteRune('b')
+	}
+
+	sb.WriteRune(' ')
+
+	if b.CanWhiteCastleKingSide() {
+		sb.WriteRune('K')
+	}
+
+	if b.CanWhiteCastleQueenSide() {
+		sb.WriteRune('Q')
+	}
+
+	if b.CanBlackCastleKingSide() {
+		sb.WriteRune('k')
+	}
+
+	if b.CanBlackCastleQueenSide() {
+		sb.WriteRune('q')
+	}
+
+	sb.WriteRune(' ')
+
+	// TODO: output correct en passant square
+	sb.WriteRune('-')
+
+	sb.WriteRune(' ')
+
+	// number of half moves since pawn movement or piece capture
+	sb.WriteString(strconv.Itoa(b.HalfMoves()))
+
+	sb.WriteRune(' ')
+
+	// number of full moves
+	sb.WriteString(strconv.Itoa(b.FullMoves()))
 
 	return sb.String()
 }
