@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -298,8 +297,45 @@ READ_CASTLING:
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
-		// TODO: support reading en passant square
-		return nil, errors.New("en passant unsupported")
+		// should be a file; store the file as the last 3 bits in the board meta
+		// BUG: 'h' - 'a' + 1 is 4 bits...
+		switch ch {
+		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
+			b.meta |= uint8(ch-'a') + 1
+		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
+			b.meta |= uint8(ch-'A') + 1
+		default:
+			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
+		}
+
+		// next char should indicate either rank 3 or rank 6
+		ch, err := r.ReadByte()
+		if err != nil {
+			return nil, unexpectingEOF(err)
+		}
+		// We don't encode this rank into the board state, since it can be
+		// inferred from which colour is to move next.
+		//
+		// If black is to move and an en passant is possible, then white must
+		// have moved a pawn two spaces forward from its starting rank 2 on the
+		// last move, and so the rank of the square under threat of en passant
+		// must be 3. Similarly if white is to move then the rank can be
+		// inferred to be 7.
+		//
+		// This means we need to validate the state here, otherwise the board is
+		// inconsistent.
+		switch ch {
+		case '3':
+			if b.ToMove() != Black {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank 3")
+			}
+		case '6':
+			if b.ToMove() != White {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank 6")
+			}
+		default:
+			return nil, fmt.Errorf("unexpected '%c', expecting [36]", ch)
+		}
 	}
 
 	err = skipspace()

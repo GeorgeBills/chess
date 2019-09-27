@@ -11,7 +11,7 @@ type Colour byte
 // White and Black are constants defined for the colours.
 const (
 	White = 0b00000000
-	Black = 0b00000001
+	Black = 0b10000000
 )
 
 // Board represents an 8×8 chess board.
@@ -42,10 +42,11 @@ type Board struct {
 }
 
 const (
-	wcks = 0b00000010
-	wcqs = 0b00000100
-	bcks = 0b00001000
-	bcqs = 0b00010000
+	wcks   = 0b01000000
+	wcqs   = 0b00100000
+	bcks   = 0b00010000
+	bcqs   = 0b00001000
+	epmask = 0b00000111 // the last 3 bits of meta indicate the file for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
@@ -91,6 +92,25 @@ func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 
 // IsKingAt returns true iff there is a piece at index i and it is a king.
 func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
+
+// EnPassant returns the index of the square under threat of en passant, or 0 if
+// there is no such square.
+func (b Board) EnPassant() uint8 {
+	file := uint8(b.meta & epmask)
+	if file == 0 {
+		return 0
+	}
+	tomove := b.ToMove()
+	// index = 8×(rank - 1) + file - 1
+	switch tomove {
+	case White:
+		return 39 + file // rank 6
+	case Black:
+		return 15 + file // rank 3
+	default:
+		panic(fmt.Sprintf("invalid to move: %b", tomove))
+	}
+}
 
 // PieceAt returns the piece at index i.
 func (b Board) PieceAt(i uint8) Piece {
