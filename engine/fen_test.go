@@ -97,3 +97,10 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkNewBoardFromFEN(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+		engine.NewBoardFromFEN(fen)
+	}
+}
