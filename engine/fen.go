@@ -235,8 +235,7 @@ READ_SQUARES:
 
 	var err error
 
-	err = skipspace()
-	if err != nil {
+	if err = skipspace(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
@@ -254,8 +253,7 @@ READ_SQUARES:
 		return nil, fmt.Errorf("unexpected '%c', expecting [wb]", tomove)
 	}
 
-	err = skipspace()
-	if err != nil {
+	if err = skipspace(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
@@ -286,8 +284,7 @@ READ_CASTLING:
 		}
 	}
 
-	err = skipspace()
-	if err != nil {
+	if err = skipspace(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
@@ -338,25 +335,21 @@ READ_CASTLING:
 		}
 	}
 
-	err = skipspace()
-	if err != nil {
+	if err = skipspace(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
 	// read number of half moves
-	b.half, err = readuint8()
-	if err != nil {
+	if b.half, err = readuint8(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
-	err = skipspace()
-	if err != nil {
+	if err = skipspace(); err != nil {
 		return nil, unexpectingEOF(err)
 	}
 
 	// read number of full moves
-	b.full, err = readuint8()
-	if err != nil && err != io.EOF {
+	if b.full, err = readuint8(); err != nil && err != io.EOF {
 		// we're expecting an io.EOF err here
 		return nil, err
 	}
