@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"fmt"
+)
+
 // Piece represents a chess piece.
 type Piece byte
 
@@ -60,6 +64,6 @@ func (p Piece) Rune() rune {
 	case PieceBlackQueen:
 		return '♛'
 	default:
-		panic(p) // invalid piece
+		panic(fmt.Sprintf("invalid piece: %b", p))
 	}
 }

@@ -1,6 +1,9 @@
 package engine
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Board represents an 8×8 chess board.
 //
@@ -84,7 +87,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.IsKingAt(i):
 			return PieceWhiteKing
 		default:
-			panic(b) // invalid board state
+			panic(fmt.Sprintf("invalid board state: %+v", b))
 		}
 	}
 	if b.IsBlackAt(i) {
@@ -102,7 +105,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.IsKingAt(i):
 			return PieceBlackKing
 		default:
-			panic(b) // invalid board state
+			panic(fmt.Sprintf("invalid board state: %+v", b))
 		}
 	}
 	return 0
