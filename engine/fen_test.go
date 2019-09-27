@@ -83,7 +83,10 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 		{"rnbqkbnx/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "unexpected 'x', expecting [PNBRQKpnbrqk1-8]"}, // invalid piece char
 		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ? KQkq - 0 1", "unexpected '?', expecting [wb]"},              // invalid to move char
 		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w abcd - 0 1", "unexpected 'a', expecting [KQkq]"},            // invalid castling chars
-		// {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z 0 1", ""}, // invalid en passant
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z1 0 1", "unexpected 'z', expecting [a-hA-H]"},         // invalid en passant
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1", "unexpected '1', expecting [36]"},             // invalid en passant
+		{"rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a6 0 1", "invalid board state: white moved last; en passant on rank 6"},
+		{"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2", "invalid board state: black moved last; en passant on rank 3"},
 		// {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 999999", ""}, // number too large
 	}
 	for i, tt := range invalid {

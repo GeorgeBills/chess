@@ -10,8 +10,8 @@ type Colour byte
 
 // White and Black are constants defined for the colours.
 const (
-	White = 0b00000000
-	Black = 0b10000000
+	White Colour = 'w'
+	Black Colour = 'b'
 )
 
 // Board represents an 8×8 chess board.
@@ -36,17 +36,33 @@ type Board struct {
 	rooks   uint64
 	queens  uint64
 	kings   uint64
-	half    uint8
-	full    uint8
-	meta    byte
+
+	// half and total both record "half" moves. A "half" move is a move where
+	// one colour has moved; a "full" move is a move where both colours have
+	// moved. We only record half moves, and calculate full moves if needed.
+	//
+	// half records the number of half moves since a pawn was moved or a piece
+	// was captured, and is used for determing if a draw can be claimed under
+	// the fifty-move rule.
+	//
+	// total records the total number of half moves since the start of the game.
+	// It starts at 0 and is incremented to 1 post white's first move, 2 post
+	// black's first move, 3, 4... etc. It will always be even if it is white's
+	// turn to move and odd if it is black's turn to move.
+	half  uint8
+	total uint16
+
+	// meta records meta information about the board, specifically castling
+	// rights and whether any pawn is vulnerable to en passant.
+	meta byte
 }
 
 const (
-	wcks   = 0b01000000
-	wcqs   = 0b00100000
-	bcks   = 0b00010000
-	bcqs   = 0b00001000
-	epmask = 0b00000111 // the last 3 bits of meta indicate the file for a valid en passant
+	wcks   = 0b10000000
+	wcqs   = 0b01000000
+	bcks   = 0b00100000
+	bcqs   = 0b00010000
+	epmask = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
@@ -61,8 +77,8 @@ func NewBoard() Board {
 		queens:  0b00001000_00000000_00000000_00000000_00000000_00000000_00000000_00001000,
 		kings:   0b00010000_00000000_00000000_00000000_00000000_00000000_00000000_00010000,
 		half:    0,
-		full:    1,
-		meta:    wcks | wcqs | bcks | bcqs | White,
+		total:   0,
+		meta:    wcks | wcqs | bcks | bcqs,
 	}
 }
 
@@ -155,10 +171,10 @@ func (b Board) PieceAt(i uint8) Piece {
 
 // ToMove returns the colour whose move it is.
 func (b Board) ToMove() Colour {
-	if b.meta&Black != 0 {
-		return Black
+	if b.total%2 == 0 {
+		return White
 	}
-	return White
+	return Black
 }
 
 // CanWhiteCastleKingSide returns true iff white can castle king side.
@@ -179,7 +195,7 @@ func (b Board) CanBlackCastleQueenSide() bool { return b.meta&bcqs != 0 }
 func (b Board) HalfMoves() int { return int(b.half) }
 
 // FullMoves returns the number of full moves (moves by both players).
-func (b Board) FullMoves() int { return int(b.full) }
+func (b Board) FullMoves() int { return int(b.total/2) + 1 }
 
 // String renders the board from whites perspective.
 func (b Board) String() string {

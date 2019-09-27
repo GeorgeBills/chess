@@ -245,10 +245,7 @@ READ_SQUARES:
 		return nil, unexpectingEOF(err)
 	}
 	switch tomove {
-	case 'w':
-		b.meta |= White
-	case 'b':
-		b.meta |= Black
+	case 'w', 'b': // valid; unused till later
 	default:
 		return nil, fmt.Errorf("unexpected '%c', expecting [wb]", tomove)
 	}
@@ -294,8 +291,7 @@ READ_CASTLING:
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
-		// should be a file; store the file as the last 3 bits in the board meta
-		// BUG: 'h' - 'a' + 1 is 4 bits...
+		// should be a file; store the file as the last 4 bits in the board meta
 		switch ch {
 		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
 			b.meta |= uint8(ch-'a') + 1
@@ -305,11 +301,8 @@ READ_CASTLING:
 			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
 		}
 
-		// next char should indicate either rank 3 or rank 6
-		ch, err := r.ReadByte()
-		if err != nil {
-			return nil, unexpectingEOF(err)
-		}
+		// The next char should indicate either rank 3 or rank 6.
+		//
 		// We don't encode this rank into the board state, since it can be
 		// inferred from which colour is to move next.
 		//
@@ -321,13 +314,18 @@ READ_CASTLING:
 		//
 		// This means we need to validate the state here, otherwise the board is
 		// inconsistent.
+		ch, err := r.ReadByte()
+		if err != nil {
+			return nil, unexpectingEOF(err)
+		}
+
 		switch ch {
 		case '3':
-			if b.ToMove() != Black {
+			if tomove == 'w' {
 				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank 3")
 			}
 		case '6':
-			if b.ToMove() != White {
+			if tomove == 'b' {
 				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank 6")
 			}
 		default:
@@ -349,9 +347,14 @@ READ_CASTLING:
 	}
 
 	// read number of full moves
-	if b.full, err = readuint8(); err != nil && err != io.EOF {
+	full, err := readuint8()
+	if err != nil && err != io.EOF {
 		// we're expecting an io.EOF err here
 		return nil, err
+	}
+	b.total = uint16(2 * (full - 1))
+	if tomove == 'b' {
+		b.total++
 	}
 
 	return b, nil
