@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+// Colour is used to represent each colour.
+type Colour byte
+
+// White and Black are constants defined for the colours.
+const (
+	White Colour = 'w'
+	Black Colour = 'b'
+)
+
 // Board represents an 8×8 chess board.
 //
 // The 0th index represents A1 and the 63rd index represents H8.
@@ -27,7 +36,34 @@ type Board struct {
 	rooks   uint64
 	queens  uint64
 	kings   uint64
+
+	// half and total both record "half" moves. A "half" move is a move where
+	// one colour has moved; a "full" move is a move where both colours have
+	// moved. We only record half moves, and calculate full moves if needed.
+	//
+	// half records the number of half moves since a pawn was moved or a piece
+	// was captured, and is used for determing if a draw can be claimed under
+	// the fifty-move rule.
+	//
+	// total records the total number of half moves since the start of the game.
+	// It starts at 0 and is incremented to 1 post white's first move, 2 post
+	// black's first move, 3, 4... etc. It will always be even if it is white's
+	// turn to move and odd if it is black's turn to move.
+	half  uint8
+	total uint16
+
+	// meta records meta information about the board, specifically castling
+	// rights and whether any pawn is vulnerable to en passant.
+	meta byte
 }
+
+const (
+	wcks   = 0b10000000
+	wcqs   = 0b01000000
+	bcks   = 0b00100000
+	bcqs   = 0b00010000
+	epmask = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
+)
 
 // NewBoard returns a board in the initial state.
 func NewBoard() Board {
@@ -40,6 +76,9 @@ func NewBoard() Board {
 		rooks:   0b10000001_00000000_00000000_00000000_00000000_00000000_00000000_10000001,
 		queens:  0b00001000_00000000_00000000_00000000_00000000_00000000_00000000_00001000,
 		kings:   0b00010000_00000000_00000000_00000000_00000000_00000000_00000000_00010000,
+		half:    0,
+		total:   0,
+		meta:    wcks | wcqs | bcks | bcqs,
 	}
 }
 
@@ -69,6 +108,25 @@ func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 
 // IsKingAt returns true iff there is a piece at index i and it is a king.
 func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
+
+// EnPassant returns the index of the square under threat of en passant, or 0 if
+// there is no such square.
+func (b Board) EnPassant() uint8 {
+	file := uint8(b.meta & epmask)
+	if file == 0 {
+		return 0
+	}
+	tomove := b.ToMove()
+	// index = 8×(rank - 1) + file - 1
+	switch tomove {
+	case White:
+		return 39 + file // rank 6
+	case Black:
+		return 15 + file // rank 3
+	default:
+		panic(fmt.Sprintf("invalid to move: %b", tomove))
+	}
+}
 
 // PieceAt returns the piece at index i.
 func (b Board) PieceAt(i uint8) Piece {
@@ -110,6 +168,34 @@ func (b Board) PieceAt(i uint8) Piece {
 	}
 	return 0
 }
+
+// ToMove returns the colour whose move it is.
+func (b Board) ToMove() Colour {
+	if b.total%2 == 0 {
+		return White
+	}
+	return Black
+}
+
+// CanWhiteCastleKingSide returns true iff white can castle king side.
+func (b Board) CanWhiteCastleKingSide() bool { return b.meta&wcks != 0 }
+
+// CanWhiteCastleQueenSide returns true iff white can castle queen side.
+func (b Board) CanWhiteCastleQueenSide() bool { return b.meta&wcqs != 0 }
+
+// CanBlackCastleKingSide returns true iff black can castle king side.
+func (b Board) CanBlackCastleKingSide() bool { return b.meta&bcks != 0 }
+
+// CanBlackCastleQueenSide returns true iff black can castle queen side.
+func (b Board) CanBlackCastleQueenSide() bool { return b.meta&bcqs != 0 }
+
+// HalfMoves returns the number of half moves (moves by one player) since the
+// last pawn moved or piece was captured. This is used for determining if a draw
+// can be claimed by the fifty move rule.
+func (b Board) HalfMoves() int { return int(b.half) }
+
+// FullMoves returns the number of full moves (moves by both players).
+func (b Board) FullMoves() int { return int(b.total/2) + 1 }
 
 // String renders the board from whites perspective.
 func (b Board) String() string {
