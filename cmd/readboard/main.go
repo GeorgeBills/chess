@@ -41,5 +41,17 @@ func main() {
 
 		board |= 1 << (8*(rank-1) + file - 1)
 	}
-	fmt.Printf("0b%064b", board)
+
+	bitstr := fmt.Sprintf("%064b", board)
+	fmt.Printf(
+		"0b%s_%s_%s_%s_%s_%s_%s_%s",
+		bitstr[0:8],
+		bitstr[8:16],
+		bitstr[16:24],
+		bitstr[24:32],
+		bitstr[32:40],
+		bitstr[40:48],
+		bitstr[48:56],
+		bitstr[56:64],
+	)
 }

@@ -24,12 +24,14 @@ func main() {
 	var err error
 	switch {
 	case strings.HasPrefix(bitstring, "0x"):
-		board, err = strconv.ParseUint(bitstring[2:], 16, 64)
+		clean := strings.ReplaceAll(bitstring[2:], "_", "")
+		board, err = strconv.ParseUint(clean, 16, 64)
 		if err != nil {
 			fatal(1, err)
 		}
 	case strings.HasPrefix(bitstring, "0b"):
-		board, err = strconv.ParseUint(bitstring[2:], 2, 64)
+		clean := strings.ReplaceAll(bitstring[2:], "_", "")
+		board, err = strconv.ParseUint(clean, 2, 64)
 		if err != nil {
 			fatal(1, err)
 		}
