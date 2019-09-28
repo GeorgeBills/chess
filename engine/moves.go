@@ -47,3 +47,26 @@ func KingMoves(i uint8) uint64 {
 	}
 	return moves
 }
+
+// KnightMoves returns the moves a knight at index i can make.
+func KnightMoves(i uint8) uint64 {
+	var moves uint64
+	file := i % 8
+	if file > 0 {
+		moves |= 1 << (i + 15) // nnw (+2×8, -1)
+		moves |= 1 << (i - 17) // ssw (-2×8, -1)
+		if file > 1 {
+			moves |= 1 << (i + 6)  // wwn (+8, -2×1)
+			moves |= 1 << (i - 10) // wws (-8, -2×1)
+		}
+	}
+	if file < 7 {
+		moves |= 1 << (i + 17) // nne (+2×8, +1)
+		moves |= 1 << (i - 15) // sse (-2×8, +1)
+		if file < 6 {
+			moves |= 1 << (i + 10) // een (+8, +2×1)
+			moves |= 1 << (i - 6)  // ees (-8, +2×1)
+		}
+	}
+	return moves
+}
