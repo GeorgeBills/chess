@@ -31,3 +31,19 @@ func BlackPawnMoves(i uint8) uint64 {
 	}
 	return moves
 }
+
+// KingMoves returns the moves a king at index i can make, ignoring castling.
+func KingMoves(i uint8) uint64 {
+	var moves uint64
+	moves |= 1 << (i + 8) // n
+	moves |= 1 << (i - 8) // s
+	// can't move east if we're on file h
+	if i%8 != 7 {
+		moves |= 1 << (i + 1) // e
+	}
+	// can't move west if we're on file a
+	if i%8 != 0 {
+		moves |= 1 << (i - 1) // w
+	}
+	return moves
+}

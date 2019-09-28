@@ -41,3 +41,20 @@ func TestBlackPawnMoves(t *testing.T) {
 		})
 	}
 }
+
+func TestKingMoves(t *testing.T) {
+	indexes := []struct {
+		i        uint8
+		expected uint64
+	}{
+		{A1, 0b00000000_00000000_00000000_00000000_00000000_00000000_00000001_00000010}, // a2, b1
+		{B2, 0b00000000_00000000_00000000_00000000_00000000_00000010_00000101_00000010}, // b1, b3, a2, c2
+		{H8, 0b01000000_10000000_00000000_00000000_00000000_00000000_00000000_00000000}, // g8, h7
+	}
+	for _, tt := range indexes {
+		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
+			moves := engine.KingMoves(tt.i)
+			assert.Equal(t, tt.expected, moves)
+		})
+	}
+}
