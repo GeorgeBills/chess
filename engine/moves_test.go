@@ -24,3 +24,20 @@ func TestWhitePawnMoves(t *testing.T) {
 		})
 	}
 }
+
+func TestBlackPawnMoves(t *testing.T) {
+	indexes := []struct {
+		i        uint8
+		expected uint64
+	}{
+		{D7, 0b00000000_00000000_00001000_00001000_00000000_00000000_00000000_00000000}, // d6, d5
+		{E6, 0b00000000_00000000_00000000_00010000_00000000_00000000_00000000_00000000}, // e5
+		{F5, 0b00000000_00000000_00000000_00000000_00100000_00000000_00000000_00000000}, // e4
+	}
+	for _, tt := range indexes {
+		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
+			moves := engine.BlackPawnMoves(tt.i)
+			assert.Equal(t, tt.expected, moves)
+		})
+	}
+}

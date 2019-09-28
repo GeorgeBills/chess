@@ -19,3 +19,15 @@ func WhitePawnMoves(i uint8) uint64 {
 	}
 	return moves
 }
+
+// BlackPawnMoves returns the moves a black pawn at index i can make, ignoring
+// captures and en passant.
+func BlackPawnMoves(i uint8) uint64 {
+	var moves uint64
+	moves |= 1 << (i - 8) // s
+	// if a black pawn is on rank 7 it may move two squares
+	if 48 <= i && i <= 55 {
+		moves |= 1 << (i - 16) // ss
+	}
+	return moves
+}
