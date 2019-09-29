@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -73,20 +74,21 @@ func (b Board) FEN() string {
 
 	sb.WriteRune(' ')
 
-	if b.CanWhiteCastleKingSide() {
-		sb.WriteRune('K')
-	}
-
-	if b.CanWhiteCastleQueenSide() {
-		sb.WriteRune('Q')
-	}
-
-	if b.CanBlackCastleKingSide() {
-		sb.WriteRune('k')
-	}
-
-	if b.CanBlackCastleQueenSide() {
-		sb.WriteRune('q')
+	if b.meta&(wcks|wcqs|bcks|bcqs) == 0 {
+		sb.WriteRune('-')
+	} else {
+		if b.CanWhiteCastleKingSide() {
+			sb.WriteRune('K')
+		}
+		if b.CanWhiteCastleQueenSide() {
+			sb.WriteRune('Q')
+		}
+		if b.CanBlackCastleKingSide() {
+			sb.WriteRune('k')
+		}
+		if b.CanBlackCastleQueenSide() {
+			sb.WriteRune('q')
+		}
 	}
 
 	sb.WriteRune(' ')
@@ -270,6 +272,13 @@ READ_CASTLING:
 			b.meta |= bcks
 		case 'q':
 			b.meta |= bcqs
+		case '-':
+			// '-' indicates that castling is unavailable
+			// if present it must be the one and only byte
+			if b.meta&(wcks|wcqs|bcks|bcqs) != 0 {
+				return nil, errors.New("unexpected '-', expecting [KQkq]")
+			}
+			break READ_CASTLING
 		case ' ':
 			err := r.UnreadByte()
 			if err != nil {
