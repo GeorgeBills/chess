@@ -113,7 +113,51 @@ func (b Board) Moves() []Board {
 
 	// TODO: bishop moves
 
-	// TODO: knight moves
+	knights := b.knights & colour
+	for from = 0; from < 64; from++ {
+		frombit = 1 << from
+		if knights&frombit != 0 { // is there a knight on this square?
+			knightmoves := KnightMoves(from) &^ colour
+			for to = 0; to < 64; to++ {
+				tobit = 1 << to
+				if knightmoves&tobit != 0 { // is there a move to this square?
+					newboard := b
+
+					// remove piece
+					newboard.knights &^= frombit
+
+					// remove target
+					newboard.bishops &^= tobit
+					newboard.pawns &^= tobit
+					newboard.queens &^= tobit
+					newboard.rooks &^= tobit
+
+					// place piece
+					newboard.knights |= tobit
+
+					if tomove == White {
+						if newboard.black&tobit == 0 { // not a capture: increment halfmoves
+							newboard.half++
+						}
+						newboard.white &^= frombit // remove piece
+						newboard.black &^= tobit   // remove target
+						newboard.white |= tobit    // place piece
+					} else {
+						if newboard.white&tobit == 0 { // not a capture: increment halfmoves
+							newboard.half++
+						}
+						newboard.black &^= frombit // remove piece
+						newboard.white &^= tobit   // remove target
+						newboard.black |= tobit    // place piece
+					}
+
+					newboard.total++
+
+					moves = append(moves, newboard)
+				}
+			}
+		}
+	}
 
 	pawns := b.pawns & colour
 	// ignore ranks 1 and 8, pawns can't ever occupy them
@@ -165,8 +209,6 @@ func (b Board) Moves() []Board {
 			}
 		}
 	}
-
-	// TODO: record half moves
 
 	// TODO: disallow moves placing the king in check
 
