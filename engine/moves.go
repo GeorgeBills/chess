@@ -14,7 +14,7 @@ func WhitePawnMoves(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i + 8) // n
 	// if a white pawn is on rank 2 it may move two squares
-	if 8 <= i && i <= 15 {
+	if i/8 == 1 {
 		moves |= 1 << (i + 16) // nn
 	}
 	return moves
@@ -26,7 +26,7 @@ func BlackPawnMoves(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i - 8) // s
 	// if a black pawn is on rank 7 it may move two squares
-	if 48 <= i && i <= 55 {
+	if i/8 == 6 {
 		moves |= 1 << (i - 16) // ss
 	}
 	return moves
