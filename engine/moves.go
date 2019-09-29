@@ -105,7 +105,55 @@ func (b Board) Moves() []Board {
 
 	// TODO: queen moves
 
-	// TODO: king moves
+	king := b.kings & colour
+	for from = 0; from < 64; from++ {
+		frombit = 1 << from
+		if king&frombit == 0 { // is there a king on this square?
+			kingmoves := KingMoves(from) &^ colour
+			for to = 0; to < 64; to++ {
+				tobit = 1 << to
+				if kingmoves&tobit != 0 { // is there a move to this square?
+					newboard := b
+
+					// remove piece
+					newboard.kings &^= frombit
+
+					// remove target
+					newboard.bishops &^= tobit
+					newboard.knights &^= tobit
+					newboard.pawns &^= tobit
+					newboard.queens &^= tobit
+					newboard.rooks &^= tobit
+
+					// place piece
+					newboard.kings |= tobit
+
+					if tomove == White {
+						if newboard.black&tobit == 0 { // not a capture: increment halfmoves
+							newboard.half++
+						}
+						newboard.white &^= frombit // remove piece
+						newboard.black &^= tobit   // remove target
+						newboard.white |= tobit    // place piece
+					} else {
+						if newboard.white&tobit == 0 { // not a capture: increment halfmoves
+							newboard.half++
+						}
+						newboard.black &^= frombit // remove piece
+						newboard.white &^= tobit   // remove target
+						newboard.black |= tobit    // place piece
+					}
+
+					newboard.total++
+
+					moves = append(moves, newboard)
+				}
+			}
+
+			// there's only one king per colour, so break out of the loop
+			break
+		}
+	}
 
 	// TODO: castling
 
