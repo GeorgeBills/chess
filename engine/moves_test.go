@@ -128,3 +128,10 @@ func TestInitialMoves(t *testing.T) {
 	}
 	assert.Equal(t, expected, moves)
 }
+
+func BenchmarkInitialMoves(b *testing.B) {
+	board := engine.NewBoard()
+	for i := 0; i < b.N; i++ {
+		board.Moves()
+	}
+}
