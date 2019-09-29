@@ -42,6 +42,14 @@ func TestBlackPawnMoves(t *testing.T) {
 	}
 }
 
+func BenchmarkPawnMoves(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		idx := uint8(i % 64)
+		engine.WhitePawnMoves(idx)
+		engine.BlackPawnMoves(idx)
+	}
+}
+
 func TestKingMoves(t *testing.T) {
 	indexes := []struct {
 		i        uint8
@@ -56,6 +64,12 @@ func TestKingMoves(t *testing.T) {
 			moves := engine.KingMoves(tt.i)
 			assert.Equal(t, tt.expected, moves)
 		})
+	}
+}
+
+func BenchmarkKingMoves(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		engine.KingMoves(uint8(i % 64))
 	}
 }
 
@@ -75,5 +89,11 @@ func TestKnightMoves(t *testing.T) {
 			moves := engine.KnightMoves(tt.i)
 			assert.Equal(t, tt.expected, moves)
 		})
+	}
+}
+
+func BenchmarkKnightMoves(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		engine.KnightMoves(uint8(i % 64))
 	}
 }
