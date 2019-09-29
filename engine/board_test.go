@@ -22,6 +22,8 @@ func TestNewBoard(t *testing.T) {
 	assert.Equal(t, 0, board.HalfMoves())
 	assert.Equal(t, 1, board.FullMoves())
 
+	assert.EqualValues(t, 0, board.EnPassant())
+
 	// expected pieces (other than pawns)
 	pieces := []struct {
 		idx   uint8
