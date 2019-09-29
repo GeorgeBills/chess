@@ -188,13 +188,13 @@ func (b Board) Moves() []Board {
 					newboard.pawns |= tobit
 
 					if tomove == White {
-						newboard.white ^= frombit // remove piece
-						newboard.black ^= tobit   // remove target
-						newboard.white |= tobit   // place piece
+						newboard.white &^= frombit // remove piece
+						newboard.black &^= tobit   // remove target
+						newboard.white |= tobit    // place piece
 					} else {
-						newboard.black ^= frombit // remove piece
-						newboard.white ^= tobit   // remove target
-						newboard.black |= tobit   // place piece
+						newboard.black &^= frombit // remove piece
+						newboard.white &^= tobit   // remove target
+						newboard.black |= tobit    // place piece
 					}
 
 					// TODO: pawn captures
@@ -202,6 +202,7 @@ func (b Board) Moves() []Board {
 					// TODO: set en passant target on double pawn moves
 					// TODO: pawn promotion
 
+					// pawn moves don't increment the half move clock
 					newboard.total++
 
 					moves = append(moves, newboard)
