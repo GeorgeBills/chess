@@ -4,9 +4,14 @@ package engine
 // nn, ss: north north and south south (used by pawns performing double moves)
 // nne, een, ssw: north north east, etc (used by knights)
 //
-// north and south are easy; add or subtract 8 (a full rank). with bitshifting
-// you don't even need to check if that's off the board, since bits that leave
-// the board will just be shifted out.
+// North and South are easy; add or subtract 8 (a full rank). With bit shifting
+// you don't even need to check if that's off the board: shifting above 64 will
+// shift the bits out, and subtracting past 0 with an unsigned int ends up
+// wrapping into a very large shift up and off the board again.
+//
+// East and West require checking if you'll leave the board or not, since
+// leaving the board in either of those directions will wrap around; e.g. a king
+// shouldn't be able to move one square West from A2 (8) and end up on H1 (7).
 
 // WhitePawnMoves returns the moves a white pawn at index i can make, ignoring
 // captures and en passant.
@@ -111,9 +116,10 @@ func (b Board) Moves() []Board {
 	// TODO: knight moves
 
 	pawns := b.pawns & colour
+	// ignore ranks 1 and 8, pawns can't ever occupy them
 	for from = 8; from < 56; from++ {
 		frombit = 1 << from
-		if pawns&frombit != 0 {
+		if pawns&frombit != 0 { // is there a pawn on this square?
 			var pawnmoves uint64
 			if tomove == White {
 				pawnmoves = WhitePawnMoves(from) &^ colour
