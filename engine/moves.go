@@ -70,3 +70,99 @@ func KnightMoves(i uint8) uint64 {
 	}
 	return moves
 }
+
+// Moves returns a slice of possible board states from the current board state.
+func (b Board) Moves() []Board {
+	var moves []Board
+	var from, to uint8
+	var frombit, tobit uint64
+	var colour uint64
+
+	tomove := b.ToMove()
+	if tomove == White {
+		colour = b.white
+	} else {
+		colour = b.black
+	}
+
+	// - Find all pieces of the given colour.
+	// - For each square, check if we have a piece there.
+	// - If there is a piece there, find all the moves that piece can make.
+	// - AND NOT the moves with our colour (we can't move to a square we occupy).
+	// - For each remaining move, generate the board state for that move:
+	//   - Remove the piece from the square it currently occupies.
+	//   - Remove any opposing pieces from the target square.
+	//   - Place the piece in the target square.
+
+	// We evaluate pieces in queen, king, rook, bishop, knight, pawn order as a
+	// heuristic to roughly sort more likely to be impactful moves early, in
+	// order to aid alpha-beta pruning.
+
+	// TODO: queen moves
+
+	// TODO: king moves
+
+	// TODO: castling
+
+	// TODO: rook moves
+
+	// TODO: bishop moves
+
+	// TODO: knight moves
+
+	pawns := b.pawns & colour
+	for from = 8; from < 56; from++ {
+		frombit = 1 << from
+		if pawns&frombit != 0 {
+			var pawnmoves uint64
+			if tomove == White {
+				pawnmoves = WhitePawnMoves(from) &^ colour
+			} else {
+				pawnmoves = BlackPawnMoves(from) &^ colour
+			}
+			for to = 0; to < 64; to++ {
+				tobit = 1 << to
+				if pawnmoves&tobit != 0 { // is there a move to this square?
+					newboard := b
+
+					// remove piece
+					newboard.pawns ^= frombit
+
+					// remove target
+					newboard.bishops ^= tobit
+					newboard.knights ^= tobit
+					newboard.queens ^= tobit
+					newboard.rooks ^= tobit
+
+					// place piece
+					newboard.pawns |= tobit
+
+					if tomove == White {
+						newboard.white ^= frombit // remove piece
+						newboard.black ^= tobit   // remove target
+						newboard.white |= tobit   // place piece
+					} else {
+						newboard.black ^= frombit // remove piece
+						newboard.white ^= tobit   // remove target
+						newboard.black |= tobit   // place piece
+					}
+
+					// TODO: pawn captures
+					// TODO: en passant captures
+					// TODO: set en passant target on double pawn moves
+					// TODO: pawn promotion
+
+					newboard.total++
+
+					moves = append(moves, newboard)
+				}
+			}
+		}
+	}
+
+	// TODO: record half moves
+
+	// TODO: disallow moves placing the king in check
+
+	return moves
+}
