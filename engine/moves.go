@@ -99,6 +99,22 @@ func (b Board) Moves() []Board {
 	//   - Remove any opposing pieces from the target square.
 	//   - Place the piece in the target square.
 
+	// Some general optimisations:
+	//
+	// We don't remove a piece of our type from the target square. e.g. if we're
+	// moving a knight to a3 then the bit for a3 on the knights board will end
+	// up set no matter what, so don't bother unsetting that bit before the
+	// move.
+	//
+	// We don't check to see if a bit is set or not before clearing or setting
+	// it. The branch is more expensive than just setting or clearing
+	// regardless.
+	//
+	// We do all the colour and half move setting in a single if else block,
+	// again to minimise branches.
+	//
+	// More specific optimisations are called out inline.
+
 	// We evaluate pieces in queen, king, rook, bishop, knight, pawn order as a
 	// heuristic to roughly sort more likely to be impactful moves early, in
 	// order to aid alpha-beta pruning.
