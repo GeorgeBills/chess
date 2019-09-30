@@ -90,6 +90,8 @@ func (b Board) Moves() []Board {
 		colour = b.black
 	}
 
+	occupied := b.white | b.black
+
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -236,11 +238,11 @@ func (b Board) Moves() []Board {
 			// (for black) to get the squares we're blocking a double move to.
 			// Remove those squares from candidate moves.
 			if tomove == White {
-				blockdouble := ((b.white | b.black) & 0x0000000000FF0000) << 8
-				pawnmoves = WhitePawnMoves(from) &^ colour &^ blockdouble
+				blockdouble := (occupied & 0x0000000000FF0000) << 8
+				pawnmoves = WhitePawnMoves(from) &^ occupied &^ blockdouble
 			} else {
-				blockdouble := ((b.white | b.black) & 0x0000FF0000000000) >> 8
-				pawnmoves = BlackPawnMoves(from) &^ colour &^ blockdouble
+				blockdouble := (occupied & 0x0000FF0000000000) >> 8
+				pawnmoves = BlackPawnMoves(from) &^ occupied &^ blockdouble
 			}
 
 			for to = 0; to < 64; to++ {
