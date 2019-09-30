@@ -124,7 +124,7 @@ func (b Board) Moves() []Board {
 	king := b.kings & colour
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
-		if king&frombit == 0 { // is there a king on this square?
+		if king&frombit != 0 { // is there a king on this square?
 			kingmoves := KingMoves(from) &^ colour
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
