@@ -158,6 +158,28 @@ func TestMoves(t *testing.T) {
 				"rnbqkbnr/ppppppp1/7p/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
 			},
 		},
+		{
+			"pawns can't double move if blocked by opposing piece",
+			"k7/8/8/8/8/p7/P7/7K w - - 0 123",
+			[]string{
+				"k7/8/8/8/8/p7/P7/6K1 b - - 1 123",
+				"k7/8/8/8/8/p7/P6K/8 b - - 1 123",
+			},
+		},
+		{
+			"pawns can't double move if blocked by friendly piece",
+			"k7/6p1/6n1/8/8/8/8/7K b - - 0 123",
+			[]string{
+				"8/k5p1/6n1/8/8/8/8/7K w - - 1 124",
+				"1k6/6p1/6n1/8/8/8/8/7K w - - 1 124",
+				"k7/6p1/8/8/5n2/8/8/7K w - - 1 124",
+				"k7/6p1/8/8/7n/8/8/7K w - - 1 124",
+				"k7/6p1/8/4n3/8/8/8/7K w - - 1 124",
+				"k7/4n1p1/8/8/8/8/8/7K w - - 1 124",
+				"k4n2/6p1/8/8/8/8/8/7K w - - 1 124",
+				"k6n/6p1/8/8/8/8/8/7K w - - 1 124",
+			},
+		},
 	}
 
 	for _, tt := range moves {
