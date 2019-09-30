@@ -211,6 +211,20 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 	}
 }
 
+func TestRoundTripFEN(t *testing.T) {
+	fen := []string{
+		"k7/8/8/8/8/p7/P6K/8 b - - 1 123",
+	}
+	for i, tt := range fen {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			b, err := engine.NewBoardFromFEN(strings.NewReader(tt))
+			require.NoError(t, err)
+			require.NotNil(t, b)
+			assert.Equal(t, tt, b.FEN())
+		})
+	}
+}
+
 func BenchmarkNewBoardFromFEN(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")

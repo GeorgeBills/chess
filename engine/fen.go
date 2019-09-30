@@ -63,6 +63,10 @@ func (b Board) FEN() string {
 			panic(fmt.Sprintf("invalid piece: %b", p))
 		}
 	}
+	// flush any remaining empty squares
+	if empty > 0 {
+		sb.WriteString(strconv.Itoa(empty))
+	}
 
 	sb.WriteRune(' ')
 
