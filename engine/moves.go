@@ -229,11 +229,20 @@ func (b Board) Moves() []Board {
 		frombit = 1 << from
 		if pawns&frombit != 0 { // is there a pawn on this square?
 			var pawnmoves uint64
+
+			// blockdouble: Find all pieces occupying squares in rank 3 or 7;
+			// these pieces would block a double move for white or black
+			// respectively. Shift this 8 bits to the left (for white) or right
+			// (for black) to get the squares we're blocking a double move to.
+			// Remove those squares from candidate moves.
 			if tomove == White {
-				pawnmoves = WhitePawnMoves(from) &^ colour
+				blockdouble := ((b.white | b.black) & 0x0000000000FF0000) << 8
+				pawnmoves = WhitePawnMoves(from) &^ colour &^ blockdouble
 			} else {
-				pawnmoves = BlackPawnMoves(from) &^ colour
+				blockdouble := ((b.white | b.black) & 0x0000FF0000000000) >> 8
+				pawnmoves = BlackPawnMoves(from) &^ colour &^ blockdouble
 			}
+
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
 				if pawnmoves&tobit != 0 { // is there a move to this square?
