@@ -168,8 +168,7 @@ func (b Board) Moves() []Board {
 				}
 			}
 
-			// there's only one king per colour, so break out of the loop
-			break
+			// TODO: is it worth breaking out early on the second king?
 		}
 	}
 
