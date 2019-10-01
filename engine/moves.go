@@ -81,13 +81,15 @@ func (b Board) Moves() []Board {
 	var moves []Board
 	var from, to uint8
 	var frombit, tobit uint64
-	var colour uint64
+	var colour, opposing uint64
 
 	tomove := b.ToMove()
 	if tomove == White {
 		colour = b.white
+		opposing = b.black
 	} else {
 		colour = b.black
+		opposing = b.white
 	}
 
 	occupied := b.white | b.black
@@ -174,7 +176,101 @@ func (b Board) Moves() []Board {
 
 	// TODO: castling
 
-	// TODO: rook moves
+	rookmove := func() {
+		newboard := b
+		newboard.rooks &^= frombit // remove piece
+		newboard.rooks |= tobit    // place piece
+		if tomove == White {
+			newboard.half++            // not a capture: increment halfmoves
+			newboard.white &^= frombit // remove piece
+			newboard.white |= tobit    // place piece
+		} else {
+			newboard.half++            // not a capture: increment halfmoves
+			newboard.black &^= frombit // remove piece
+			newboard.black |= tobit    // place piece
+		}
+
+		newboard.total++
+
+		moves = append(moves, newboard)
+	}
+	rookcapture := func() {
+		newboard := b
+
+		// remove piece
+		newboard.rooks &^= frombit
+
+		// remove target
+		newboard.bishops &^= tobit
+		newboard.knights &^= tobit
+		newboard.pawns &^= tobit
+		newboard.queens &^= tobit
+
+		// place piece
+		newboard.rooks |= tobit
+
+		if tomove == White {
+			newboard.white &^= frombit // remove piece
+			newboard.black &^= tobit   // remove target
+			newboard.white |= tobit    // place piece
+		} else {
+			newboard.black &^= frombit // remove piece
+			newboard.white &^= tobit   // remove target
+			newboard.black |= tobit    // place piece
+		}
+
+		newboard.total++
+
+		moves = append(moves, newboard)
+	}
+
+	rooks := b.rooks & colour
+	for from = 0; from < 64; from++ {
+		frombit = 1 << from
+		if rooks&frombit != 0 { // is there a rook on this square?
+			rank := from / 8
+			for n := from + 8; n < 64; n += 8 {
+				tobit = 1 << n
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for e := from + 1; e < (rank+1)*8; e++ {
+				tobit = 1 << e
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
+				tobit = 1 << s
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for w := from - 1; w > (rank*8)-1; w-- {
+				tobit = 1 << w
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+		}
+	}
 
 	// TODO: bishop moves
 
