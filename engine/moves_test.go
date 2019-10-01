@@ -6,6 +6,7 @@ import (
 	. "github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -216,6 +217,9 @@ func TestMoves(t *testing.T) {
 			for _, move := range b.Moves() {
 				moves = append(moves, move.FEN())
 			}
+			// sort so we don't need to fiddle with ordering in the test case
+			sort.Strings(tt.expected)
+			sort.Strings(moves)
 			assert.Equal(t, tt.expected, moves)
 		})
 	}
