@@ -1,5 +1,7 @@
 package engine
 
+// TODO: use init block to pregenerate moves
+
 // n: north; e: east; s: south; w: west
 // nn, ss: north north and south south (used by pawns performing double moves)
 // nne, een, ssw: north north east, etc (used by knights)
@@ -83,7 +85,10 @@ func (b Board) Moves() []Board {
 	var frombit, tobit uint64
 	var colour, opposing uint64
 
+	// TODO: don't copy the board then overwrite, just make a new board and set
+
 	tomove := b.ToMove()
+	// TODO: use pointers so we don't need to check tomove later
 	if tomove == White {
 		colour = b.white
 		opposing = b.black
@@ -111,6 +116,8 @@ func (b Board) Moves() []Board {
 	// More specific optimisations are called out inline.
 
 	// TODO: queen moves
+
+	// TODO: constrain tobit for pawns, knights, kings to a sensible value
 
 	// TODO: castling
 
