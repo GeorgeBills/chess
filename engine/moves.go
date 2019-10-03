@@ -80,7 +80,8 @@ func KnightMoves(i uint8) uint64 {
 
 // Moves returns a slice of possible board states from the current board state.
 func (b Board) Moves() []Board {
-	var moves []Board
+	moves := make([]Board, 0, 32)
+
 	var from, to uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
