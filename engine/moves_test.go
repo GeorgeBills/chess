@@ -228,6 +228,14 @@ func TestMoves(t *testing.T) {
 				"k7/8/8/8/1q6/8/r2RP3/1N5K b - - 2 123",
 			},
 		},
+		{
+			"king must not move into check",
+			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
+			[]string{
+				"4k2r/8/8/8/8/8/6K1/8 b - - 2 123",
+				"4k2r/8/8/8/8/8/8/5K2 b - - 2 123",
+			},
+		},
 	}
 
 	for _, tt := range moves {

@@ -99,6 +99,44 @@ func (b Board) Moves() []Board {
 
 	occupied := b.white | b.black
 
+	// loop over opposing pieces to mark threatened squares
+	var threatened uint64
+	opposingrooks := b.rooks & opposing
+	for from = 0; from < 64; from++ {
+		frombit = 1 << from
+		if opposingrooks&frombit != 0 { // is there a rook on this square?
+			rank := from / 8
+			for n := from + 8; n < 64; n += 8 {
+				tobit = 1 << n
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for e := from + 1; e < (rank+1)*8; e++ {
+				tobit = 1 << e
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
+				tobit = 1 << s
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for w := from - 1; w > (rank*8)-1; w-- {
+				tobit = 1 << w
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+		}
+	}
+
 	// Some general optimisations:
 	//
 	// We don't remove a piece of our type from the target square. e.g. if we're
@@ -338,7 +376,7 @@ FIND_MOVES:
 		}
 
 		if kings&frombit != 0 { // is there a king on this square?
-			kingmoves := KingMoves(from) &^ colour
+			kingmoves := KingMoves(from) &^ colour &^ threatened // king cannot move into check
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
 				if kingmoves&tobit != 0 { // is there a move to this square?
