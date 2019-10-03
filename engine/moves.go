@@ -208,54 +208,6 @@ func (b Board) Moves() []Board {
 		moves = append(moves, newboard)
 	}
 
-	rooks := b.rooks & colour
-	for from = 0; from < 64; from++ {
-		frombit = 1 << from
-		if rooks&frombit != 0 { // is there a rook on this square?
-			rank := from / 8
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						rookcapture()
-					}
-					break
-				}
-				rookmove()
-			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						rookcapture()
-					}
-					break
-				}
-				rookmove()
-			}
-			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						rookcapture()
-					}
-					break
-				}
-				rookmove()
-			}
-			for w := from - 1; w > (rank*8)-1; w-- {
-				tobit = 1 << w
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						rookcapture()
-					}
-					break
-				}
-				rookmove()
-			}
-		}
-	}
-
 	// TODO: bishop moves
 
 	// - Find all pieces of the given colour.
@@ -271,6 +223,7 @@ func (b Board) Moves() []Board {
 	// hopefully skip a loop iteration as early as possible.
 	pawns := b.pawns & colour
 	knights := b.knights & colour
+	rooks := b.rooks & colour
 	kings := b.kings & colour
 FIND_MOVES:
 	for from = 0; from < 64; from++ {
@@ -372,6 +325,51 @@ FIND_MOVES:
 
 					moves = append(moves, newboard)
 				}
+			}
+			continue FIND_MOVES
+		}
+
+		if rooks&frombit != 0 { // is there a rook on this square?
+			rank := from / 8
+			for n := from + 8; n < 64; n += 8 {
+				tobit = 1 << n
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for e := from + 1; e < (rank+1)*8; e++ {
+				tobit = 1 << e
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
+				tobit = 1 << s
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
+			}
+			for w := from - 1; w > (rank*8)-1; w-- {
+				tobit = 1 << w
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						rookcapture()
+					}
+					break
+				}
+				rookmove()
 			}
 			continue FIND_MOVES
 		}
