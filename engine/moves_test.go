@@ -241,6 +241,25 @@ func TestMoves(t *testing.T) {
 			"4k1r1/8/8/8/8/8/r7/7K w KQkq - 1 123",
 			nil,
 		},
+		{
+			"king free to move: own piece blocks check",
+			"3qk3/8/8/8/8/8/3P4/3K4 w KQkq - 1 123",
+			[]string{
+				"3qk3/8/8/8/3P4/8/8/3K4 b KQkq - 1 123",
+				"3qk3/8/8/8/8/3P4/8/3K4 b KQkq - 1 123",
+				"3qk3/8/8/8/8/8/3P4/2K5 b KQkq - 2 123",
+				"3qk3/8/8/8/8/8/3P4/4K3 b KQkq - 2 123",
+			},
+		},
+		{
+			"king free to move: opposing piece blocks check",
+			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
+			[]string{
+				"3qk3/3b4/8/8/8/8/3K4/8 b KQkq - 2 123",
+				"3qk3/3b4/8/8/8/8/8/2K5 b KQkq - 2 123",
+				"3qk3/3b4/8/8/8/8/8/4K3 b KQkq - 2 123",
+			},
+		},
 	}
 
 	for _, tt := range moves {
