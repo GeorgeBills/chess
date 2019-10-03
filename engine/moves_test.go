@@ -236,6 +236,11 @@ func TestMoves(t *testing.T) {
 				"4k2r/8/8/8/8/8/8/5K2 b - - 2 123",
 			},
 		},
+		{
+			"stalemate (no moves possible)",
+			"4k1r1/8/8/8/8/8/r7/7K w KQkq - 1 123",
+			nil,
+		},
 	}
 
 	for _, tt := range moves {
