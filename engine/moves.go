@@ -233,6 +233,7 @@ func (b Board) Moves() []Board {
 	pawns := b.pawns & colour
 	knights := b.knights & colour
 	kings := b.kings & colour
+FIND_MOVES:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
 
@@ -290,8 +291,10 @@ func (b Board) Moves() []Board {
 					moves = append(moves, newboard)
 				}
 			}
+			continue FIND_MOVES
+		}
 
-		} else if knights&frombit != 0 { // is there a knight on this square?
+		if knights&frombit != 0 { // is there a knight on this square?
 			knightmoves := KnightMoves(from) &^ colour
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
@@ -331,8 +334,10 @@ func (b Board) Moves() []Board {
 					moves = append(moves, newboard)
 				}
 			}
+			continue FIND_MOVES
+		}
 
-		} else if kings&frombit != 0 { // is there a king on this square?
+		if kings&frombit != 0 { // is there a king on this square?
 			kingmoves := KingMoves(from) &^ colour
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
@@ -373,6 +378,8 @@ func (b Board) Moves() []Board {
 					moves = append(moves, newboard)
 				}
 			}
+
+			continue FIND_MOVES
 		}
 	}
 
