@@ -229,6 +229,10 @@ FIND_MOVES:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
 
+		if colour&frombit == 0 {
+			continue FIND_MOVES
+		}
+
 		if pawns&frombit != 0 { // is there a pawn on this square?
 			var pawnmoves uint64
 
