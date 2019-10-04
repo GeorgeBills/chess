@@ -207,8 +207,53 @@ func (b Board) Moves() []Board {
 
 		moves = append(moves, newboard)
 	}
+	bishopmove := func() {
+		newboard := b
+		newboard.bishops &^= frombit // remove piece
+		newboard.bishops |= tobit    // place piece
+		if tomove == White {
+			newboard.half++            // not a capture: increment halfmoves
+			newboard.white &^= frombit // remove piece
+			newboard.white |= tobit    // place piece
+		} else {
+			newboard.half++            // not a capture: increment halfmoves
+			newboard.black &^= frombit // remove piece
+			newboard.black |= tobit    // place piece
+		}
 
-	// TODO: bishop moves
+		newboard.total++
+
+		moves = append(moves, newboard)
+	}
+	bishopcapture := func() {
+		newboard := b
+
+		// remove piece
+		newboard.bishops &^= frombit
+
+		// remove target
+		newboard.rooks &^= tobit
+		newboard.knights &^= tobit
+		newboard.pawns &^= tobit
+		newboard.queens &^= tobit
+
+		// place piece
+		newboard.bishops |= tobit
+
+		if tomove == White {
+			newboard.white &^= frombit // remove piece
+			newboard.black &^= tobit   // remove target
+			newboard.white |= tobit    // place piece
+		} else {
+			newboard.black &^= frombit // remove piece
+			newboard.white &^= tobit   // remove target
+			newboard.black |= tobit    // place piece
+		}
+
+		newboard.total++
+
+		moves = append(moves, newboard)
+	}
 
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
@@ -223,6 +268,7 @@ func (b Board) Moves() []Board {
 	// hopefully skip a loop iteration as early as possible.
 	pawns := b.pawns & colour
 	knights := b.knights & colour
+	bishops := b.bishops & colour
 	rooks := b.rooks & colour
 	kings := b.kings & colour
 FIND_MOVES:
@@ -376,6 +422,49 @@ FIND_MOVES:
 				rookmove()
 			}
 			continue FIND_MOVES
+		}
+
+		if bishops&frombit != 0 { // is there a bishop on this square?
+			for ne := from + 9; ne < 64 && ne/8 != 7; ne += 9 {
+				tobit = 1 << ne
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						bishopcapture()
+					}
+					break
+				}
+				bishopmove()
+			}
+			for se := from - 7; 0 < se && se < 64 && se/8 != 7; se -= 7 {
+				tobit = 1 << se
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						bishopcapture()
+					}
+					break
+				}
+				bishopmove()
+			}
+			for sw := from - 9; 0 < sw && sw < 64 && sw/8 != 0; sw -= 9 {
+				tobit = 1 << sw
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						bishopcapture()
+					}
+					break
+				}
+				bishopmove()
+			}
+			for nw := from + 7; nw < 64 && nw/8 != 0; nw += 7 {
+				tobit = 1 << nw
+				if occupied&tobit != 0 {
+					if opposing&tobit != 0 {
+						bishopcapture()
+					}
+					break
+				}
+				bishopmove()
+			}
 		}
 
 		if kings&frombit != 0 { // is there a king on this square?
