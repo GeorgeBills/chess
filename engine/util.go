@@ -7,3 +7,13 @@ func ToAlgebraicNotation(i uint8) string {
 	rank := i / 8
 	return string([]byte{'a' + file, '1' + rank})
 }
+
+// Rank returns the rank number (0...7) for a given index.
+func Rank(i uint8) uint8 {
+	return i / 8
+}
+
+// File returns the file number (0 for A....7 for H) for a given index.
+func File(i uint8) uint8 {
+	return i % 8
+}
