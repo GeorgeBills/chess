@@ -58,9 +58,9 @@ func TestKingMoves(t *testing.T) {
 		i        uint8
 		expected uint64
 	}{
-		{A1, 0b00000000_00000000_00000000_00000000_00000000_00000000_00000001_00000010}, // a2, b1
-		{B2, 0b00000000_00000000_00000000_00000000_00000000_00000010_00000101_00000010}, // b1, b3, a2, c2
-		{H8, 0b01000000_10000000_00000000_00000000_00000000_00000000_00000000_00000000}, // g8, h7
+		{A1, 0b00000000_00000000_00000000_00000000_00000000_00000000_00000011_00000010}, // a2, b1, b2
+		{B2, 0b00000000_00000000_00000000_00000000_00000000_00000111_00000101_00000111}, // b1, b3, a1, a2, a3, c1, c2, c3
+		{H8, 0b01000000_11000000_00000000_00000000_00000000_00000000_00000000_00000000}, // g8, h7, g7
 	}
 	for _, tt := range indexes {
 		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
@@ -147,14 +147,14 @@ func TestMoves(t *testing.T) {
 			"pawns can't move if blocked by opposing piece",
 			"k7/8/8/8/8/p7/P7/7K w - - 0 123",
 			[]string{
-				"h1g1", "h1h2", // king
+				"h1g1", "h1h2", "h1g2", // king
 			},
 		},
 		{
 			"pawns can't move if blocked by friendly piece",
 			"k7/6p1/6n1/8/8/8/8/7K b - - 0 123",
 			[]string{
-				"a8a7", "a8b8", // king
+				"a8a7", "a8b8", "a8b7", // king
 				"g6e5", "g6e7", "g6f4", "g6f8", "g6h4", "g6h8", // knight
 			},
 		},
@@ -162,7 +162,7 @@ func TestMoves(t *testing.T) {
 			"rook moves",
 			"k7/8/8/8/8/8/1R6/7K w - - 1 123",
 			[]string{
-				"h1h2", "h1g1", // king
+				"h1h2", "h1g1", "h1g2", // king
 				// rook vertical (along file)
 				"b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8",
 				// rook horizontal (along rank)
@@ -175,7 +175,7 @@ func TestMoves(t *testing.T) {
 			[]string{
 				"b1d2", "b1c3", "b1a3", // knight
 				"e2e3", "e2e4", // pawn
-				"h1g1", "h1h2", // // king
+				"h1g1", "h1h2", "h1g2", // king
 				"b2xa2", "b2xb4", "b2b3", "b2c2", "b2d2", // rook
 			},
 		},
@@ -183,7 +183,7 @@ func TestMoves(t *testing.T) {
 			"king must not move into check",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
 			[]string{
-				"g1g2", "g1f1", // king
+				"g1g2", "g1f1", "g1f2", // king
 			},
 		},
 		{
@@ -196,14 +196,14 @@ func TestMoves(t *testing.T) {
 			"3qk3/8/8/8/8/8/3P4/3K4 w KQkq - 1 123",
 			[]string{
 				"d2d3", "d2d4", // pawn
-				"d1c1", "d1e1", // king
+				"d1c1", "d1e1", "d1c2", "d1e2", // king
 			},
 		},
 		{
 			"king free to move: opposing piece blocks check",
 			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
 			[]string{
-				"d1c1", "d1e1", "d1d2", // king
+				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
 		{

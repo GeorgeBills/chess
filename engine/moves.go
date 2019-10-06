@@ -47,10 +47,14 @@ func KingMoves(i uint8) uint64 {
 	// can't move east if we're on file h
 	if i%8 != 7 {
 		moves |= 1 << (i + 1) // e
+		moves |= 1 << (i + 9) // ne
+		moves |= 1 << (i - 7) // se
 	}
 	// can't move west if we're on file a
 	if i%8 != 0 {
 		moves |= 1 << (i - 1) // w
+		moves |= 1 << (i + 7) // nw
+		moves |= 1 << (i - 9) // sw
 	}
 	return moves
 }
