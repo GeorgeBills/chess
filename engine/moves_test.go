@@ -88,6 +88,22 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"bishop moves",
+			"4k3/3b4/8/8/8/8/8/3K4 b KQkq - 1 123",
+			[]string{
+				"e8e7", "e8f7", "e8f8", "e8d8", // king
+				"d7c8", "d7c6", "d7b5", "d7a4", "d7e6", "d7f5", "d7g4", "d7h3", // bishop
+			},
+		},
+		{
+			"bishop captures",
+			"4k3/3p4/p7/1B6/8/3K4/8/8 w - - 1 123",
+			[]string{
+				"d3c2", "d3c3", "d3c4", "d3d2", "d3d4", "d3e2", "d3e3", "d3e4", // king
+				"b5c6", "b5c4", "b5a4", "b5xa6", "b5xd7", // bishop
+			},
+		},
+		{
 			"king must not move into check",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
 			[]string{
@@ -112,14 +128,6 @@ func TestMoves(t *testing.T) {
 			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
 			[]string{
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
-			},
-		},
-		{
-			"bishop moves",
-			"4k3/3b4/8/8/8/8/8/3K4 b KQkq - 1 123",
-			[]string{
-				"e8e7", "e8f7", "e8f8", "e8d8", // king
-				"d7c8", "d7c6", "d7b5", "d7a4", "d7e6", "d7f5", "d7g4", "d7h3", // bishop
 			},
 		},
 	}
