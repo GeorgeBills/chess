@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestWhitePawnMoves(t *testing.T) {
+func TestWhitePawnPushes(t *testing.T) {
 	indexes := []struct {
 		i        uint8
 		expected uint64
@@ -22,13 +22,13 @@ func TestWhitePawnMoves(t *testing.T) {
 	}
 	for _, tt := range indexes {
 		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.WhitePawnMoves(tt.i)
+			moves := engine.WhitePawnPushes(tt.i)
 			assert.Equal(t, tt.expected, moves)
 		})
 	}
 }
 
-func TestBlackPawnMoves(t *testing.T) {
+func TestBlackPawnPushes(t *testing.T) {
 	indexes := []struct {
 		i        uint8
 		expected uint64
@@ -39,17 +39,17 @@ func TestBlackPawnMoves(t *testing.T) {
 	}
 	for _, tt := range indexes {
 		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.BlackPawnMoves(tt.i)
+			moves := engine.BlackPawnPushes(tt.i)
 			assert.Equal(t, tt.expected, moves)
 		})
 	}
 }
 
-func BenchmarkPawnMoves(b *testing.B) {
+func BenchmarkPawnPushes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		idx := uint8(i % 64)
-		engine.WhitePawnMoves(idx)
-		engine.BlackPawnMoves(idx)
+		engine.WhitePawnPushes(idx)
+		engine.BlackPawnPushes(idx)
 	}
 }
 

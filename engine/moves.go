@@ -15,9 +15,9 @@ package engine
 // leaving the board in either of those directions will wrap around; e.g. a king
 // shouldn't be able to move one square West from A2 (8) and end up on H1 (7).
 
-// WhitePawnMoves returns the moves a white pawn at index i can make, ignoring
+// WhitePawnPushes returns the moves a white pawn at index i can make, ignoring
 // captures and en passant.
-func WhitePawnMoves(i uint8) uint64 {
+func WhitePawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i + 8) // n
 	// if a white pawn is on rank 2 it may move two squares
@@ -27,9 +27,9 @@ func WhitePawnMoves(i uint8) uint64 {
 	return moves
 }
 
-// BlackPawnMoves returns the moves a black pawn at index i can make, ignoring
+// BlackPawnPushes returns the moves a black pawn at index i can make, ignoring
 // captures and en passant.
-func BlackPawnMoves(i uint8) uint64 {
+func BlackPawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i - 8) // s
 	// if a black pawn is on rank 7 it may move two squares
@@ -176,10 +176,10 @@ FIND_MOVES:
 			// Remove those squares from candidate moves.
 			if tomove == White {
 				blockdouble := (occupied & 0x0000000000FF0000) << 8
-				pawnmoves = WhitePawnMoves(from) &^ occupied &^ blockdouble
+				pawnmoves = WhitePawnPushes(from) &^ occupied &^ blockdouble
 			} else {
 				blockdouble := (occupied & 0x0000FF0000000000) >> 8
-				pawnmoves = BlackPawnMoves(from) &^ occupied &^ blockdouble
+				pawnmoves = BlackPawnPushes(from) &^ occupied &^ blockdouble
 			}
 
 			for to = 0; to < 64; to++ {
