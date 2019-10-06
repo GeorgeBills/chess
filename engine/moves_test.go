@@ -113,6 +113,15 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"king moves",
+			"4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
+			[]string{
+				"e4xd5", "e4e5", "e4f5",
+				"e4d4", "e4xf4",
+				"e4d3", "e4e3", "e4f3",
+			},
+		},
+		{
 			"king must not move into check",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
 			[]string{
