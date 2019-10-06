@@ -1,105 +1,13 @@
 package engine_test
 
 import (
-	"fmt"
 	"github.com/GeorgeBills/chess/m/v2/engine"
-	. "github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"sort"
 	"strings"
 	"testing"
 )
-
-func TestWhitePawnPushes(t *testing.T) {
-	indexes := []struct {
-		i        uint8
-		expected uint64
-	}{
-		{A2, 0b00000000_00000000_00000000_00000000_00000001_00000001_00000000_00000000}, // a3, a4
-		{B3, 0b00000000_00000000_00000000_00000000_00000010_00000000_00000000_00000000}, // b4
-		{H7, 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000}, // h8
-	}
-	for _, tt := range indexes {
-		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.WhitePawnPushes(tt.i)
-			assert.Equal(t, tt.expected, moves)
-		})
-	}
-}
-
-func TestBlackPawnPushes(t *testing.T) {
-	indexes := []struct {
-		i        uint8
-		expected uint64
-	}{
-		{D7, 0b00000000_00000000_00001000_00001000_00000000_00000000_00000000_00000000}, // d6, d5
-		{E6, 0b00000000_00000000_00000000_00010000_00000000_00000000_00000000_00000000}, // e5
-		{F5, 0b00000000_00000000_00000000_00000000_00100000_00000000_00000000_00000000}, // e4
-	}
-	for _, tt := range indexes {
-		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.BlackPawnPushes(tt.i)
-			assert.Equal(t, tt.expected, moves)
-		})
-	}
-}
-
-func BenchmarkPawnPushes(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		idx := uint8(i % 64)
-		engine.WhitePawnPushes(idx)
-		engine.BlackPawnPushes(idx)
-	}
-}
-
-func TestKingMoves(t *testing.T) {
-	indexes := []struct {
-		i        uint8
-		expected uint64
-	}{
-		{A1, 0b00000000_00000000_00000000_00000000_00000000_00000000_00000011_00000010}, // a2, b1, b2
-		{B2, 0b00000000_00000000_00000000_00000000_00000000_00000111_00000101_00000111}, // b1, b3, a1, a2, a3, c1, c2, c3
-		{H8, 0b01000000_11000000_00000000_00000000_00000000_00000000_00000000_00000000}, // g8, h7, g7
-	}
-	for _, tt := range indexes {
-		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.KingMoves(tt.i)
-			assert.Equal(t, tt.expected, moves)
-		})
-	}
-}
-
-func BenchmarkKingMoves(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		engine.KingMoves(uint8(i % 64))
-	}
-}
-
-func TestKnightMoves(t *testing.T) {
-	indexes := []struct {
-		i        uint8
-		expected uint64
-	}{
-		{D5, 0b00000000_00010100_00100010_00000000_00100010_00010100_00000000_00000000}, // e7, f6, f4, e3, c3, b4, b6, c7
-		{A6, 0b00000010_00000100_00000000_00000100_00000010_00000000_00000000_00000000}, // b8, c7, c5, b4
-		{H1, 0b00000000_00000000_00000000_00000000_00000000_01000000_00100000_00000000}, // f2, g3
-		{G7, 0b00010000_00000000_00010000_10100000_00000000_00000000_00000000_00000000}, // h5, f5, e6, e8
-		{C3, 0b00000000_00000000_00000000_00001010_00010001_00000000_00010001_00001010}, // d5, e4, e2, d1, b1, a2, a4, b5
-	}
-	for _, tt := range indexes {
-		t.Run(fmt.Sprintf("%d", tt.i), func(t *testing.T) {
-			moves := engine.KnightMoves(tt.i)
-			assert.Equal(t, tt.expected, moves)
-		})
-	}
-}
-
-func BenchmarkKnightMoves(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		engine.KnightMoves(uint8(i % 64))
-	}
-}
 
 func TestMoves(t *testing.T) {
 	moves := []struct {

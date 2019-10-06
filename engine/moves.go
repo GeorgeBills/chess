@@ -15,9 +15,9 @@ package engine
 // leaving the board in either of those directions will wrap around; e.g. a king
 // shouldn't be able to move one square West from A2 (8) and end up on H1 (7).
 
-// WhitePawnPushes returns the moves a white pawn at index i can make, ignoring
+// whitePawnPushes returns the moves a white pawn at index i can make, ignoring
 // captures and en passant.
-func WhitePawnPushes(i uint8) uint64 {
+func whitePawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i + 8) // n
 	// if a white pawn is on rank 2 it may move two squares
@@ -27,9 +27,9 @@ func WhitePawnPushes(i uint8) uint64 {
 	return moves
 }
 
-// BlackPawnPushes returns the moves a black pawn at index i can make, ignoring
+// blackPawnPushes returns the moves a black pawn at index i can make, ignoring
 // captures and en passant.
-func BlackPawnPushes(i uint8) uint64 {
+func blackPawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i - 8) // s
 	// if a black pawn is on rank 7 it may move two squares
@@ -39,8 +39,8 @@ func BlackPawnPushes(i uint8) uint64 {
 	return moves
 }
 
-// KingMoves returns the moves a king at index i can make, ignoring castling.
-func KingMoves(i uint8) uint64 {
+// kingMoves returns the moves a king at index i can make, ignoring castling.
+func kingMoves(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i + 8) // n
 	moves |= 1 << (i - 8) // s
@@ -59,8 +59,8 @@ func KingMoves(i uint8) uint64 {
 	return moves
 }
 
-// KnightMoves returns the moves a knight at index i can make.
-func KnightMoves(i uint8) uint64 {
+// knightMoves returns the moves a knight at index i can make.
+func knightMoves(i uint8) uint64 {
 	var moves uint64
 	file := i % 8
 	if file > 0 {
@@ -176,10 +176,10 @@ FIND_MOVES:
 			// Remove those squares from candidate moves.
 			if tomove == White {
 				blockdouble := (occupied & 0x0000000000FF0000) << 8
-				pawnmoves = WhitePawnPushes(from) &^ occupied &^ blockdouble
+				pawnmoves = whitePawnPushes(from) &^ occupied &^ blockdouble
 			} else {
 				blockdouble := (occupied & 0x0000FF0000000000) >> 8
-				pawnmoves = BlackPawnPushes(from) &^ occupied &^ blockdouble
+				pawnmoves = blackPawnPushes(from) &^ occupied &^ blockdouble
 			}
 
 			for to = 0; to < 64; to++ {
@@ -196,10 +196,10 @@ FIND_MOVES:
 		}
 
 		if knights&frombit != 0 { // is there a knight on this square?
-			knightmoves := KnightMoves(from) &^ colour
+			knightMoves := knightMoves(from) &^ colour
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
-				if knightmoves&tobit != 0 { // is there a move to this square?
+				if knightMoves&tobit != 0 { // is there a move to this square?
 					capture := b.black&tobit != 0 || b.white&tobit != 0
 					if capture {
 						moves = append(moves, NewCapture(from, to))
@@ -300,10 +300,10 @@ FIND_MOVES:
 		}
 
 		if kings&frombit != 0 { // is there a king on this square?
-			kingmoves := KingMoves(from) &^ colour &^ threatened // king cannot move into check
+			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
-				if kingmoves&tobit != 0 { // is there a move to this square?
+				if kingMoves&tobit != 0 { // is there a move to this square?
 					capture := b.black&tobit != 0 || b.white&tobit != 0
 					if capture {
 						moves = append(moves, NewCapture(from, to))
