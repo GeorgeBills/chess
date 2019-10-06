@@ -159,7 +159,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"simple rook moves",
+			"rook moves",
 			"k7/8/8/8/8/8/1R6/7K w - - 1 123",
 			[]string{
 				"h1h2", "h1g1", // king
@@ -204,6 +204,14 @@ func TestMoves(t *testing.T) {
 			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
 			[]string{
 				"d1c1", "d1e1", "d1d2", // king
+			},
+		},
+		{
+			"bishop moves",
+			"4k3/3b4/8/8/8/8/8/3K4 b KQkq - 1 123",
+			[]string{
+				"e8e7", "e8f7", "e8f8", "e8d8", // king
+				"d7c8", "d7c6", "d7b5", "d7a4", "d7e6", "d7f5", "d7g4", "d7h3", // bishop
 			},
 		},
 	}
