@@ -82,6 +82,11 @@ func knightMoves(i uint8) uint64 {
 	return moves
 }
 
+const (
+	checkNone   = 0
+	checkDouble = 0xFFFFFFFF
+)
+
 // Moves returns a slice of possible moves from the current board state.
 func (b Board) Moves() []Move {
 	moves := make([]Move, 0, 32)
@@ -102,8 +107,34 @@ func (b Board) Moves() []Move {
 
 	occupied := b.white | b.black
 
-	// loop over opposing pieces to mark threatened squares
-	var threatened uint64
+	// Loop over opposing pieces to see if we're in check, and to mark both
+	// threatened squares and pinned pieces.
+	//
+	// Here we only care about captures or the threat of capture. This means
+	// that we can completely ignore pawn pushes and castling.
+	//
+	// We don't care about the opponent king at all; a king can never directly
+	// check another king.
+	//
+	// "Scanners" (rooks, bishops and queens) need to scan "through" other
+	// pieces to see if those piece/s are blocking check on the king (in which
+	// case the piece is pinned and may not move out of the line of threat).
+	//
+	// We must never move our king to a threatened square, through a threatened
+	// square (in the case of castling) or make a move that exposes a check on
+	// our king. This includes capturing opposing pieces that are blocking
+	// check.
+	//
+	// If our king is in check, then we must either capture the checking piece,
+	// move our king to an unthreatened square, or (in the case of scanners)
+	// block the threat with another piece.
+	//
+	// If our king is in double check - check from two separate pieces - then we
+	// must move our king to a safe square. It's neither possible to capture nor
+	// to block two separate threatening pieces in the same turn, so the only
+	// remaining option is to move our king.
+
+	var threatened uint64 // threatened tracks squares we may not move our king to
 	opposingrooks := b.rooks & opposing
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
