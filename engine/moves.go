@@ -257,7 +257,7 @@ FIND_MOVES:
 		}
 
 		if bishops&frombit != 0 { // is there a bishop on this square?
-			for ne := from + 9; ne < 64 && ne/8 != 7; ne += 9 {
+			for ne := from + 9; ne < 64 && ne%8 != 0; ne += 9 {
 				tobit = 1 << ne
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -267,7 +267,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, ne))
 			}
-			for se := from - 7; 0 < se && se < 64 && se/8 != 7; se -= 7 {
+			for se := from - 7; 0 < se && se < 64 && se%8 != 0; se -= 7 {
 				tobit = 1 << se
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -277,7 +277,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, se))
 			}
-			for sw := from - 9; 0 < sw && sw < 64 && sw/8 != 0; sw -= 9 {
+			for sw := from - 9; 0 < sw && sw < 64 && sw%8 != 7; sw -= 9 {
 				tobit = 1 << sw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -287,7 +287,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, sw))
 			}
-			for nw := from + 7; nw < 64 && nw/8 != 0; nw += 7 {
+			for nw := from + 7; nw < 64 && nw%8 != 7; nw += 7 {
 				tobit = 1 << nw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
