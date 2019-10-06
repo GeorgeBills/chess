@@ -111,129 +111,79 @@ func TestMoves(t *testing.T) {
 			"initial board",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 			[]string{
-				"rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq - 1 1",  // 1. Na3
-				"rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq - 1 1", // 1. Nc3
-				"rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1", // 1. Nf3
-				"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1",  // 1. Nh3
-				"rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 0 1",  // 1. a3
-				"rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq - 0 1",  // 1. a4
-				"rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq - 0 1", // 1. b3
-				"rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq - 0 1", // 1. b4
-				"rnbqkbnr/pppppppp/8/8/8/2P5/PP1PPPPP/RNBQKBNR b KQkq - 0 1", // 1. c3
-				"rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq - 0 1", // 1. c4
-				"rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1", // 1. d3
-				"rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1", // 1. d4
-				"rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1", // 1. e3
-				"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1", // 1. e4
-				"rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1", // 1. f3
-				"rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq - 0 1", // 1. f4
-				"rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq - 0 1", // 1. g3
-				"rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq - 0 1", // 1. g4
-				"rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq - 0 1",  // 1 .h3
-				"rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1",  // 1. h4
+				// knights
+				"b1a3", "b1c3",
+				"g1f3", "g1h3",
+				// pawns
+				"a2a3", "a2a4",
+				"b2b3", "b2b4",
+				"c2c3", "c2c4",
+				"d2d3", "d2d4",
+				"e2e3", "e2e4",
+				"f2f3", "f2f4",
+				"g2g3", "g2g4",
+				"h2h3", "h2h4",
 			},
 		},
 		{
 			"1. Nf3 (Réti opening)",
 			"rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
 			[]string{
-				"r1bqkbnr/pppppppp/n7/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2",
-				"r1bqkbnr/pppppppp/2n5/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2",
-				"rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2",
-				"rnbqkb1r/pppppppp/7n/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2",
-				"rnbqkbnr/1ppppppp/8/p7/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/1ppppppp/p7/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/p1pppppp/8/1p6/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/p1pppppp/1p6/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pp1ppppp/8/2p5/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pp1ppppp/2p5/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppp1pppp/3p4/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pppp1ppp/8/4p3/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pppp1ppp/4p3/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppppp1pp/8/5p2/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppppp1pp/5p2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pppppp1p/8/6p1/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/pppppp1p/6p1/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppppppp1/8/7p/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
-				"rnbqkbnr/ppppppp1/7p/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
+				// knights
+				"b8a6", "b8c6",
+				"g8f6", "g8h6",
+				// pawns
+				"a7a6", "a7a5",
+				"b7b6", "b7b5",
+				"c7c6", "c7c5",
+				"d7d6", "d7d5",
+				"e7e6", "e7e5",
+				"f7f6", "f7f5",
+				"g7g6", "g7g5",
+				"h7h6", "h7h5",
 			},
 		},
 		{
-			"pawns can't double move if blocked by opposing piece",
+			"pawns can't move if blocked by opposing piece",
 			"k7/8/8/8/8/p7/P7/7K w - - 0 123",
 			[]string{
-				"k7/8/8/8/8/p7/P7/6K1 b - - 1 123",
-				"k7/8/8/8/8/p7/P6K/8 b - - 1 123",
+				"h1g1", "h1h2", // king
 			},
 		},
 		{
-			"pawns can't double move if blocked by friendly piece",
+			"pawns can't move if blocked by friendly piece",
 			"k7/6p1/6n1/8/8/8/8/7K b - - 0 123",
 			[]string{
-				"8/k5p1/6n1/8/8/8/8/7K w - - 1 124",
-				"1k6/6p1/6n1/8/8/8/8/7K w - - 1 124",
-				"k7/6p1/8/8/5n2/8/8/7K w - - 1 124",
-				"k7/6p1/8/8/7n/8/8/7K w - - 1 124",
-				"k7/6p1/8/4n3/8/8/8/7K w - - 1 124",
-				"k7/4n1p1/8/8/8/8/8/7K w - - 1 124",
-				"k4n2/6p1/8/8/8/8/8/7K w - - 1 124",
-				"k6n/6p1/8/8/8/8/8/7K w - - 1 124",
+				"a8a7", "a8b8", // king
+				"g6e5", "g6e7", "g6f4", "g6f8", "g6h4", "g6h8", // knight
 			},
 		},
 		{
 			"simple rook moves",
 			"k7/8/8/8/8/8/1R6/7K w - - 1 123",
 			[]string{
-				// king
-				"k7/8/8/8/8/8/1R6/6K1 b - - 2 123",
-				"k7/8/8/8/8/8/1R5K/8 b - - 2 123",
+				"h1h2", "h1g1", // king
 				// rook vertical (along file)
-				"k7/8/8/8/8/1R6/8/7K b - - 2 123",
-				"k7/8/8/8/1R6/8/8/7K b - - 2 123",
-				"k7/8/8/1R6/8/8/8/7K b - - 2 123",
-				"k7/8/1R6/8/8/8/8/7K b - - 2 123",
-				"k7/1R6/8/8/8/8/8/7K b - - 2 123",
-				"kR6/8/8/8/8/8/8/7K b - - 2 123",
+				"b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8",
 				// rook horizontal (along rank)
-				"k7/8/8/8/8/8/2R5/7K b - - 2 123",
-				"k7/8/8/8/8/8/3R4/7K b - - 2 123",
-				"k7/8/8/8/8/8/4R3/7K b - - 2 123",
-				"k7/8/8/8/8/8/5R2/7K b - - 2 123",
-				"k7/8/8/8/8/8/6R1/7K b - - 2 123",
-				"k7/8/8/8/8/8/7R/7K b - - 2 123",
-				"k7/8/8/8/8/8/8/1R5K b - - 2 123",
-				"k7/8/8/8/8/8/R7/7K b - - 2 123",
+				"b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2",
 			},
 		},
 		{
 			"rook captures",
 			"k7/8/8/8/1q6/8/rR2P3/1N5K w - - 1 123",
 			[]string{
-				// knight
-				"k7/8/8/8/1q6/N7/rR2P3/7K b - - 2 123",
-				"k7/8/8/8/1q6/2N5/rR2P3/7K b - - 2 123",
-				"k7/8/8/8/1q6/8/rR1NP3/7K b - - 2 123",
-				// pawn
-				"k7/8/8/8/1q6/4P3/rR6/1N5K b - - 1 123",
-				"k7/8/8/8/1q2P3/8/rR6/1N5K b - - 1 123",
-				// king
-				"k7/8/8/8/1q6/8/rR2P2K/1N6 b - - 2 123",
-				"k7/8/8/8/1q6/8/rR2P3/1N4K1 b - - 2 123",
-				// rook
-				"k7/8/8/8/1q6/1R6/r3P3/1N5K b - - 2 123",
-				"k7/8/8/8/1R6/8/r3P3/1N5K b - - 1 123",
-				"k7/8/8/8/1q6/8/R3P3/1N5K b - - 1 123",
-				"k7/8/8/8/1q6/8/r1R1P3/1N5K b - - 2 123",
-				"k7/8/8/8/1q6/8/r2RP3/1N5K b - - 2 123",
+				"b1d2", "b1c3", "b1a3", // knight
+				"e2e3", "e2e4", // pawn
+				"h1g1", "h1h2", // // king
+				"b2xa2", "b2xb4", "b2b3", "b2c2", "b2d2", // rook
 			},
 		},
 		{
 			"king must not move into check",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
 			[]string{
-				"4k2r/8/8/8/8/8/6K1/8 b - - 2 123",
-				"4k2r/8/8/8/8/8/8/5K2 b - - 2 123",
+				"g1g2", "g1f1", // king
 			},
 		},
 		{
@@ -245,19 +195,15 @@ func TestMoves(t *testing.T) {
 			"king free to move: own piece blocks check",
 			"3qk3/8/8/8/8/8/3P4/3K4 w KQkq - 1 123",
 			[]string{
-				"3qk3/8/8/8/3P4/8/8/3K4 b KQkq - 1 123",
-				"3qk3/8/8/8/8/3P4/8/3K4 b KQkq - 1 123",
-				"3qk3/8/8/8/8/8/3P4/2K5 b KQkq - 2 123",
-				"3qk3/8/8/8/8/8/3P4/4K3 b KQkq - 2 123",
+				"d2d3", "d2d4", // pawn
+				"d1c1", "d1e1", // king
 			},
 		},
 		{
 			"king free to move: opposing piece blocks check",
 			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
 			[]string{
-				"3qk3/3b4/8/8/8/8/3K4/8 b KQkq - 2 123",
-				"3qk3/3b4/8/8/8/8/8/2K5 b KQkq - 2 123",
-				"3qk3/3b4/8/8/8/8/8/4K3 b KQkq - 2 123",
+				"d1c1", "d1e1", "d1d2", // king
 			},
 		},
 	}
@@ -269,7 +215,7 @@ func TestMoves(t *testing.T) {
 			require.NotNil(t, b)
 			var moves []string
 			for _, move := range b.Moves() {
-				moves = append(moves, move.FEN())
+				moves = append(moves, move.SAN())
 			}
 			// sort so we don't need to fiddle with ordering in the test case
 			sort.Strings(tt.expected)

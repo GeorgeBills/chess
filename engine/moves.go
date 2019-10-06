@@ -78,15 +78,13 @@ func KnightMoves(i uint8) uint64 {
 	return moves
 }
 
-// Moves returns a slice of possible board states from the current board state.
-func (b Board) Moves() []Board {
-	moves := make([]Board, 0, 32)
+// Moves returns a slice of possible moves from the current board state.
+func (b Board) Moves() []Move {
+	moves := make([]Move, 0, 32)
 
 	var from, to uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-
-	// TODO: don't copy the board then overwrite, just make a new board and set
 
 	tomove := b.ToMove()
 	// TODO: use pointers so we don't need to check tomove later
@@ -138,131 +136,16 @@ func (b Board) Moves() []Board {
 		}
 	}
 
-	// Some general optimisations:
-	//
-	// We don't remove a piece of our type from the target square. e.g. if we're
-	// moving a knight to a3 then the bit for a3 on the knights board will end
-	// up set no matter what, so don't bother unsetting that bit before the
-	// move.
-	//
-	// We don't check to see if a bit is set or not before clearing or setting
-	// it. The branch is more expensive than just setting or clearing
-	// regardless.
-	//
-	// We do all the colour and half move setting in a single if else block,
-	// again to minimise branches.
-	//
-	// More specific optimisations are called out inline.
-
 	// TODO: queen moves
 
 	// TODO: constrain tobit for pawns, knights, kings to a sensible value
 
 	// TODO: castling
 
-	rookmove := func() {
-		newboard := b
-		newboard.rooks &^= frombit // remove piece
-		newboard.rooks |= tobit    // place piece
-		if tomove == White {
-			newboard.half++            // not a capture: increment halfmoves
-			newboard.white &^= frombit // remove piece
-			newboard.white |= tobit    // place piece
-		} else {
-			newboard.half++            // not a capture: increment halfmoves
-			newboard.black &^= frombit // remove piece
-			newboard.black |= tobit    // place piece
-		}
-
-		newboard.total++
-
-		moves = append(moves, newboard)
-	}
-	rookcapture := func() {
-		newboard := b
-
-		// remove piece
-		newboard.rooks &^= frombit
-
-		// remove target
-		newboard.bishops &^= tobit
-		newboard.knights &^= tobit
-		newboard.pawns &^= tobit
-		newboard.queens &^= tobit
-
-		// place piece
-		newboard.rooks |= tobit
-
-		if tomove == White {
-			newboard.white &^= frombit // remove piece
-			newboard.black &^= tobit   // remove target
-			newboard.white |= tobit    // place piece
-		} else {
-			newboard.black &^= frombit // remove piece
-			newboard.white &^= tobit   // remove target
-			newboard.black |= tobit    // place piece
-		}
-
-		newboard.total++
-
-		moves = append(moves, newboard)
-	}
-	bishopmove := func() {
-		newboard := b
-		newboard.bishops &^= frombit // remove piece
-		newboard.bishops |= tobit    // place piece
-		if tomove == White {
-			newboard.half++            // not a capture: increment halfmoves
-			newboard.white &^= frombit // remove piece
-			newboard.white |= tobit    // place piece
-		} else {
-			newboard.half++            // not a capture: increment halfmoves
-			newboard.black &^= frombit // remove piece
-			newboard.black |= tobit    // place piece
-		}
-
-		newboard.total++
-
-		moves = append(moves, newboard)
-	}
-	bishopcapture := func() {
-		newboard := b
-
-		// remove piece
-		newboard.bishops &^= frombit
-
-		// remove target
-		newboard.rooks &^= tobit
-		newboard.knights &^= tobit
-		newboard.pawns &^= tobit
-		newboard.queens &^= tobit
-
-		// place piece
-		newboard.bishops |= tobit
-
-		if tomove == White {
-			newboard.white &^= frombit // remove piece
-			newboard.black &^= tobit   // remove target
-			newboard.white |= tobit    // place piece
-		} else {
-			newboard.black &^= frombit // remove piece
-			newboard.white &^= tobit   // remove target
-			newboard.black |= tobit    // place piece
-		}
-
-		newboard.total++
-
-		moves = append(moves, newboard)
-	}
-
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
 	// - AND NOT the moves with our colour (we can't move to a square we occupy).
-	// - For each remaining move, generate the board state for that move:
-	//   - Remove the piece from the square it currently occupies.
-	//   - Remove any opposing pieces from the target square.
-	//   - Place the piece in the target square.
 	//
 	// We evaluate pieces in descending frequency order (pawn, knight, king) to
 	// hopefully skip a loop iteration as early as possible.
@@ -298,39 +181,11 @@ FIND_MOVES:
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
 				if pawnmoves&tobit != 0 { // is there a move to this square?
-					newboard := b
-
-					// remove piece
-					newboard.pawns ^= frombit
-
-					// remove target
-					newboard.bishops ^= tobit
-					newboard.knights ^= tobit
-					newboard.queens ^= tobit
-					newboard.rooks ^= tobit
-
-					// place piece
-					newboard.pawns |= tobit
-
-					if tomove == White {
-						newboard.white &^= frombit // remove piece
-						newboard.black &^= tobit   // remove target
-						newboard.white |= tobit    // place piece
-					} else {
-						newboard.black &^= frombit // remove piece
-						newboard.white &^= tobit   // remove target
-						newboard.black |= tobit    // place piece
-					}
-
 					// TODO: pawn captures
 					// TODO: en passant captures
 					// TODO: set en passant target on double pawn moves
 					// TODO: pawn promotion
-
-					// pawn moves don't increment the half move clock
-					newboard.total++
-
-					moves = append(moves, newboard)
+					moves = append(moves, NewMove(from, to))
 				}
 			}
 			continue FIND_MOVES
@@ -341,39 +196,12 @@ FIND_MOVES:
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
 				if knightmoves&tobit != 0 { // is there a move to this square?
-					newboard := b
-
-					// remove piece
-					newboard.knights &^= frombit
-
-					// remove target
-					newboard.bishops &^= tobit
-					newboard.pawns &^= tobit
-					newboard.queens &^= tobit
-					newboard.rooks &^= tobit
-
-					// place piece
-					newboard.knights |= tobit
-
-					if tomove == White {
-						if newboard.black&tobit == 0 { // not a capture: increment halfmoves
-							newboard.half++
-						}
-						newboard.white &^= frombit // remove piece
-						newboard.black &^= tobit   // remove target
-						newboard.white |= tobit    // place piece
+					capture := b.black&tobit != 0 || b.white&tobit != 0
+					if capture {
+						moves = append(moves, NewCapture(from, to))
 					} else {
-						if newboard.white&tobit == 0 { // not a capture: increment halfmoves
-							newboard.half++
-						}
-						newboard.black &^= frombit // remove piece
-						newboard.white &^= tobit   // remove target
-						newboard.black |= tobit    // place piece
+						moves = append(moves, NewMove(from, to))
 					}
-
-					newboard.total++
-
-					moves = append(moves, newboard)
 				}
 			}
 			continue FIND_MOVES
@@ -385,41 +213,41 @@ FIND_MOVES:
 				tobit = 1 << n
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						rookcapture()
+						moves = append(moves, NewCapture(from, n))
 					}
 					break
 				}
-				rookmove()
+				moves = append(moves, NewMove(from, n))
 			}
 			for e := from + 1; e < (rank+1)*8; e++ {
 				tobit = 1 << e
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						rookcapture()
+						moves = append(moves, NewCapture(from, e))
 					}
 					break
 				}
-				rookmove()
+				moves = append(moves, NewMove(from, e))
 			}
 			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
 				tobit = 1 << s
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						rookcapture()
+						moves = append(moves, NewCapture(from, s))
 					}
 					break
 				}
-				rookmove()
+				moves = append(moves, NewMove(from, s))
 			}
 			for w := from - 1; w > (rank*8)-1; w-- {
 				tobit = 1 << w
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						rookcapture()
+						moves = append(moves, NewCapture(from, w))
 					}
 					break
 				}
-				rookmove()
+				moves = append(moves, NewMove(from, w))
 			}
 			continue FIND_MOVES
 		}
@@ -429,41 +257,41 @@ FIND_MOVES:
 				tobit = 1 << ne
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						bishopcapture()
+						moves = append(moves, NewCapture(from, ne))
 					}
 					break
 				}
-				bishopmove()
+				moves = append(moves, NewMove(from, ne))
 			}
 			for se := from - 7; 0 < se && se < 64 && se/8 != 7; se -= 7 {
 				tobit = 1 << se
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						bishopcapture()
+						moves = append(moves, NewCapture(from, se))
 					}
 					break
 				}
-				bishopmove()
+				moves = append(moves, NewMove(from, se))
 			}
 			for sw := from - 9; 0 < sw && sw < 64 && sw/8 != 0; sw -= 9 {
 				tobit = 1 << sw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						bishopcapture()
+						moves = append(moves, NewCapture(from, sw))
 					}
 					break
 				}
-				bishopmove()
+				moves = append(moves, NewMove(from, sw))
 			}
 			for nw := from + 7; nw < 64 && nw/8 != 0; nw += 7 {
 				tobit = 1 << nw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
-						bishopcapture()
+						moves = append(moves, NewCapture(from, nw))
 					}
 					break
 				}
-				bishopmove()
+				moves = append(moves, NewMove(from, nw))
 			}
 		}
 
@@ -472,40 +300,12 @@ FIND_MOVES:
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
 				if kingmoves&tobit != 0 { // is there a move to this square?
-					newboard := b
-
-					// remove piece
-					newboard.kings &^= frombit
-
-					// remove target
-					newboard.bishops &^= tobit
-					newboard.knights &^= tobit
-					newboard.pawns &^= tobit
-					newboard.queens &^= tobit
-					newboard.rooks &^= tobit
-
-					// place piece
-					newboard.kings |= tobit
-
-					if tomove == White {
-						if newboard.black&tobit == 0 { // not a capture: increment halfmoves
-							newboard.half++
-						}
-						newboard.white &^= frombit // remove piece
-						newboard.black &^= tobit   // remove target
-						newboard.white |= tobit    // place piece
+					capture := b.black&tobit != 0 || b.white&tobit != 0
+					if capture {
+						moves = append(moves, NewCapture(from, to))
 					} else {
-						if newboard.white&tobit == 0 { // not a capture: increment halfmoves
-							newboard.half++
-						}
-						newboard.black &^= frombit // remove piece
-						newboard.white &^= tobit   // remove target
-						newboard.black |= tobit    // place piece
+						moves = append(moves, NewMove(from, to))
 					}
-
-					newboard.total++
-
-					moves = append(moves, newboard)
 				}
 			}
 
