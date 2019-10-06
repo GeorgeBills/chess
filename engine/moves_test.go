@@ -113,6 +113,21 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"queen moves",
+			"4k3/2p5/B2q3B/8/8/P7/7P/3QK3 b - - 1 123",
+			[]string{
+				"c7c5", "c7c6", // pawn
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"d6d7", "d6d8", // queen north
+				"d6f8", "d6e7", // queen north east
+				"d6f6", "d6e6", "d6g6", "d6xh6", // queen east
+				"d6f4", "d6e5", "d6g3", "d6xh2", // queen south east
+				"d6d2", "d6d3", "d6d4", "d6d5", "d6xd1", // queen south
+				"d6b4", "d6xa3", "d6c5", // queen south west
+				"d6c6", "d6b6", "d6xa6", // queen west
+			},
+		},
+		{
 			"king moves",
 			"4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
 			[]string{

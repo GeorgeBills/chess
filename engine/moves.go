@@ -140,8 +140,6 @@ func (b Board) Moves() []Move {
 		}
 	}
 
-	// TODO: queen moves
-
 	// TODO: constrain tobit for pawns, knights, kings to a sensible value
 
 	// TODO: castling
@@ -155,8 +153,8 @@ func (b Board) Moves() []Move {
 	// hopefully skip a loop iteration as early as possible.
 	pawns := b.pawns & colour
 	knights := b.knights & colour
-	bishops := b.bishops & colour
-	rooks := b.rooks & colour
+	bishops := (b.bishops | b.queens) & colour
+	rooks := (b.rooks | b.queens) & colour
 	kings := b.kings & colour
 FIND_MOVES:
 	for from = 0; from < 64; from++ {
@@ -211,6 +209,22 @@ FIND_MOVES:
 			continue FIND_MOVES
 		}
 
+		if kings&frombit != 0 { // is there a king on this square?
+			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
+			for to = 0; to < 64; to++ {
+				tobit = 1 << to
+				if kingMoves&tobit != 0 { // is there a move to this square?
+					capture := b.black&tobit != 0 || b.white&tobit != 0
+					if capture {
+						moves = append(moves, NewCapture(from, to))
+					} else {
+						moves = append(moves, NewMove(from, to))
+					}
+				}
+			}
+			continue FIND_MOVES
+		}
+
 		if rooks&frombit != 0 { // is there a rook on this square?
 			rank := from / 8
 			for n := from + 8; n < 64; n += 8 {
@@ -253,7 +267,6 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, w))
 			}
-			continue FIND_MOVES
 		}
 
 		if bishops&frombit != 0 { // is there a bishop on this square?
@@ -299,22 +312,6 @@ FIND_MOVES:
 			}
 		}
 
-		if kings&frombit != 0 { // is there a king on this square?
-			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				if kingMoves&tobit != 0 { // is there a move to this square?
-					capture := b.black&tobit != 0 || b.white&tobit != 0
-					if capture {
-						moves = append(moves, NewCapture(from, to))
-					} else {
-						moves = append(moves, NewMove(from, to))
-					}
-				}
-			}
-
-			continue FIND_MOVES
-		}
 	}
 
 	// TODO: disallow moves placing the king in check
