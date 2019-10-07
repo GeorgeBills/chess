@@ -137,11 +137,14 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king must not move into check",
+			"king must not move into check (rook)",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
-			[]string{
-				"g1g2", "g1f1", "g1f2", // king
-			},
+			[]string{"g1g2", "g1f1", "g1f2"},
+		},
+		{
+			"king must not move into check (knights)",
+			"4k3/8/6N1/3N4/8/8/8/4K3 b - - 1 123",
+			[]string{"e8d7", "e8d8", "e8f7"},
 		},
 		{
 			"stalemate (no moves possible)",

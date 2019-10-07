@@ -135,9 +135,17 @@ func (b Board) Moves() []Move {
 	// remaining option is to move our king.
 
 	var threatened uint64 // threatened tracks squares we may not move our king to
+	opposingknights := b.knights & opposing
 	opposingrooks := b.rooks & opposing
+FIND_THREAT:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
+
+		if opposingknights&frombit != 0 { // is there a knight on this square?
+			threatened |= knightMoves(from)
+			continue FIND_THREAT
+		}
+
 		if opposingrooks&frombit != 0 { // is there a rook on this square?
 			rank := from / 8
 			for n := from + 8; n < 64; n += 8 {
