@@ -194,7 +194,7 @@ FIND_THREAT:
 	knights := b.knights & colour
 	bishops := (b.bishops | b.queens) & colour
 	rooks := (b.rooks | b.queens) & colour
-	kings := b.kings & colour
+	king := b.kings & colour
 FIND_MOVES:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
@@ -248,7 +248,7 @@ FIND_MOVES:
 			continue FIND_MOVES
 		}
 
-		if kings&frombit != 0 { // is there a king on this square?
+		if king&frombit != 0 { // is there a king on this square?
 			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
