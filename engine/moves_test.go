@@ -53,17 +53,19 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"pawns can't move if blocked by opposing piece",
-			"k7/8/8/8/8/p7/P7/7K w - - 0 123",
+			"k7/8/8/8/3p4/p5P1/P2Pp3/7K w - - 0 123",
 			[]string{
 				"h1g1", "h1h2", "h1g2", // king
+				"d2d3", "g3g4", // pawns
 			},
 		},
 		{
 			"pawns can't move if blocked by friendly piece",
-			"k7/6p1/6n1/8/8/8/8/7K b - - 0 123",
+			"k7/5pp1/p5n1/1p3p2/8/2pp4/8/7K b - - 0 123",
 			[]string{
 				"a8a7", "a8b8", "a8b7", // king
 				"g6e5", "g6e7", "g6f4", "g6f8", "g6h4", "g6h8", // knight
+				"f7f6", "f5f4", "a6a5", "b5b4", "c3c2", "d3d2", // pawns
 			},
 		},
 		{
