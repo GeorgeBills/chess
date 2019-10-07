@@ -225,6 +225,8 @@ FIND_MOVES:
 		}
 
 		if pawns&frombit != 0 { // is there a pawn on this square?
+			rank := from / 8
+
 			var pawnpushes, pawncaptures uint64
 
 			// blockdouble: Find all pieces occupying squares in rank 3 or 7;
@@ -233,12 +235,20 @@ FIND_MOVES:
 			// (for black) to get the squares we're blocking a double move to.
 			// Remove those squares from candidate moves.
 			if tomove == White {
-				blockdouble := (occupied & 0x0000000000FF0000) << 8
-				pawnpushes = whitePawnPushes(from) &^ occupied &^ blockdouble
+				pawnpushes |= 1 << (from + 8)
+				if rank == 1 { // double push
+					blockdouble := (occupied & 0x0000000000FF0000) << 8
+					pawnpushes |= 1 << (from + 16) &^ blockdouble
+				}
+				pawnpushes = pawnpushes &^ occupied
 				pawncaptures = whitePawnCaptures(from) & opposing
 			} else {
-				blockdouble := (occupied & 0x0000FF0000000000) >> 8
-				pawnpushes = blackPawnPushes(from) &^ occupied &^ blockdouble
+				pawnpushes |= 1 << (from - 8)
+				if rank == 6 { // double push
+					blockdouble := (occupied & 0x0000FF0000000000) >> 8
+					pawnpushes |= 1 << (from - 16) &^ blockdouble
+				}
+				pawnpushes = pawnpushes &^ occupied
 				pawncaptures = blackPawnCaptures(from) & opposing
 			}
 
