@@ -39,6 +39,20 @@ func blackPawnPushes(i uint8) uint64 {
 	return moves
 }
 
+func whitePawnCaptures(i uint8) uint64 {
+	var moves uint64
+	moves |= 1 << (i + 9) // ne
+	moves |= 1 << (i + 7) // nw
+	return moves
+}
+
+func blackPawnCaptures(i uint8) uint64 {
+	var moves uint64
+	moves |= 1 << (i - 7) // se
+	moves |= 1 << (i - 9) // sw
+	return moves
+}
+
 // kingMoves returns the moves a king at index i can make, ignoring castling.
 func kingMoves(i uint8) uint64 {
 	var moves uint64
@@ -211,7 +225,7 @@ FIND_MOVES:
 		}
 
 		if pawns&frombit != 0 { // is there a pawn on this square?
-			var pawnmoves uint64
+			var pawnpushes, pawncaptures uint64
 
 			// blockdouble: Find all pieces occupying squares in rank 3 or 7;
 			// these pieces would block a double move for white or black
@@ -220,20 +234,25 @@ FIND_MOVES:
 			// Remove those squares from candidate moves.
 			if tomove == White {
 				blockdouble := (occupied & 0x0000000000FF0000) << 8
-				pawnmoves = whitePawnPushes(from) &^ occupied &^ blockdouble
+				pawnpushes = whitePawnPushes(from) &^ occupied &^ blockdouble
+				pawncaptures = whitePawnCaptures(from) & opposing
 			} else {
 				blockdouble := (occupied & 0x0000FF0000000000) >> 8
-				pawnmoves = blackPawnPushes(from) &^ occupied &^ blockdouble
+				pawnpushes = blackPawnPushes(from) &^ occupied &^ blockdouble
+				pawncaptures = blackPawnCaptures(from) & opposing
 			}
+
+			// TODO: en passant captures
+			// TODO: set en passant target on double pawn moves
+			// TODO: pawn promotion
 
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
-				if pawnmoves&tobit != 0 { // is there a move to this square?
-					// TODO: pawn captures
-					// TODO: en passant captures
-					// TODO: set en passant target on double pawn moves
-					// TODO: pawn promotion
+				if pawnpushes&tobit != 0 { // is there a move to this square?
 					moves = append(moves, NewMove(from, to))
+				}
+				if pawncaptures&tobit != 0 { // is there a capture to this square?
+					moves = append(moves, NewCapture(from, to))
 				}
 			}
 			continue FIND_MOVES

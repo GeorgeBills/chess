@@ -67,6 +67,18 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pawn captures",
+			"4k3/8/8/2bpp3/3PPPp1/r5PP/1P6/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"b2xa3", "b2b3", "b2b4", // b2 pawn
+				"d4xc5", "d4xe5", // d4 pawn
+				"e4xd5",         // e4 pawn
+				"f4f5", "f4xe5", // f4 pawn
+				"h3xg4", "h3h4", // h3 pawn
+			},
+		},
+		{
 			"knight moves",
 			"4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
 			[]string{
