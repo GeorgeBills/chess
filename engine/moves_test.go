@@ -80,10 +80,8 @@ func TestMoves(t *testing.T) {
 			"k7/8/8/8/8/8/1R6/7K w - - 1 123",
 			[]string{
 				"h1h2", "h1g1", "h1g2", // king
-				// rook vertical (along file)
-				"b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8",
-				// rook horizontal (along rank)
-				"b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2",
+				"b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8", // rook vertical
+				"b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2", // rook horizontal
 			},
 		},
 		{
