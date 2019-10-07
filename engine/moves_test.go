@@ -145,6 +145,11 @@ func TestMoves(t *testing.T) {
 			[]string{"e8d7", "e8d8", "e8f7"},
 		},
 		{
+			"king must not move into check (opposing king)",
+			"k7/2K5/7R/8/8/8/8/8 b - - 1 123",
+			[]string{"a8a7"},
+		},
+		{
 			"stalemate (no moves possible)",
 			"4k1r1/8/8/8/8/8/r7/7K w KQkq - 1 123",
 			nil,

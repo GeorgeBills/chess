@@ -113,9 +113,6 @@ func (b Board) Moves() []Move {
 	// Here we only care about captures or the threat of capture. This means
 	// that we can completely ignore pawn pushes and castling.
 	//
-	// We don't care about the opponent king at all; a king can never directly
-	// check another king.
-	//
 	// "Scanners" (rooks, bishops and queens) need to scan "through" other
 	// pieces to see if those piece/s are blocking check on the king (in which
 	// case the piece is pinned and may not move out of the line of threat).
@@ -136,6 +133,7 @@ func (b Board) Moves() []Move {
 
 	var threatened uint64 // threatened tracks squares we may not move our king to
 	opposingknights := b.knights & opposing
+	opposingking := b.kings & opposing
 	opposingrooks := b.rooks & opposing
 FIND_THREAT:
 	for from = 0; from < 64; from++ {
@@ -147,6 +145,11 @@ FIND_THREAT:
 
 		if opposingknights&frombit != 0 { // is there a knight on this square?
 			threatened |= knightMoves(from)
+			continue FIND_THREAT
+		}
+
+		if opposingking&frombit != 0 { // is there a king on this square?
+			threatened |= kingMoves(from)
 			continue FIND_THREAT
 		}
 
