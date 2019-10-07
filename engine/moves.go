@@ -141,6 +141,10 @@ FIND_THREAT:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from
 
+		if opposing&frombit == 0 {
+			continue FIND_THREAT
+		}
+
 		if opposingknights&frombit != 0 { // is there a knight on this square?
 			threatened |= knightMoves(from)
 			continue FIND_THREAT
