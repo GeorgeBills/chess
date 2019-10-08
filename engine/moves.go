@@ -99,6 +99,11 @@ func knightMoves(i uint8) uint64 {
 const (
 	checkNone   = 0
 	checkDouble = 0xFFFFFFFF
+
+	rank7 uint64 = 0x00FF000000000000
+	rank6 uint64 = 0x0000FF0000000000
+	rank3 uint64 = 0x0000000000FF0000
+	rank2 uint64 = 0x000000000000FF00
 )
 
 // Moves returns a slice of possible moves from the current board state.
@@ -108,18 +113,23 @@ func (b Board) Moves() []Move {
 	var from, to uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
+	var pawnsdbl uint64
+
+	occupied := b.white | b.black
 
 	tomove := b.ToMove()
 	// TODO: use pointers so we don't need to check tomove later
 	if tomove == White {
 		colour = b.white
 		opposing = b.black
+		pawns := b.pawns & b.white
+		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8)
 	} else {
 		colour = b.black
 		opposing = b.white
+		pawns := b.pawns & b.black
+		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8)
 	}
-
-	occupied := b.white | b.black
 
 	// Loop over opposing pieces to see if we're in check, and to mark both
 	// threatened squares and pinned pieces.
@@ -225,8 +235,6 @@ FIND_MOVES:
 		}
 
 		if pawns&frombit != 0 { // is there a pawn on this square?
-			rank := from / 8
-
 			var pawnpushes, pawncaptures uint64
 
 			// blockdouble: Find all pieces occupying squares in rank 3 or 7;
@@ -236,17 +244,15 @@ FIND_MOVES:
 			// Remove those squares from candidate moves.
 			if tomove == White {
 				pawnpushes |= 1 << (from + 8)
-				if rank == 1 { // double push
-					blockdouble := (occupied & 0x0000000000FF0000) << 8
-					pawnpushes |= 1 << (from + 16) &^ blockdouble
+				if pawnsdbl&frombit != 0 { // double push
+					pawnpushes |= 1 << (from + 16)
 				}
 				pawnpushes = pawnpushes &^ occupied
 				pawncaptures = whitePawnCaptures(from) & opposing
 			} else {
 				pawnpushes |= 1 << (from - 8)
-				if rank == 6 { // double push
-					blockdouble := (occupied & 0x0000FF0000000000) >> 8
-					pawnpushes |= 1 << (from - 16) &^ blockdouble
+				if pawnsdbl&frombit != 0 { // double push
+					pawnpushes |= 1 << (from - 16)
 				}
 				pawnpushes = pawnpushes &^ occupied
 				pawncaptures = blackPawnCaptures(from) & opposing
