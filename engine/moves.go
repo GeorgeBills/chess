@@ -264,10 +264,10 @@ FIND_MOVES:
 
 			for to = 0; to < 64; to++ {
 				tobit = 1 << to
-				if pawnpushes&tobit != 0 { // is there a move to this square?
+				switch {
+				case pawnpushes&tobit != 0: // is there a move to this square?
 					moves = append(moves, NewMove(from, to))
-				}
-				if pawncaptures&tobit != 0 { // is there a capture to this square?
+				case pawncaptures&tobit != 0: // is there a capture to this square?
 					moves = append(moves, NewCapture(from, to))
 				}
 			}
