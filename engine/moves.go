@@ -113,7 +113,7 @@ func (b Board) Moves() []Move {
 	var from, to uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnsdbl uint64
+	var pawnsdbl, pawnspromo uint64
 
 	occupied := b.white | b.black
 
@@ -124,11 +124,13 @@ func (b Board) Moves() []Move {
 		opposing = b.black
 		pawns := b.pawns & b.white
 		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8)
+		pawnspromo = pawns & rank7
 	} else {
 		colour = b.black
 		opposing = b.white
 		pawns := b.pawns & b.black
 		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8)
+		pawnspromo = pawns & rank2
 	}
 
 	// Loop over opposing pieces to see if we're in check, and to mark both
@@ -260,15 +262,32 @@ FIND_MOVES:
 
 			// TODO: en passant captures
 			// TODO: set en passant target on double pawn moves
-			// TODO: pawn promotion
 
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				switch {
-				case pawnpushes&tobit != 0: // is there a move to this square?
-					moves = append(moves, NewMove(from, to))
-				case pawncaptures&tobit != 0: // is there a capture to this square?
-					moves = append(moves, NewCapture(from, to))
+			if pawnspromo&frombit != 0 {
+				for to = 0; to < 64; to++ {
+					tobit = 1 << to
+					switch {
+					case pawnpushes&tobit != 0: // is there a move to this square?
+						moves = append(moves, NewQueenPromotion(from, to, false))
+						moves = append(moves, NewKnightPromotion(from, to, false))
+						moves = append(moves, NewRookPromotion(from, to, false))
+						moves = append(moves, NewBishopPromotion(from, to, false))
+					case pawncaptures&tobit != 0: // is there a capture to this square?
+						moves = append(moves, NewQueenPromotion(from, to, true))
+						moves = append(moves, NewKnightPromotion(from, to, true))
+						moves = append(moves, NewRookPromotion(from, to, true))
+						moves = append(moves, NewBishopPromotion(from, to, true))
+					}
+				}
+			} else {
+				for to = 0; to < 64; to++ {
+					tobit = 1 << to
+					switch {
+					case pawnpushes&tobit != 0: // is there a move to this square?
+						moves = append(moves, NewMove(from, to))
+					case pawncaptures&tobit != 0: // is there a capture to this square?
+						moves = append(moves, NewCapture(from, to))
+					}
 				}
 			}
 			continue FIND_MOVES

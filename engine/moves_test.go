@@ -81,6 +81,21 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pawn promotions",
+			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w KQkq - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"e6e7", "f5f6", // a6, f5 pawns can't promote
+				// a7 pawn can only capture
+				"a7xb8=Q", "a7xb8=N", "a7xb8=R", "a7xb8=B",
+				// c7 pawn can either capture or advance
+				"c7xb8=Q", "c7xb8=N", "c7xb8=R", "c7xb8=B",
+				"c7c8=Q", "c7c8=N", "c7c8=R", "c7c8=B",
+				// d7 pawn can only advance
+				"d7d8=Q", "d7d8=N", "d7d8=R", "d7d8=B",
+			},
+		},
+		{
 			"knight moves",
 			"4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
 			[]string{
