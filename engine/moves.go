@@ -102,6 +102,8 @@ const (
 
 	rank7 uint64 = 0x00FF000000000000
 	rank6 uint64 = 0x0000FF0000000000
+	rank5 uint64 = 0x000000FF00000000
+	rank4 uint64 = 0x00000000FF000000
 	rank3 uint64 = 0x0000000000FF0000
 	rank2 uint64 = 0x000000000000FF00
 )
@@ -123,13 +125,13 @@ func (b Board) Moves() []Move {
 		colour = b.white
 		opposing = b.black
 		pawns := b.pawns & b.white
-		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8)
+		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8) &^ ((occupied & rank4) >> 16)
 		pawnspromo = pawns & rank7
 	} else {
 		colour = b.black
 		opposing = b.white
 		pawns := b.pawns & b.black
-		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8)
+		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8) &^ ((occupied & rank5) << 16)
 		pawnspromo = pawns & rank2
 	}
 
@@ -216,6 +218,8 @@ FIND_THREAT:
 
 	// TODO: castling
 
+	// TODO: en passant captures
+
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -236,58 +240,76 @@ FIND_MOVES:
 			continue FIND_MOVES
 		}
 
-		if pawns&frombit != 0 { // is there a pawn on this square?
-			var pawnpushes, pawncaptures uint64
-
-			// blockdouble: Find all pieces occupying squares in rank 3 or 7;
-			// these pieces would block a double move for white or black
-			// respectively. Shift this 8 bits to the left (for white) or right
-			// (for black) to get the squares we're blocking a double move to.
-			// Remove those squares from candidate moves.
+		if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
 			if tomove == White {
-				pawnpushes |= 1 << (from + 8)
-				if pawnsdbl&frombit != 0 { // double push
-					pawnpushes |= 1 << (from + 16)
+				if ne := from + 9; opposing&(1<<ne) != 0 {
+					moves = append(moves, NewQueenPromotion(from, ne, true))
+					moves = append(moves, NewKnightPromotion(from, ne, true))
+					moves = append(moves, NewRookPromotion(from, ne, true))
+					moves = append(moves, NewBishopPromotion(from, ne, true))
 				}
-				pawnpushes = pawnpushes &^ occupied
-				pawncaptures = whitePawnCaptures(from) & opposing
+				if nw := from + 7; opposing&(1<<nw) != 0 {
+					moves = append(moves, NewQueenPromotion(from, nw, true))
+					moves = append(moves, NewKnightPromotion(from, nw, true))
+					moves = append(moves, NewRookPromotion(from, nw, true))
+					moves = append(moves, NewBishopPromotion(from, nw, true))
+				}
+				if push := from + 8; occupied&(1<<push) == 0 {
+					moves = append(moves, NewQueenPromotion(from, push, false))
+					moves = append(moves, NewKnightPromotion(from, push, false))
+					moves = append(moves, NewRookPromotion(from, push, false))
+					moves = append(moves, NewBishopPromotion(from, push, false))
+				}
 			} else {
-				pawnpushes |= 1 << (from - 8)
-				if pawnsdbl&frombit != 0 { // double push
-					pawnpushes |= 1 << (from - 16)
+				if se := from - 7; opposing&(1<<se) != 0 {
+					moves = append(moves, NewQueenPromotion(from, se, true))
+					moves = append(moves, NewKnightPromotion(from, se, true))
+					moves = append(moves, NewRookPromotion(from, se, true))
+					moves = append(moves, NewBishopPromotion(from, se, true))
 				}
-				pawnpushes = pawnpushes &^ occupied
-				pawncaptures = blackPawnCaptures(from) & opposing
+				if sw := from - 9; opposing&(1<<sw) != 0 {
+					moves = append(moves, NewQueenPromotion(from, sw, true))
+					moves = append(moves, NewKnightPromotion(from, sw, true))
+					moves = append(moves, NewRookPromotion(from, sw, true))
+					moves = append(moves, NewBishopPromotion(from, sw, true))
+				}
+				if push := from - 8; occupied&(1<<push) == 0 {
+					moves = append(moves, NewQueenPromotion(from, push, false))
+					moves = append(moves, NewKnightPromotion(from, push, false))
+					moves = append(moves, NewRookPromotion(from, push, false))
+					moves = append(moves, NewBishopPromotion(from, push, false))
+				}
 			}
+			continue FIND_MOVES
+		}
 
-			// TODO: en passant captures
+		if pawns&frombit != 0 { // is there a pawn on this square?
 			// TODO: set en passant target on double pawn moves
-
-			if pawnspromo&frombit != 0 {
-				for to = 0; to < 64; to++ {
-					tobit = 1 << to
-					switch {
-					case pawnpushes&tobit != 0: // is there a move to this square?
-						moves = append(moves, NewQueenPromotion(from, to, false))
-						moves = append(moves, NewKnightPromotion(from, to, false))
-						moves = append(moves, NewRookPromotion(from, to, false))
-						moves = append(moves, NewBishopPromotion(from, to, false))
-					case pawncaptures&tobit != 0: // is there a capture to this square?
-						moves = append(moves, NewQueenPromotion(from, to, true))
-						moves = append(moves, NewKnightPromotion(from, to, true))
-						moves = append(moves, NewRookPromotion(from, to, true))
-						moves = append(moves, NewBishopPromotion(from, to, true))
-					}
+			if tomove == White {
+				if pawnsdbl&frombit != 0 {
+					moves = append(moves, NewMove(from, from+16))
+				}
+				if push := from + 8; occupied&(1<<push) == 0 {
+					moves = append(moves, NewMove(from, push))
+				}
+				if ne := from + 9; opposing&(1<<ne) != 0 {
+					moves = append(moves, NewCapture(from, ne))
+				}
+				if nw := from + 7; opposing&(1<<nw) != 0 {
+					moves = append(moves, NewCapture(from, nw))
 				}
 			} else {
-				for to = 0; to < 64; to++ {
-					tobit = 1 << to
-					switch {
-					case pawnpushes&tobit != 0: // is there a move to this square?
-						moves = append(moves, NewMove(from, to))
-					case pawncaptures&tobit != 0: // is there a capture to this square?
-						moves = append(moves, NewCapture(from, to))
-					}
+				if pawnsdbl&frombit != 0 {
+					moves = append(moves, NewMove(from, from-16))
+				}
+				if push := from - 8; occupied&(1<<push) == 0 {
+					moves = append(moves, NewMove(from, push))
+				}
+				if se := from - 7; opposing&(1<<se) != 0 {
+					moves = append(moves, NewCapture(from, se))
+				}
+				if sw := from - 9; opposing&(1<<sw) != 0 {
+					moves = append(moves, NewCapture(from, sw))
 				}
 			}
 			continue FIND_MOVES
