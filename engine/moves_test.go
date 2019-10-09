@@ -82,7 +82,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"pawn promotions",
-			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w KQkq - 0 123",
+			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 				"e6e7", "f5f6", // a6, f5 pawns can't promote
@@ -125,7 +125,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"bishop moves",
-			"4k3/3b4/8/8/8/8/8/3K4 b KQkq - 1 123",
+			"4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
 			[]string{
 				"e8e7", "e8f7", "e8f8", "e8d8", // king
 				"d7c8", "d7c6", "d7b5", "d7a4", "d7e6", "d7f5", "d7g4", "d7h3", // bishop
@@ -180,12 +180,12 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"stalemate (no moves possible)",
-			"4k1r1/8/8/8/8/8/r7/7K w KQkq - 1 123",
+			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
 			nil,
 		},
 		{
 			"king free to move: own piece blocks check",
-			"3qk3/8/8/8/8/8/3P4/3K4 w KQkq - 1 123",
+			"3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
 			[]string{
 				"d2d3", "d2d4", // pawn
 				"d1c1", "d1e1", "d1c2", "d1e2", // king
@@ -193,7 +193,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"king free to move: opposing piece blocks check",
-			"3qk3/3b4/8/8/8/8/8/3K4 w KQkq - 1 123",
+			"3qk3/3b4/8/8/8/8/8/3K4 w - - 1 123",
 			[]string{
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
