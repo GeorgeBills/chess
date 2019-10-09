@@ -106,6 +106,8 @@ const (
 	rank4 uint64 = 0x00000000FF000000
 	rank3 uint64 = 0x0000000000FF0000
 	rank2 uint64 = 0x000000000000FF00
+
+	// TODO: can we use filemasks to speed up file checks?
 )
 
 // Moves returns a slice of possible moves from the current board state.
@@ -165,7 +167,7 @@ func (b Board) Moves() []Move {
 	opposingrooks := b.rooks & opposing
 FIND_THREAT:
 	for from = 0; from < 64; from++ {
-		frombit = 1 << from
+		frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
 
 		if opposing&frombit == 0 {
 			continue FIND_THREAT
@@ -214,7 +216,7 @@ FIND_THREAT:
 		}
 	}
 
-	// TODO: constrain tobit for pawns, knights, kings to a sensible value
+	// TODO: never loop over squares for destinations
 
 	// TODO: castling
 
