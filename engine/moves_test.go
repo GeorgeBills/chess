@@ -96,6 +96,25 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pawn en passant (black to move)",
+			"4k3/8/8/8/3pPp2/3P2P1/8/4K3 b - e3 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"d4xe3e.p.",                  // d4 pawn
+				"f4xg3", "f4f3", "f4xe3e.p.", // f4 pawn
+			},
+		},
+		{
+			"pawn en passant (white to move)",
+			"4k3/8/8/2PpP3/4P3/8/8/K7 w - d6 0 123",
+			[]string{
+				"a1b1", "a1a2", "a1b2", // king
+				"e5xd6e.p.", "e5e6", // e5 pawn
+				"c5xd6e.p.", "c5c6", // c5 pawn
+				"e4xd5", // e4 pawn
+			},
+		},
+		{
 			"knight moves",
 			"4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
 			[]string{

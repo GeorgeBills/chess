@@ -221,7 +221,26 @@ FIND_THREAT:
 
 	// TODO: castling
 
-	// TODO: en passant captures
+	ep := b.EnPassant()
+	if ep != 0 {
+		// ep records the square behind, so we check the squares to the ne and
+		// nw (for black) or se and sw (for white) to find pawns adjacent.
+		if tomove == White {
+			if from = ep - 7; pawns&(1<<from) != 0 { // sw
+				moves = append(moves, NewEnPassant(from, from+7)) // ne
+			}
+			if from = ep - 9; pawns&(1<<from) != 0 { // se
+				moves = append(moves, NewEnPassant(from, from+9)) // nw
+			}
+		} else {
+			if from = ep + 7; pawns&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-7)) // se
+			}
+			if from = ep + 9; pawns&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-9)) // sw
+			}
+		}
+	}
 
 	addpromos := func(from, to uint8, capture bool) {
 		moves = append(moves, NewQueenPromotion(from, to, capture))
