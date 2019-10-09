@@ -122,17 +122,18 @@ func (b Board) Moves() []Move {
 	occupied := b.white | b.black
 
 	tomove := b.ToMove()
+	var pawns uint64
 	// TODO: use pointers so we don't need to check tomove later
 	if tomove == White {
 		colour = b.white
 		opposing = b.black
-		pawns := b.pawns & b.white
+		pawns = b.pawns & b.white
 		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8) &^ ((occupied & rank4) >> 16)
 		pawnspromo = pawns & rank7
 	} else {
 		colour = b.black
 		opposing = b.white
-		pawns := b.pawns & b.black
+		pawns = b.pawns & b.black
 		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8) &^ ((occupied & rank5) << 16)
 		pawnspromo = pawns & rank2
 	}
@@ -236,7 +237,6 @@ FIND_THREAT:
 	//
 	// We evaluate pieces in descending frequency order (pawn, knight, king) to
 	// hopefully skip a loop iteration as early as possible.
-	pawns := b.pawns & colour
 	knights := b.knights & colour
 	bishops := (b.bishops | b.queens) & colour
 	rooks := (b.rooks | b.queens) & colour
