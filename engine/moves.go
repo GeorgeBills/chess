@@ -220,6 +220,13 @@ FIND_THREAT:
 
 	// TODO: en passant captures
 
+	addpromos := func(from, to uint8, capture bool) {
+		moves = append(moves, NewQueenPromotion(from, to, capture))
+		moves = append(moves, NewKnightPromotion(from, to, capture))
+		moves = append(moves, NewRookPromotion(from, to, capture))
+		moves = append(moves, NewBishopPromotion(from, to, capture))
+	}
+
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -243,41 +250,23 @@ FIND_MOVES:
 		if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
 			if tomove == White {
 				if ne := from + 9; opposing&(1<<ne) != 0 {
-					moves = append(moves, NewQueenPromotion(from, ne, true))
-					moves = append(moves, NewKnightPromotion(from, ne, true))
-					moves = append(moves, NewRookPromotion(from, ne, true))
-					moves = append(moves, NewBishopPromotion(from, ne, true))
+					addpromos(from, ne, true)
 				}
 				if nw := from + 7; opposing&(1<<nw) != 0 {
-					moves = append(moves, NewQueenPromotion(from, nw, true))
-					moves = append(moves, NewKnightPromotion(from, nw, true))
-					moves = append(moves, NewRookPromotion(from, nw, true))
-					moves = append(moves, NewBishopPromotion(from, nw, true))
+					addpromos(from, nw, true)
 				}
 				if push := from + 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewQueenPromotion(from, push, false))
-					moves = append(moves, NewKnightPromotion(from, push, false))
-					moves = append(moves, NewRookPromotion(from, push, false))
-					moves = append(moves, NewBishopPromotion(from, push, false))
+					addpromos(from, push, false)
 				}
 			} else {
 				if se := from - 7; opposing&(1<<se) != 0 {
-					moves = append(moves, NewQueenPromotion(from, se, true))
-					moves = append(moves, NewKnightPromotion(from, se, true))
-					moves = append(moves, NewRookPromotion(from, se, true))
-					moves = append(moves, NewBishopPromotion(from, se, true))
+					addpromos(from, se, true)
 				}
 				if sw := from - 9; opposing&(1<<sw) != 0 {
-					moves = append(moves, NewQueenPromotion(from, sw, true))
-					moves = append(moves, NewKnightPromotion(from, sw, true))
-					moves = append(moves, NewRookPromotion(from, sw, true))
-					moves = append(moves, NewBishopPromotion(from, sw, true))
+					addpromos(from, sw, true)
 				}
 				if push := from - 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewQueenPromotion(from, push, false))
-					moves = append(moves, NewKnightPromotion(from, push, false))
-					moves = append(moves, NewRookPromotion(from, push, false))
-					moves = append(moves, NewBishopPromotion(from, push, false))
+					addpromos(from, push, false)
 				}
 			}
 			continue FIND_MOVES
