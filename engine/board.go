@@ -168,7 +168,7 @@ func (b Board) PieceAt(i uint8) Piece {
 			panic(fmt.Sprintf("invalid board state: %+v", b))
 		}
 	}
-	return 0
+	return PieceNone
 }
 
 // ToMove returns the colour whose move it is.
