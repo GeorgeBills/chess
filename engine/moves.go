@@ -21,7 +21,7 @@ func whitePawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i + 8) // n
 	// if a white pawn is on rank 2 it may move two squares
-	if i/8 == 1 {
+	if Rank(i) == rank2 {
 		moves |= 1 << (i + 16) // nn
 	}
 	return moves
@@ -33,7 +33,7 @@ func blackPawnPushes(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i - 8) // s
 	// if a black pawn is on rank 7 it may move two squares
-	if i/8 == 6 {
+	if Rank(i) == rank7 {
 		moves |= 1 << (i - 16) // ss
 	}
 	return moves
@@ -59,13 +59,13 @@ func kingMoves(i uint8) uint64 {
 	moves |= 1 << (i + 8) // n
 	moves |= 1 << (i - 8) // s
 	// can't move east if we're on file h
-	if i%8 != 7 {
+	if File(i) != fileH {
 		moves |= 1 << (i + 1) // e
 		moves |= 1 << (i + 9) // ne
 		moves |= 1 << (i - 7) // se
 	}
 	// can't move west if we're on file a
-	if i%8 != 0 {
+	if File(i) != fileA {
 		moves |= 1 << (i - 1) // w
 		moves |= 1 << (i + 7) // nw
 		moves |= 1 << (i - 9) // sw
@@ -76,19 +76,19 @@ func kingMoves(i uint8) uint64 {
 // knightMoves returns the moves a knight at index i can make.
 func knightMoves(i uint8) uint64 {
 	var moves uint64
-	file := i % 8
-	if file > 0 {
+	file := File(i)
+	if file > fileA {
 		moves |= 1 << (i + 15) // nnw (+2×8, -1)
 		moves |= 1 << (i - 17) // ssw (-2×8, -1)
-		if file > 1 {
+		if file > fileB {
 			moves |= 1 << (i + 6)  // wwn (+8, -2×1)
 			moves |= 1 << (i - 10) // wws (-8, -2×1)
 		}
 	}
-	if file < 7 {
+	if file < fileH {
 		moves |= 1 << (i + 17) // nne (+2×8, +1)
 		moves |= 1 << (i - 15) // sse (-2×8, +1)
-		if file < 6 {
+		if file < fileG {
 			moves |= 1 << (i + 10) // een (+8, +2×1)
 			moves |= 1 << (i - 6)  // ees (-8, +2×1)
 		}
@@ -100,12 +100,20 @@ const (
 	checkNone   = 0
 	checkDouble = 0xFFFFFFFF
 
-	rank7 uint64 = 0x00FF000000000000
-	rank6 uint64 = 0x0000FF0000000000
-	rank5 uint64 = 0x000000FF00000000
-	rank4 uint64 = 0x00000000FF000000
-	rank3 uint64 = 0x0000000000FF0000
-	rank2 uint64 = 0x000000000000FF00
+	rank2 = 1
+	rank7 = 6
+
+	rank7mask uint64 = 0x00FF000000000000
+	rank6mask uint64 = 0x0000FF0000000000
+	rank5mask uint64 = 0x000000FF00000000
+	rank4mask uint64 = 0x00000000FF000000
+	rank3mask uint64 = 0x0000000000FF0000
+	rank2mask uint64 = 0x000000000000FF00
+
+	fileA = 0
+	fileB = 1
+	fileG = 6
+	fileH = 7
 
 	// TODO: can we use filemasks to speed up file checks?
 )
@@ -128,14 +136,14 @@ func (b Board) Moves() []Move {
 		colour = b.white
 		opposing = b.black
 		pawns = b.pawns & b.white
-		pawnsdbl = pawns & rank2 &^ ((occupied & rank3) >> 8) &^ ((occupied & rank4) >> 16)
-		pawnspromo = pawns & rank7
+		pawnsdbl = pawns & rank2mask &^ ((occupied & rank3mask) >> 8) &^ ((occupied & rank4mask) >> 16)
+		pawnspromo = pawns & rank7mask
 	} else {
 		colour = b.black
 		opposing = b.white
 		pawns = b.pawns & b.black
-		pawnsdbl = pawns & rank7 &^ ((occupied & rank6) << 8) &^ ((occupied & rank5) << 16)
-		pawnspromo = pawns & rank2
+		pawnsdbl = pawns & rank7mask &^ ((occupied & rank6mask) << 8) &^ ((occupied & rank5mask) << 16)
+		pawnspromo = pawns & rank2mask
 	}
 
 	// Loop over opposing pieces to see if we're in check, and to mark both
@@ -185,7 +193,7 @@ FIND_THREAT:
 		}
 
 		if opposingrooks&frombit != 0 { // is there a rook on this square?
-			rank := from / 8
+			rank := Rank(from)
 			for n := from + 8; n < 64; n += 8 {
 				tobit = 1 << n
 				threatened |= tobit
@@ -358,7 +366,7 @@ FIND_MOVES:
 		}
 
 		if rooks&frombit != 0 { // is there a rook on this square?
-			rank := from / 8
+			rank := Rank(from)
 			for n := from + 8; n < 64; n += 8 {
 				tobit = 1 << n
 				if occupied&tobit != 0 {
@@ -402,7 +410,7 @@ FIND_MOVES:
 		}
 
 		if bishops&frombit != 0 { // is there a bishop on this square?
-			for ne := from + 9; ne < 64 && ne%8 != 0; ne += 9 {
+			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
 				tobit = 1 << ne
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -412,7 +420,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, ne))
 			}
-			for se := from - 7; 0 < se && se < 64 && se%8 != 0; se -= 7 {
+			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
 				tobit = 1 << se
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -422,7 +430,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, se))
 			}
-			for sw := from - 9; 0 < sw && sw < 64 && sw%8 != 7; sw -= 9 {
+			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
 				tobit = 1 << sw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
@@ -432,7 +440,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, sw))
 			}
-			for nw := from + 7; nw < 64 && nw%8 != 7; nw += 7 {
+			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
 				tobit = 1 << nw
 				if occupied&tobit != 0 {
 					if opposing&tobit != 0 {
