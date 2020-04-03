@@ -160,7 +160,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 			}
 			switch ch {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				n = 10*n + uint8(ch-'0')
+				n = 10*n + uint8(ch-'0') // FIXME: check for overflow
 				seen = true
 			case ' ':
 				err = r.UnreadByte()
