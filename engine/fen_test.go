@@ -2,6 +2,7 @@ package engine_test
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestEnPassant(t *testing.T) {
 		fen      string
 		expected uint8
 	}{
-		{"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1", 0},
+		{"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1", math.MaxUint8},
 		// white pawns
 		{"rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq A3 0 1", engine.A3},
 		{"rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq b3 0 1", engine.B3},

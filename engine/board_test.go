@@ -2,6 +2,7 @@ package engine_test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
@@ -22,7 +23,7 @@ func TestNewBoard(t *testing.T) {
 	assert.Equal(t, 0, board.HalfMoves())
 	assert.Equal(t, 1, board.FullMoves())
 
-	assert.EqualValues(t, 0, board.EnPassant())
+	assert.EqualValues(t, math.MaxUint8, board.EnPassant())
 
 	// expected pieces (other than pawns)
 	pieces := []struct {

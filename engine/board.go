@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -111,12 +112,12 @@ func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 // IsKingAt returns true iff there is a piece at index i and it is a king.
 func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
-// EnPassant returns the index of the square under threat of en passant, or 0 if
-// there is no such square.
+// EnPassant returns the index of the square under threat of en passant, or
+// math.MaxUint8 if there is no such square.
 func (b Board) EnPassant() uint8 {
 	file := uint8(b.meta & epmask)
 	if file == 0 {
-		return 0
+		return math.MaxUint8
 	}
 	tomove := b.ToMove()
 	// index = 8×(rank - 1) + file - 1
