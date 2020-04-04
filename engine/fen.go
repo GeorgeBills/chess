@@ -191,45 +191,45 @@ READ_SQUARES:
 			}
 		}
 
-		idx := PrintOrderedIndex(i)
+		var mask uint64 = 1 << PrintOrderedIndex(i)
 
 		switch ch {
 		case 'P':
-			b.pawns |= 1 << idx
-			b.white |= 1 << idx
+			b.pawns |= mask
+			b.white |= mask
 		case 'N':
-			b.knights |= 1 << idx
-			b.white |= 1 << idx
+			b.knights |= mask
+			b.white |= mask
 		case 'B':
-			b.bishops |= 1 << idx
-			b.white |= 1 << idx
+			b.bishops |= mask
+			b.white |= mask
 		case 'R':
-			b.rooks |= 1 << idx
-			b.white |= 1 << idx
+			b.rooks |= mask
+			b.white |= mask
 		case 'Q':
-			b.queens |= 1 << idx
-			b.white |= 1 << idx
+			b.queens |= mask
+			b.white |= mask
 		case 'K':
-			b.kings |= 1 << idx
-			b.white |= 1 << idx
+			b.kings |= mask
+			b.white |= mask
 		case 'p':
-			b.pawns |= 1 << idx
-			b.black |= 1 << idx
+			b.pawns |= mask
+			b.black |= mask
 		case 'n':
-			b.knights |= 1 << idx
-			b.black |= 1 << idx
+			b.knights |= mask
+			b.black |= mask
 		case 'b':
-			b.bishops |= 1 << idx
-			b.black |= 1 << idx
+			b.bishops |= mask
+			b.black |= mask
 		case 'r':
-			b.rooks |= 1 << idx
-			b.black |= 1 << idx
+			b.rooks |= mask
+			b.black |= mask
 		case 'q':
-			b.queens |= 1 << idx
-			b.black |= 1 << idx
+			b.queens |= mask
+			b.black |= mask
 		case 'k':
-			b.kings |= 1 << idx
-			b.black |= 1 << idx
+			b.kings |= mask
+			b.black |= mask
 		case '1', '2', '3', '4', '5', '6', '7', '8':
 			i += uint8(ch - '0') // skip empty squares
 			continue READ_SQUARES
