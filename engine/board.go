@@ -123,9 +123,9 @@ func (b Board) EnPassant() uint8 {
 	// index = 8×(rank - 1) + file - 1
 	switch tomove {
 	case White:
-		return 39 + file // rank 6
+		return 39 + file // rank 6; 8×(6 - 1) + file - 1
 	case Black:
-		return 15 + file // rank 3
+		return 15 + file // rank 3; 8×(3 - 1) + file - 1
 	default:
 		panic(fmt.Sprintf("invalid to move: %b", tomove))
 	}
