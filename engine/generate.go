@@ -173,8 +173,8 @@ func (b Board) Moves() []Move {
 	var threatened uint64 // threatened tracks squares we may not move our king to
 	opposingknights := b.knights & opposing
 	opposingking := b.kings & opposing
-	opposingrooks := b.rooks & opposing
-	opposingbishops := b.bishops & opposing
+	opposingrooks := (b.rooks | b.queens) & opposing
+	opposingbishops := (b.bishops | b.queens) & opposing
 FIND_THREAT:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?

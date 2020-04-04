@@ -197,6 +197,7 @@ func TestMoves(t *testing.T) {
 			"k7/2K5/7R/8/8/8/8/8 b - - 1 123",
 			[]string{"a8a7"},
 		},
+		// TODO: test for queen threat
 		{
 			"stalemate (no moves possible)",
 			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
