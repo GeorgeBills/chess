@@ -289,6 +289,20 @@ FIND_THREAT:
 		moves = append(moves, NewBishopPromotion(from, to, capture))
 	}
 
+	maybeMove := func(from, to uint8) {
+		if to > 63 {
+			return // out of range
+		}
+		var tobit uint64 = 1 << to
+		if occupied&tobit != 0 {
+			if opposing&tobit != 0 {
+				moves = append(moves, NewCapture(from, to)) // capture
+			}
+			return // occupied by our own colour
+		}
+		moves = append(moves, NewMove(from, to)) // empty
+	}
+
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -366,16 +380,21 @@ FIND_MOVES:
 		}
 
 		if knights&frombit != 0 { // is there a knight on this square?
-			knightMoves := knightMoves(from) &^ colour
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				if knightMoves&tobit != 0 { // is there a move to this square?
-					capture := b.black&tobit != 0 || b.white&tobit != 0
-					if capture {
-						moves = append(moves, NewCapture(from, to))
-					} else {
-						moves = append(moves, NewMove(from, to))
-					}
+			file := File(from)
+			if file > fileA {
+				maybeMove(from, from+15) // nnw (+2×8, -1)
+				maybeMove(from, from-17) // ssw (-2×8, -1)
+				if file > fileB {
+					maybeMove(from, from+6)  // wwn (+8, -2×1)
+					maybeMove(from, from-10) // wws (-8, -2×1)
+				}
+			}
+			if file < fileH {
+				maybeMove(from, from+17) // nne (+2×8, +1)
+				maybeMove(from, from-15) // sse (-2×8, +1)
+				if file < fileG {
+					maybeMove(from, from+10) // een (+8, +2×1)
+					maybeMove(from, from-6)  // ees (-8, +2×1)
 				}
 			}
 			continue FIND_MOVES
