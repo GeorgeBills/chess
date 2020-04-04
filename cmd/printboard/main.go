@@ -40,7 +40,7 @@ func main() {
 		if i != 0 && i%8 == 0 {
 			f.WriteRune('\n')
 		}
-		idx := i + 56 - 16*(i/8)
+		idx := i + 56 - 16*(i/8) // reverse ranks as we print
 		if board&(1<<idx) != 0 {
 			f.WriteRune('■')
 		} else {
