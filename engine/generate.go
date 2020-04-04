@@ -289,6 +289,12 @@ FIND_THREAT:
 		moves = append(moves, NewBishopPromotion(from, to, capture))
 	}
 
+	maybeCapture := func(from, to uint8, tobit uint64) {
+		if opposing&tobit != 0 {
+			moves = append(moves, NewCapture(from, to))
+		}
+	}
+
 	maybeMove := func(from, to uint8) {
 		if to > 63 {
 			return // out of range
@@ -421,9 +427,7 @@ FIND_MOVES:
 			for n := from + 8; n < 64; n += 8 {
 				tobit = 1 << n
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, n))
-					}
+					maybeCapture(from, n, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, n))
@@ -431,9 +435,7 @@ FIND_MOVES:
 			for e := from + 1; e < (rank+1)*8; e++ {
 				tobit = 1 << e
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, e))
-					}
+					maybeCapture(from, e, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, e))
@@ -441,9 +443,7 @@ FIND_MOVES:
 			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
 				tobit = 1 << s
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, s))
-					}
+					maybeCapture(from, s, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, s))
@@ -451,9 +451,7 @@ FIND_MOVES:
 			for w := from - 1; w > (rank*8)-1; w-- {
 				tobit = 1 << w
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, w))
-					}
+					maybeCapture(from, w, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, w))
@@ -464,9 +462,7 @@ FIND_MOVES:
 			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
 				tobit = 1 << ne
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, ne))
-					}
+					maybeCapture(from, ne, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, ne))
@@ -474,9 +470,7 @@ FIND_MOVES:
 			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
 				tobit = 1 << se
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, se))
-					}
+					maybeCapture(from, se, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, se))
@@ -484,9 +478,7 @@ FIND_MOVES:
 			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
 				tobit = 1 << sw
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, sw))
-					}
+					maybeCapture(from, sw, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, sw))
@@ -494,9 +486,7 @@ FIND_MOVES:
 			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
 				tobit = 1 << nw
 				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, nw))
-					}
+					maybeCapture(from, nw, tobit)
 					break
 				}
 				moves = append(moves, NewMove(from, nw))
