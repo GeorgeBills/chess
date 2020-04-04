@@ -122,7 +122,7 @@ const (
 func (b Board) Moves() []Move {
 	moves := make([]Move, 0, 32)
 
-	var from, to uint8
+	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
 	var pawnsdbl, pawnspromo uint64
@@ -257,8 +257,6 @@ FIND_THREAT:
 		}
 	}
 
-	// TODO: never loop over squares for destinations
-
 	// TODO: castling
 
 	ep := b.EnPassant()
@@ -302,7 +300,24 @@ FIND_THREAT:
 		var tobit uint64 = 1 << to
 		if occupied&tobit != 0 {
 			if opposing&tobit != 0 {
-				moves = append(moves, NewCapture(from, to)) // capture
+				moves = append(moves, NewCapture(from, to)) // occupied by opposing colour
+			}
+			return // occupied by our own colour
+		}
+		moves = append(moves, NewMove(from, to)) // empty
+	}
+
+	maybeMoveKing := func(from, to uint8) {
+		if to > 63 {
+			return // out of range
+		}
+		var tobit uint64 = 1 << to
+		if tobit&threatened != 0 {
+			return // king cannot move into check
+		}
+		if occupied&tobit != 0 {
+			if opposing&tobit != 0 {
+				moves = append(moves, NewCapture(from, to)) // occupied by opposing colour
 			}
 			return // occupied by our own colour
 		}
@@ -407,17 +422,20 @@ FIND_MOVES:
 		}
 
 		if king&frombit != 0 { // is there a king on this square?
-			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				if kingMoves&tobit != 0 { // is there a move to this square?
-					capture := b.black&tobit != 0 || b.white&tobit != 0
-					if capture {
-						moves = append(moves, NewCapture(from, to))
-					} else {
-						moves = append(moves, NewMove(from, to))
-					}
-				}
+			file := File(from)
+			maybeMoveKing(from, from+8) // n
+			maybeMoveKing(from, from-8) // s
+			// can't move east if we're on file h
+			if file != fileH {
+				maybeMoveKing(from, from+1) // e
+				maybeMoveKing(from, from+9) // ne
+				maybeMoveKing(from, from-7) // se
+			}
+			// can't move west if we're on file a
+			if file != fileA {
+				maybeMoveKing(from, from-1) // w
+				maybeMoveKing(from, from+7) // nw
+				maybeMoveKing(from, from-9) // sw
 			}
 			continue FIND_MOVES
 		}
