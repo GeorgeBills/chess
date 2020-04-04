@@ -16,8 +16,8 @@ func (b Board) FEN() string {
 	var i uint8
 
 	for i = 0; i < 64; i++ {
-		idx := i + 56 - 16*(i/8)
-		p := b.PieceAt(idx)
+		poi := PrintOrderedIndex(i)
+		p := b.PieceAt(poi)
 
 		// sequences of empty squares are indicated with their count
 		if (i%8 == 0 || p != PieceNone) && empty > 0 {
@@ -160,7 +160,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 			}
 			switch ch {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				n = 10*n + uint8(ch-'0')
+				n = 10*n + uint8(ch-'0') // FIXME: check for overflow
 				seen = true
 			case ' ':
 				err = r.UnreadByte()
@@ -172,8 +172,9 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	}
 
 	// read the 64 squares first
+	var i uint8
 READ_SQUARES:
-	for i := 0; i < 64; {
+	for i = 0; i < 64; {
 		ch, err := r.ReadByte()
 		if err != nil {
 			return nil, unexpectingEOF(err)
@@ -190,47 +191,47 @@ READ_SQUARES:
 			}
 		}
 
-		idx := i + 56 - 16*(i/8)
+		var mask uint64 = 1 << PrintOrderedIndex(i)
 
 		switch ch {
 		case 'P':
-			b.pawns |= 1 << idx
-			b.white |= 1 << idx
+			b.pawns |= mask
+			b.white |= mask
 		case 'N':
-			b.knights |= 1 << idx
-			b.white |= 1 << idx
+			b.knights |= mask
+			b.white |= mask
 		case 'B':
-			b.bishops |= 1 << idx
-			b.white |= 1 << idx
+			b.bishops |= mask
+			b.white |= mask
 		case 'R':
-			b.rooks |= 1 << idx
-			b.white |= 1 << idx
+			b.rooks |= mask
+			b.white |= mask
 		case 'Q':
-			b.queens |= 1 << idx
-			b.white |= 1 << idx
+			b.queens |= mask
+			b.white |= mask
 		case 'K':
-			b.kings |= 1 << idx
-			b.white |= 1 << idx
+			b.kings |= mask
+			b.white |= mask
 		case 'p':
-			b.pawns |= 1 << idx
-			b.black |= 1 << idx
+			b.pawns |= mask
+			b.black |= mask
 		case 'n':
-			b.knights |= 1 << idx
-			b.black |= 1 << idx
+			b.knights |= mask
+			b.black |= mask
 		case 'b':
-			b.bishops |= 1 << idx
-			b.black |= 1 << idx
+			b.bishops |= mask
+			b.black |= mask
 		case 'r':
-			b.rooks |= 1 << idx
-			b.black |= 1 << idx
+			b.rooks |= mask
+			b.black |= mask
 		case 'q':
-			b.queens |= 1 << idx
-			b.black |= 1 << idx
+			b.queens |= mask
+			b.black |= mask
 		case 'k':
-			b.kings |= 1 << idx
-			b.black |= 1 << idx
+			b.kings |= mask
+			b.black |= mask
 		case '1', '2', '3', '4', '5', '6', '7', '8':
-			i += int(ch - '0') // skip empty squares
+			i += uint8(ch - '0') // skip empty squares
 			continue READ_SQUARES
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [PNBRQKpnbrqk1-8]", ch)

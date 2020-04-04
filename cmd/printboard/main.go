@@ -9,13 +9,8 @@ import (
 )
 
 func main() {
-	fatal := func(code int, v interface{}) {
-		fmt.Println(v)
-		os.Exit(code)
-	}
-
 	if len(os.Args) != 2 {
-		fatal(0, fmt.Sprintf("%s <board>", os.Args[0]))
+		fatal(fmt.Sprintf("%s <board>", os.Args[0]))
 	}
 
 	bitstring := os.Args[1]
@@ -27,16 +22,16 @@ func main() {
 		clean := strings.ReplaceAll(bitstring[2:], "_", "")
 		board, err = strconv.ParseUint(clean, 16, 64)
 		if err != nil {
-			fatal(1, err)
+			fatal(err)
 		}
 	case strings.HasPrefix(bitstring, "0b"):
 		clean := strings.ReplaceAll(bitstring[2:], "_", "")
 		board, err = strconv.ParseUint(clean, 2, 64)
 		if err != nil {
-			fatal(1, err)
+			fatal(err)
 		}
 	default:
-		fatal(0, fmt.Sprintf("invalid board: %s", bitstring))
+		fatal(fmt.Sprintf("invalid board: %s; should be a 64 bit hex (0x...) or binary (0b...) variable", bitstring))
 	}
 
 	f := bufio.NewWriter(os.Stdout)
@@ -45,11 +40,16 @@ func main() {
 		if i != 0 && i%8 == 0 {
 			f.WriteRune('\n')
 		}
-		idx := i + 56 - 16*(i/8)
+		idx := i + 56 - 16*(i/8) // reverse ranks as we print
 		if board&(1<<idx) != 0 {
 			f.WriteRune('■')
 		} else {
 			f.WriteRune('□')
 		}
 	}
+}
+
+func fatal(v interface{}) {
+	fmt.Println(v)
+	os.Exit(1)
 }

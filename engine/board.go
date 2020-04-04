@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -111,20 +112,20 @@ func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 // IsKingAt returns true iff there is a piece at index i and it is a king.
 func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
-// EnPassant returns the index of the square under threat of en passant, or 0 if
-// there is no such square.
+// EnPassant returns the index of the square under threat of en passant, or
+// math.MaxUint8 if there is no such square.
 func (b Board) EnPassant() uint8 {
 	file := uint8(b.meta & epmask)
 	if file == 0 {
-		return 0
+		return math.MaxUint8
 	}
 	tomove := b.ToMove()
 	// index = 8×(rank - 1) + file - 1
 	switch tomove {
 	case White:
-		return 39 + file // rank 6
+		return 39 + file // rank 6; 8×(6 - 1) + file - 1
 	case Black:
-		return 15 + file // rank 3
+		return 15 + file // rank 3; 8×(3 - 1) + file - 1
 	default:
 		panic(fmt.Sprintf("invalid to move: %b", tomove))
 	}
@@ -168,7 +169,7 @@ func (b Board) PieceAt(i uint8) Piece {
 			panic(fmt.Sprintf("invalid board state: %+v", b))
 		}
 	}
-	return 0
+	return PieceNone
 }
 
 // ToMove returns the colour whose move it is.
@@ -207,8 +208,8 @@ func (b Board) String() string {
 		if i != 0 && i%8 == 0 {
 			sb.WriteRune('\n')
 		}
-		idx := i + 56 - 16*(i/8)
-		r := b.PieceAt(idx).Rune()
+		poi := PrintOrderedIndex(i)
+		r := b.PieceAt(poi).Rune()
 		sb.WriteRune(r)
 	}
 	return sb.String()
