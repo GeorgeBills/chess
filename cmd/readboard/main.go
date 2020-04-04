@@ -13,7 +13,7 @@ func main() {
 	var board uint64
 	for i := 1; i < len(os.Args); i++ {
 		if len(os.Args[i]) != 2 {
-			fatal(fmt.Sprintf("invalid square: %s", os.Args[i]))
+			fatalsq(os.Args[i])
 		}
 
 		var file uint8
@@ -23,7 +23,7 @@ func main() {
 		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
 			file = uint8(os.Args[i][0]-'A') + 1
 		default:
-			fatal(fmt.Sprintf("invalid square: %s", os.Args[i]))
+			fatalsq(os.Args[i])
 		}
 
 		var rank uint8
@@ -31,7 +31,7 @@ func main() {
 		case '1', '2', '3', '4', '5', '6', '7', '8':
 			rank = uint8(os.Args[i][1] - '0')
 		default:
-			fatal(fmt.Sprintf("invalid square: %s", os.Args[i]))
+			fatalsq(os.Args[i])
 		}
 
 		board |= 1 << (8*(rank-1) + file - 1)
@@ -54,4 +54,8 @@ func main() {
 func fatal(v interface{}) {
 	fmt.Println(v)
 	os.Exit(1)
+}
+
+func fatalsq(sq string) {
+	fatal(fmt.Sprintf("invalid square: %s; must match ^[a-hA-H][1-8]$", sq))
 }
