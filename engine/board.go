@@ -207,8 +207,8 @@ func (b Board) String() string {
 		if i != 0 && i%8 == 0 {
 			sb.WriteRune('\n')
 		}
-		idx := i + 56 - 16*(i/8)
-		r := b.PieceAt(idx).Rune()
+		poi := PrintOrderedIndex(i)
+		r := b.PieceAt(poi).Rune()
 		sb.WriteRune(r)
 	}
 	return sb.String()

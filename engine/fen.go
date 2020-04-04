@@ -16,8 +16,8 @@ func (b Board) FEN() string {
 	var i uint8
 
 	for i = 0; i < 64; i++ {
-		idx := i + 56 - 16*(i/8)
-		p := b.PieceAt(idx)
+		poi := PrintOrderedIndex(i)
+		p := b.PieceAt(poi)
 
 		// sequences of empty squares are indicated with their count
 		if (i%8 == 0 || p != PieceNone) && empty > 0 {
@@ -172,8 +172,9 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	}
 
 	// read the 64 squares first
+	var i uint8
 READ_SQUARES:
-	for i := 0; i < 64; {
+	for i = 0; i < 64; {
 		ch, err := r.ReadByte()
 		if err != nil {
 			return nil, unexpectingEOF(err)
@@ -190,7 +191,7 @@ READ_SQUARES:
 			}
 		}
 
-		idx := i + 56 - 16*(i/8)
+		idx := PrintOrderedIndex(i)
 
 		switch ch {
 		case 'P':
@@ -230,7 +231,7 @@ READ_SQUARES:
 			b.kings |= 1 << idx
 			b.black |= 1 << idx
 		case '1', '2', '3', '4', '5', '6', '7', '8':
-			i += int(ch - '0') // skip empty squares
+			i += uint8(ch - '0') // skip empty squares
 			continue READ_SQUARES
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [PNBRQKpnbrqk1-8]", ch)
