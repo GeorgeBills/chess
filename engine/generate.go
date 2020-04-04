@@ -174,6 +174,7 @@ func (b Board) Moves() []Move {
 	opposingknights := b.knights & opposing
 	opposingking := b.kings & opposing
 	opposingrooks := b.rooks & opposing
+	opposingbishops := b.bishops & opposing
 FIND_THREAT:
 	for from = 0; from < 64; from++ {
 		frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
@@ -217,6 +218,37 @@ FIND_THREAT:
 			}
 			for w := from - 1; w > (rank*8)-1; w-- {
 				tobit = 1 << w
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+		}
+
+		if opposingbishops&frombit != 0 { // is there a bishop on this square?
+			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+				tobit = 1 << ne
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
+				tobit = 1 << se
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
+				tobit = 1 << sw
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+				tobit = 1 << nw
 				threatened |= tobit
 				if occupied&tobit != 0 {
 					break

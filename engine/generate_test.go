@@ -160,7 +160,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"queen moves",
-			"4k3/2p5/B2q3B/8/8/P7/7P/3QK3 b - - 1 123",
+			"4k3/2p3P1/B2q3B/8/8/P7/7P/3QK3 b - - 1 123",
 			[]string{
 				"c7c5", "c7c6", // pawn
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
@@ -174,12 +174,12 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king moves",
+			"king must not move into check (bishop)",
 			"4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
 			[]string{
-				"e4xd5", "e4e5", "e4f5",
+				"e4xd5", "e4f5",
 				"e4d4", "e4xf4",
-				"e4d3", "e4e3", "e4f3",
+				"e4d3", "e4f3",
 			},
 		},
 		{
