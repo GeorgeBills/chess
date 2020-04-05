@@ -178,6 +178,11 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"unexpected 'a', expecting [KQkq]",
 		},
 		{
+			"invalid castling dash",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq-KQ - 0 1",
+			"castling '-' must be solitary if present",
+		},
+		{
 			"invalid en passant file",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z1 0 1",
 			"unexpected 'z', expecting [a-hA-H]",
@@ -196,6 +201,11 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"invalid en passant (w2m)",
 			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2",
 			"invalid board state: black moved last; en passant on rank 3",
+		},
+		{
+			"invalid piece",
+			"rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"unexpected 'X', expecting [PNBRQKpnbrqk1-8]",
 		},
 		// {
 		// 	"full moves too large",

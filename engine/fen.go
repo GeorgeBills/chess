@@ -281,7 +281,7 @@ READ_CASTLING:
 			// '-' indicates that castling is unavailable
 			// if present it must be the one and only byte
 			if b.meta&(wcks|wcqs|bcks|bcqs) != 0 {
-				return nil, errors.New("unexpected '-', expecting [KQkq]")
+				return nil, errors.New("castling '-' must be solitary if present")
 			}
 			break READ_CASTLING
 		case ' ':
