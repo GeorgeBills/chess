@@ -160,6 +160,40 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			// because it's easy to off-by-one the off the board check
+			"edge conditions: bishops moving to corners of the board",
+			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
+			[]string{
+				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
+				"c3a5", "c3b4", "c3d2", "c3e1", // c3 bishop falling diagonal
+				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5h8", // d5 bishop rising diagonal
+				"d5d8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
+				"g1f1", "g1f2", "g1g2", "g1h1", "g1h2", // king
+			},
+		},
+		{
+			"edge conditions: rooks h1 and a8",
+			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
+			[]string{
+				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
+				"a8b8", "a8c8", "a8d8", "a8e8", "a8f8", "a8g8", "a8h8", // a8 rook horizontal
+				"h1a1", "h1b1", "h1c1", "h1d1", "h1e1", "h1f1", "h1g1", // h1 rook vertical
+				"h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", // h1 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h2", "g2h3", // king
+			},
+		},
+		{
+			"edge conditions: rooks a1 and h8",
+			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
+			[]string{
+				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
+				"a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1", // a1 rook horizontal
+				"h8h1", "h8h2", "h8h3", "h8h4", "h8h5", "h8h6", "h8h7", // h8 rook vertical
+				"h8a8", "h8b8", "h8c8", "h8d8", "h8e8", "h8f8", "h8g8", // h8 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h1", "g2h2", "g2h3", // king
+			},
+		},
+		{
 			"queen moves",
 			"4k3/2p3P1/B2q3B/8/8/P7/7P/3QK3 b - - 1 123",
 			[]string{
