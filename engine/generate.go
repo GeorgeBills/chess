@@ -118,6 +118,30 @@ const (
 	// TODO: can we use filemasks to speed up file checks?
 )
 
+// "One may not castle out of, through, or into check".
+//
+// The castle threat mask constants track the squares for the kings starting
+// position, the square the king will move through, and the kings final
+// position. If one of these squares is under threat then the relevant castling
+// is not legal.
+const (
+	whiteKingsideCastleThreatMask  uint64 = 1<<E1 | 1<<F1 | 1<<G1
+	whiteQueensideCastleThreatMask uint64 = 1<<C1 | 1<<D1 | 1<<E1
+	blackKingsideCastleThreatMask  uint64 = 1<<E8 | 1<<F8 | 1<<G8
+	blackQueensideCastleThreatMask uint64 = 1<<C8 | 1<<D8 | 1<<E8
+)
+
+// In order to castle there must be no spaces in between the king and the rook.
+// The castle block mask constants track the squares in between the king and the
+// rook. If one of these squares is occupied then the relevant castling is not
+// legal.
+const (
+	whiteKingsideCastleBlockMask  uint64 = 1<<F1 | 1<<G1
+	whiteQueensideCastleBlockMask uint64 = 1<<B1 | 1<<C1 | 1<<D1
+	blackKingsideCastleBlockMask  uint64 = 1<<F8 | 1<<G8
+	blackQueensideCastleBlockMask uint64 = 1<<B8 | 1<<C8 | 1<<D8
+)
+
 // Moves returns a slice of possible moves from the current board state.
 func (b Board) Moves() []Move {
 	moves := make([]Move, 0, 32)
@@ -259,7 +283,22 @@ FIND_THREAT:
 		}
 	}
 
-	// TODO: castling
+	// Check for castling.
+	if tomove == White {
+		if b.CanWhiteCastleKingSide() && threatened&whiteKingsideCastleThreatMask == 0 && occupied&whiteKingsideCastleBlockMask == 0 {
+			moves = append(moves, NewWhiteKingsideCastle())
+		}
+		if b.CanWhiteCastleQueenSide() && threatened&whiteQueensideCastleThreatMask == 0 && occupied&whiteQueensideCastleBlockMask == 0 {
+			moves = append(moves, NewWhiteQueensideCastle())
+		}
+	} else {
+		if b.CanBlackCastleKingSide() && threatened&blackKingsideCastleThreatMask == 0 && occupied&blackKingsideCastleBlockMask == 0 {
+			moves = append(moves, NewBlackKingsideCastle())
+		}
+		if b.CanBlackCastleQueenSide() && threatened&blackQueensideCastleThreatMask == 0 && occupied&blackQueensideCastleBlockMask == 0 {
+			moves = append(moves, NewBlackQueensideCastle())
+		}
+	}
 
 	ep := b.EnPassant()
 	if ep != 0 {

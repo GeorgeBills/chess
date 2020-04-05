@@ -22,16 +22,28 @@ func NewEnPassant(from, to uint8) Move {
 	return NewMove(from, to) | moveIsEnPassant
 }
 
-// NewKingsideCastle returns a new move where the move represents kingside
-// castling. from and to must represent the kings origin and destination.
-func NewKingsideCastle(from, to uint8) Move {
-	return NewMove(from, to) | moveIsKingsideCastle
+// NewBlackKingsideCastle returns a new move where the move represents kingside
+// castling for black.
+func NewBlackKingsideCastle() Move {
+	return NewMove(E8, G8) | moveIsKingsideCastle
 }
 
-// NewQueensideCastle returns a new move where the move represents queenside
-// castling. from and to must represent the kings origin and destination.
-func NewQueensideCastle(from, to uint8) Move {
-	return NewMove(from, to) | moveIsQueensideCastle
+// NewBlackQueensideCastle returns a new move where the move represents
+// queenside castling for black.
+func NewBlackQueensideCastle() Move {
+	return NewMove(E8, C8) | moveIsQueensideCastle
+}
+
+// NewWhiteKingsideCastle returns a new move where the move represents kingside
+// castling for black.
+func NewWhiteKingsideCastle() Move {
+	return NewMove(E1, G1) | moveIsKingsideCastle
+}
+
+// NewWhiteQueensideCastle returns a new move where the move represents
+// queenside castling for black.
+func NewWhiteQueensideCastle() Move {
+	return NewMove(E1, C1) | moveIsQueensideCastle
 }
 
 func newPromotion(from, to uint8, capture bool) Move {

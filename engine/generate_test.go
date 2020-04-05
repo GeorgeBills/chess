@@ -218,6 +218,59 @@ func TestMoves(t *testing.T) {
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
+		{
+			"white can ks castle only (qs blocked)",
+			"4k3/8/8/8/8/8/P6P/R3K1NR w KQ - 1 123",
+			[]string{
+				"O-O-O",
+				"a1b1", "a1c1", "a1d1", // queenside rook
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"g1e2", "g1f3", "g1h3", // knight
+				"a2a3", "a2a4", "h2h3", "h2h4", // pawns
+			},
+		},
+		{
+			"white can castle both (ks pawn protects from check, qs despite rook being covered)",
+			"4kr2/8/8/8/8/r4P2/7P/R3K2R w KQ - 1 123",
+			[]string{
+				"O-O", "O-O-O",
+				"a1a2", "a1xa3", "a1b1", "a1c1", "a1d1", // queenside rook
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"h1g1", "h1f1", // kingside rook
+				"f3f4", "h2h3", "h2h4", // pawns
+			},
+		},
+		{
+			"white can castle neither (ks pass through check, qs into check)",
+			"2r1kr2/8/8/8/8/8/P6P/R3K2R w KQ - 1 123",
+			[]string{
+				"a1b1", "a1c1", "a1d1", // queenside rook
+				"e1d1", "e1d2", "e1e2", // king
+				"h1g1", "h1f1", // kingside rook
+				"a2a3", "a2a4", "h2h3", "h2h4", // queenside rook
+			},
+		},
+		{
+			"black can qs castle only (board state)",
+			"r3k2r/p6p/8/8/8/8/8/4K3 b q - 1 123",
+			[]string{
+				"O-O-O",
+				"a8b8", "a8c8", "a8d8", // queenside rook
+				"h8g8", "h8f8", // kingside rook
+				"a7a6", "a7a5", "h7h6", "h7h5", // pawns
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+			},
+		},
+		{
+			"black can castle neither (king in check)",
+			"r3k2r/p6p/3N4/8/8/8/8/4K3 b kq - 0 1",
+			[]string{
+				"a7a6", "a7a5", "h7h6", "h7h5", // pawns
+				"a8b8", "a8c8", "a8d8", // kingside rook
+				"h8f8", "h8g8", // queenside rook
+				"e8d7", "e8d8", "e8e7", "e8f8", // king
+			},
+		},
 	}
 
 	for _, tt := range moves {
