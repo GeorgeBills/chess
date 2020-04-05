@@ -293,6 +293,13 @@ FIND_THREAT:
 		}
 	}
 
+	maybeCapturePawn := func(from, to uint8) {
+		var tobit uint64 = 1 << to
+		if opposing&tobit != 0 {
+			moves = append(moves, NewCapture(from, to))
+		}
+	}
+
 	maybeMove := func(from, to uint8) {
 		if to > 63 {
 			return // out of range
@@ -377,12 +384,8 @@ FIND_MOVES:
 				if push := from + 8; occupied&(1<<push) == 0 {
 					moves = append(moves, NewMove(from, push))
 				}
-				if ne := from + 9; opposing&(1<<ne) != 0 {
-					moves = append(moves, NewCapture(from, ne))
-				}
-				if nw := from + 7; opposing&(1<<nw) != 0 {
-					moves = append(moves, NewCapture(from, nw))
-				}
+				maybeCapturePawn(from, from+9)
+				maybeCapturePawn(from, from+7)
 			} else {
 				if pawnsdbl&frombit != 0 {
 					moves = append(moves, NewMove(from, from-16))
@@ -390,12 +393,8 @@ FIND_MOVES:
 				if push := from - 8; occupied&(1<<push) == 0 {
 					moves = append(moves, NewMove(from, push))
 				}
-				if se := from - 7; opposing&(1<<se) != 0 {
-					moves = append(moves, NewCapture(from, se))
-				}
-				if sw := from - 9; opposing&(1<<sw) != 0 {
-					moves = append(moves, NewCapture(from, sw))
-				}
+				maybeCapturePawn(from, from-7)
+				maybeCapturePawn(from, from-9)
 			}
 			continue FIND_MOVES
 		}
