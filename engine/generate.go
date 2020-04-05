@@ -196,6 +196,7 @@ func (b Board) Moves() []Move {
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
 
+	// TODO: "covered" seems to be the appropriate chess term
 	var threatened uint64 // threatened tracks squares we may not move our king to
 	opposingknights := b.knights & opposing
 	opposingking := b.kings & opposing

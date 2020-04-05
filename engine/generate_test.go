@@ -95,6 +95,7 @@ func TestMoves(t *testing.T) {
 				"d7d8=Q", "d7d8=N", "d7d8=R", "d7d8=B",
 			},
 		},
+		// TOOD: test pawn promos for black
 		{
 			"pawn en passant (black to move)",
 			"4k3/8/8/8/3pPp2/3P2P1/8/4K3 b - e3 0 123",
@@ -197,6 +198,7 @@ func TestMoves(t *testing.T) {
 			"k7/2K5/7R/8/8/8/8/8 b - - 1 123",
 			[]string{"a8a7"},
 		},
+		// TODO: test for pawn threat
 		// TODO: test for queen threat
 		{
 			"stalemate (no moves possible)",
@@ -218,6 +220,16 @@ func TestMoves(t *testing.T) {
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
+		// TODO: must capture piece to clear check
+		// TODO: king must capture piece to clear check
+		// TODO: piece must block to clear check
+		// TODO: king may not capture a covered piece
+		// TODO: capturing or blocking piece doesn't work if double check; king must move
+		// TODO: en passant to clear check https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
+		// TODO: king MAY NOT move away from slider while still on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
+		// TODO: absolutely pinned piece must stay on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#part-3-pinned-pieces
+		// TODO: may not en passant if that exposes king https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
+		// TODO: checkmate
 		{
 			"white can ks castle only (qs blocked)",
 			"4k3/8/8/8/8/8/P6P/R3K1NR w KQ - 1 123",
@@ -271,6 +283,7 @@ func TestMoves(t *testing.T) {
 				"e8d7", "e8d8", "e8e7", "e8f8", // king
 			},
 		},
+		// TODO: test for black ks castle just to get the coverage
 	}
 
 	for _, tt := range moves {
