@@ -288,11 +288,43 @@ func TestMoves(t *testing.T) {
 			assert.Equal(t, tt.expected, moves)
 		})
 	}
-
 }
 
-func BenchmarkInitialMoves(b *testing.B) {
-	board := engine.NewBoard()
+func BenchmarkMoveGeneration10(b *testing.B) {
+	const fen = "r3k2r/pbqnbppp/1p2pn2/2p1N3/Q1P5/4P3/PB1PBPPP/RN3RK1 w kq - 8 11" // 10 ply in, white to play
+	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	for i := 0; i < b.N; i++ {
+		board.Moves()
+	}
+}
+
+func BenchmarkMoveGeneration20(b *testing.B) {
+	const fen = "4rrk1/2qn2pp/pp2pb2/2p2p2/P1P2P2/2NPPR2/1BQ3PP/1R4K1 b - - 0 20" // 20 ply in, black to play
+	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	for i := 0; i < b.N; i++ {
+		board.Moves()
+	}
+}
+
+func BenchmarkMoveGeneration30(b *testing.B) {
+	const fen = "3rr1k1/1nq4p/pp4p1/2pP1p2/P4P2/2Q1P3/1R2N1PP/3R2K1 w - - 0 31" // 30 ply in, white to play
+	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	for i := 0; i < b.N; i++ {
+		board.Moves()
+	}
+}
+
+func BenchmarkMoveGeneration40(b *testing.B) {
+	const fen = "3r2k1/1n5p/8/pPpq1p1p/5P2/4P3/6PK/1R2QN2 b - - 3 40" // 40 ply in, black to play
+	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	for i := 0; i < b.N; i++ {
+		board.Moves()
+	}
+}
+
+func BenchmarkMoveGeneration50(b *testing.B) {
+	const fen = "6k1/1n5p/8/p7/2p2PP1/1r2P1N1/8/R5K1 w - - 3 51" // 50 ply in, white to play
+	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
 	for i := 0; i < b.N; i++ {
 		board.Moves()
 	}
