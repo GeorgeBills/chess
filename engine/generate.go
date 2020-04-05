@@ -218,7 +218,7 @@ FIND_THREAT:
 					break
 				}
 			}
-			for w := from - 1; w > (rank*8)-1; w-- {
+			for w := from - 1; w != (rank*8)-1; w-- {
 				tobit = 1 << w
 				threatened |= tobit
 				if occupied&tobit != 0 {
@@ -467,7 +467,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, s))
 			}
-			for w := from - 1; w > (rank*8)-1; w-- {
+			for w := from - 1; w != (rank*8)-1; w-- {
 				tobit = 1 << w
 				if occupied&tobit != 0 {
 					maybeCapture(from, w, tobit)

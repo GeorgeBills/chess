@@ -125,11 +125,11 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"rook moves",
-			"k7/8/8/8/8/8/1R6/7K w - - 1 123",
+			"k7/8/8/8/8/8/8/1R5K w - - 1 123",
 			[]string{
 				"h1h2", "h1g1", "h1g2", // king
-				"b2b1", "b2b3", "b2b4", "b2b5", "b2b6", "b2b7", "b2b8", // rook vertical
-				"b2a2", "b2c2", "b2d2", "b2e2", "b2f2", "b2g2", "b2h2", // rook horizontal
+				"b1b2", "b1b3", "b1b4", "b1b5", "b1b6", "b1b7", "b1b8", // rook vertical
+				"b1a1", "b1c1", "b1d1", "b1e1", "b1f1", "b1g1", // rook horizontal
 			},
 		},
 		{
