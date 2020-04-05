@@ -125,7 +125,7 @@ func (b Board) Moves() []Move {
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnsdbl, pawnspromo uint64
+	var pawnssgl, pawnsdbl, pawnspromo uint64
 
 	occupied := b.white | b.black
 
@@ -136,13 +136,15 @@ func (b Board) Moves() []Move {
 		colour = b.white
 		opposing = b.black
 		pawns = b.pawns & b.white
-		pawnsdbl = pawns & rank2mask &^ ((occupied & rank3mask) >> 8) &^ ((occupied & rank4mask) >> 16)
+		pawnssgl = pawns &^ (occupied >> 8)
+		pawnsdbl = pawnssgl & rank2mask &^ ((occupied & rank4mask) >> 16)
 		pawnspromo = pawns & rank7mask
 	} else {
 		colour = b.black
 		opposing = b.white
 		pawns = b.pawns & b.black
-		pawnsdbl = pawns & rank7mask &^ ((occupied & rank6mask) << 8) &^ ((occupied & rank5mask) << 16)
+		pawnssgl = pawns &^ (occupied << 8)
+		pawnsdbl = pawnssgl & rank7mask &^ ((occupied & rank5mask) << 16)
 		pawnspromo = pawns & rank2mask
 	}
 
@@ -381,8 +383,8 @@ FIND_MOVES:
 				if pawnsdbl&frombit != 0 {
 					moves = append(moves, NewMove(from, from+16))
 				}
-				if push := from + 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewMove(from, push))
+				if pawnssgl&frombit != 0 {
+					moves = append(moves, NewMove(from, from+8))
 				}
 				maybeCapturePawn(from, from+9)
 				maybeCapturePawn(from, from+7)
@@ -390,8 +392,8 @@ FIND_MOVES:
 				if pawnsdbl&frombit != 0 {
 					moves = append(moves, NewMove(from, from-16))
 				}
-				if push := from - 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewMove(from, push))
+				if pawnssgl&frombit != 0 {
+					moves = append(moves, NewMove(from, from-8))
 				}
 				maybeCapturePawn(from, from-7)
 				maybeCapturePawn(from, from-9)
