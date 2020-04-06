@@ -198,87 +198,89 @@ func (b Board) Moves() []Move {
 
 	// TODO: "covered" seems to be the appropriate chess term
 	var threatened uint64 // threatened tracks squares we may not move our king to
-	opposingknights := b.knights & opposing
-	opposingking := b.kings & opposing
-	opposingrooks := (b.rooks | b.queens) & opposing
-	opposingbishops := (b.bishops | b.queens) & opposing
-FIND_THREAT:
-	for from = 0; from < 64; from++ {
-		frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
+	{
+		opposingknights := b.knights & opposing
+		opposingking := b.kings & opposing
+		opposingrooks := (b.rooks | b.queens) & opposing
+		opposingbishops := (b.bishops | b.queens) & opposing
+	FIND_THREAT:
+		for from = 0; from < 64; from++ {
+			frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
 
-		if opposing&frombit == 0 {
-			continue FIND_THREAT
-		}
+			if opposing&frombit == 0 {
+				continue FIND_THREAT
+			}
 
-		if opposingknights&frombit != 0 { // is there a knight on this square?
-			threatened |= knightMoves(from)
-			continue FIND_THREAT
-		}
+			if opposingknights&frombit != 0 { // is there a knight on this square?
+				threatened |= knightMoves(from)
+				continue FIND_THREAT
+			}
 
-		if opposingking&frombit != 0 { // is there a king on this square?
-			threatened |= kingMoves(from)
-			continue FIND_THREAT
-		}
+			if opposingking&frombit != 0 { // is there a king on this square?
+				threatened |= kingMoves(from)
+				continue FIND_THREAT
+			}
 
-		if opposingrooks&frombit != 0 { // is there a rook on this square?
-			rank := Rank(from)
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
+			if opposingrooks&frombit != 0 { // is there a rook on this square?
+				rank := Rank(from)
+				for n := from + 8; n < 64; n += 8 {
+					tobit = 1 << n
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
+				}
+				for e := from + 1; e < (rank+1)*8; e++ {
+					tobit = 1 << e
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
+				}
+				for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
+					tobit = 1 << s
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
+				}
+				for w := from - 1; w != (rank*8)-1; w-- {
+					tobit = 1 << w
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
 				}
 			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for w := from - 1; w != (rank*8)-1; w-- {
-				tobit = 1 << w
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-		}
 
-		if opposingbishops&frombit != 0 { // is there a bishop on this square?
-			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-				tobit = 1 << ne
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
+			if opposingbishops&frombit != 0 { // is there a bishop on this square?
+				for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+					tobit = 1 << ne
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
 				}
-			}
-			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-				tobit = 1 << se
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
+				for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
+					tobit = 1 << se
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
 				}
-			}
-			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-				tobit = 1 << sw
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
+				for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
+					tobit = 1 << sw
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
 				}
-			}
-			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-				tobit = 1 << nw
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
+				for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+					tobit = 1 << nw
+					threatened |= tobit
+					if occupied&tobit != 0 {
+						break
+					}
 				}
 			}
 		}
@@ -380,178 +382,179 @@ FIND_THREAT:
 	//
 	// We evaluate pieces in descending frequency order (pawn, knight, king) to
 	// hopefully skip a loop iteration as early as possible.
-	knights := b.knights & colour
-	bishops := (b.bishops | b.queens) & colour
-	rooks := (b.rooks | b.queens) & colour
-	king := b.kings & colour
-FIND_MOVES:
-	for from = 0; from < 64; from++ {
-		frombit = 1 << from
+	{
+		knights := b.knights & colour
+		bishops := (b.bishops | b.queens) & colour
+		rooks := (b.rooks | b.queens) & colour
+		king := b.kings & colour
+	FIND_MOVES:
+		for from = 0; from < 64; from++ {
+			frombit = 1 << from
 
-		if colour&frombit == 0 {
-			continue FIND_MOVES
+			if colour&frombit == 0 {
+				continue FIND_MOVES
+			}
+
+			if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
+				if tomove == White {
+					if ne := from + 9; opposing&(1<<ne) != 0 {
+						addpromos(from, ne, true)
+					}
+					if nw := from + 7; opposing&(1<<nw) != 0 {
+						addpromos(from, nw, true)
+					}
+					if push := from + 8; occupied&(1<<push) == 0 {
+						addpromos(from, push, false)
+					}
+				} else {
+					if se := from - 7; opposing&(1<<se) != 0 {
+						addpromos(from, se, true)
+					}
+					if sw := from - 9; opposing&(1<<sw) != 0 {
+						addpromos(from, sw, true)
+					}
+					if push := from - 8; occupied&(1<<push) == 0 {
+						addpromos(from, push, false)
+					}
+				}
+				continue FIND_MOVES
+			}
+
+			if pawns&frombit != 0 { // is there a pawn on this square?
+				// TODO: set en passant target on double pawn moves
+				if tomove == White {
+					if pawnsdbl&frombit != 0 {
+						moves = append(moves, NewMove(from, from+16))
+					}
+					if pawnssgl&frombit != 0 {
+						moves = append(moves, NewMove(from, from+8))
+					}
+					maybeCapturePawn(from, from+9)
+					maybeCapturePawn(from, from+7)
+				} else {
+					if pawnsdbl&frombit != 0 {
+						moves = append(moves, NewMove(from, from-16))
+					}
+					if pawnssgl&frombit != 0 {
+						moves = append(moves, NewMove(from, from-8))
+					}
+					maybeCapturePawn(from, from-7)
+					maybeCapturePawn(from, from-9)
+				}
+				continue FIND_MOVES
+			}
+
+			if knights&frombit != 0 { // is there a knight on this square?
+				file := File(from)
+				if file > fileA {
+					maybeMove(from, from+15) // nnw (+2×8, -1)
+					maybeMove(from, from-17) // ssw (-2×8, -1)
+					if file > fileB {
+						maybeMove(from, from+6)  // wwn (+8, -2×1)
+						maybeMove(from, from-10) // wws (-8, -2×1)
+					}
+				}
+				if file < fileH {
+					maybeMove(from, from+17) // nne (+2×8, +1)
+					maybeMove(from, from-15) // sse (-2×8, +1)
+					if file < fileG {
+						maybeMove(from, from+10) // een (+8, +2×1)
+						maybeMove(from, from-6)  // ees (-8, +2×1)
+					}
+				}
+				continue FIND_MOVES
+			}
+
+			if king&frombit != 0 { // is there a king on this square?
+				file := File(from)
+				maybeMoveKing(from, from+8) // n
+				maybeMoveKing(from, from-8) // s
+				// can't move east if we're on file h
+				if file != fileH {
+					maybeMoveKing(from, from+1) // e
+					maybeMoveKing(from, from+9) // ne
+					maybeMoveKing(from, from-7) // se
+				}
+				// can't move west if we're on file a
+				if file != fileA {
+					maybeMoveKing(from, from-1) // w
+					maybeMoveKing(from, from+7) // nw
+					maybeMoveKing(from, from-9) // sw
+				}
+				continue FIND_MOVES
+			}
+
+			if rooks&frombit != 0 { // is there a rook on this square?
+				rank := Rank(from)
+				for n := from + 8; n < 64; n += 8 {
+					tobit = 1 << n
+					if occupied&tobit != 0 {
+						maybeCapture(from, n, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, n))
+				}
+				for e := from + 1; e < (rank+1)*8; e++ {
+					tobit = 1 << e
+					if occupied&tobit != 0 {
+						maybeCapture(from, e, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, e))
+				}
+				for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
+					tobit = 1 << s
+					if occupied&tobit != 0 {
+						maybeCapture(from, s, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, s))
+				}
+				for w := from - 1; w != (rank*8)-1; w-- {
+					tobit = 1 << w
+					if occupied&tobit != 0 {
+						maybeCapture(from, w, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, w))
+				}
+			}
+
+			if bishops&frombit != 0 { // is there a bishop on this square?
+				for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+					tobit = 1 << ne
+					if occupied&tobit != 0 {
+						maybeCapture(from, ne, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, ne))
+				}
+				for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
+					tobit = 1 << se
+					if occupied&tobit != 0 {
+						maybeCapture(from, se, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, se))
+				}
+				for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
+					tobit = 1 << sw
+					if occupied&tobit != 0 {
+						maybeCapture(from, sw, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, sw))
+				}
+				for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+					tobit = 1 << nw
+					if occupied&tobit != 0 {
+						maybeCapture(from, nw, tobit)
+						break
+					}
+					moves = append(moves, NewMove(from, nw))
+				}
+			}
 		}
-
-		if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
-			if tomove == White {
-				if ne := from + 9; opposing&(1<<ne) != 0 {
-					addpromos(from, ne, true)
-				}
-				if nw := from + 7; opposing&(1<<nw) != 0 {
-					addpromos(from, nw, true)
-				}
-				if push := from + 8; occupied&(1<<push) == 0 {
-					addpromos(from, push, false)
-				}
-			} else {
-				if se := from - 7; opposing&(1<<se) != 0 {
-					addpromos(from, se, true)
-				}
-				if sw := from - 9; opposing&(1<<sw) != 0 {
-					addpromos(from, sw, true)
-				}
-				if push := from - 8; occupied&(1<<push) == 0 {
-					addpromos(from, push, false)
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if pawns&frombit != 0 { // is there a pawn on this square?
-			// TODO: set en passant target on double pawn moves
-			if tomove == White {
-				if pawnsdbl&frombit != 0 {
-					moves = append(moves, NewMove(from, from+16))
-				}
-				if pawnssgl&frombit != 0 {
-					moves = append(moves, NewMove(from, from+8))
-				}
-				maybeCapturePawn(from, from+9)
-				maybeCapturePawn(from, from+7)
-			} else {
-				if pawnsdbl&frombit != 0 {
-					moves = append(moves, NewMove(from, from-16))
-				}
-				if pawnssgl&frombit != 0 {
-					moves = append(moves, NewMove(from, from-8))
-				}
-				maybeCapturePawn(from, from-7)
-				maybeCapturePawn(from, from-9)
-			}
-			continue FIND_MOVES
-		}
-
-		if knights&frombit != 0 { // is there a knight on this square?
-			file := File(from)
-			if file > fileA {
-				maybeMove(from, from+15) // nnw (+2×8, -1)
-				maybeMove(from, from-17) // ssw (-2×8, -1)
-				if file > fileB {
-					maybeMove(from, from+6)  // wwn (+8, -2×1)
-					maybeMove(from, from-10) // wws (-8, -2×1)
-				}
-			}
-			if file < fileH {
-				maybeMove(from, from+17) // nne (+2×8, +1)
-				maybeMove(from, from-15) // sse (-2×8, +1)
-				if file < fileG {
-					maybeMove(from, from+10) // een (+8, +2×1)
-					maybeMove(from, from-6)  // ees (-8, +2×1)
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if king&frombit != 0 { // is there a king on this square?
-			file := File(from)
-			maybeMoveKing(from, from+8) // n
-			maybeMoveKing(from, from-8) // s
-			// can't move east if we're on file h
-			if file != fileH {
-				maybeMoveKing(from, from+1) // e
-				maybeMoveKing(from, from+9) // ne
-				maybeMoveKing(from, from-7) // se
-			}
-			// can't move west if we're on file a
-			if file != fileA {
-				maybeMoveKing(from, from-1) // w
-				maybeMoveKing(from, from+7) // nw
-				maybeMoveKing(from, from-9) // sw
-			}
-			continue FIND_MOVES
-		}
-
-		if rooks&frombit != 0 { // is there a rook on this square?
-			rank := Rank(from)
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				if occupied&tobit != 0 {
-					maybeCapture(from, n, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, n))
-			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				if occupied&tobit != 0 {
-					maybeCapture(from, e, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, e))
-			}
-			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				if occupied&tobit != 0 {
-					maybeCapture(from, s, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, s))
-			}
-			for w := from - 1; w != (rank*8)-1; w-- {
-				tobit = 1 << w
-				if occupied&tobit != 0 {
-					maybeCapture(from, w, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, w))
-			}
-		}
-
-		if bishops&frombit != 0 { // is there a bishop on this square?
-			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-				tobit = 1 << ne
-				if occupied&tobit != 0 {
-					maybeCapture(from, ne, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, ne))
-			}
-			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-				tobit = 1 << se
-				if occupied&tobit != 0 {
-					maybeCapture(from, se, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, se))
-			}
-			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-				tobit = 1 << sw
-				if occupied&tobit != 0 {
-					maybeCapture(from, sw, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, sw))
-			}
-			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-				tobit = 1 << nw
-				if occupied&tobit != 0 {
-					maybeCapture(from, nw, tobit)
-					break
-				}
-				moves = append(moves, NewMove(from, nw))
-			}
-		}
-
 	}
 
 	// TODO: disallow moves placing the king in check
