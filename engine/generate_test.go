@@ -81,7 +81,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn promotions",
+			"pawn promotions (white)",
 			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
@@ -95,7 +95,17 @@ func TestMoves(t *testing.T) {
 				"d7d8=Q", "d7d8=N", "d7d8=R", "d7d8=B",
 			},
 		},
-		// TOOD: test pawn promos for black
+		{
+			"pawn promotions (black)",
+			"4k3/8/8/8/8/3P4/1pp4p/bN1QK2R b - - 0 123",
+			[]string{
+
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				// c2 pawn can either capture or advance
+				"c2xb1=B", "c2xb1=N", "c2xb1=Q", "c2xb1=R",
+				"c2c1=B", "c2c1=N", "c2c1=Q", "c2c1=R",
+				"c2xd1=B", "c2xd1=N", "c2xd1=Q", "c2xd1=R"},
+		},
 		{
 			"pawn en passant (black to move)",
 			"4k3/8/8/8/3pPp2/3P2P1/8/4K3 b - e3 0 123",
