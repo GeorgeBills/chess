@@ -160,14 +160,13 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			// because it's easy to off-by-one the off the board check
 			"edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
 				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
 				"c3a5", "c3b4", "c3d2", "c3e1", // c3 bishop falling diagonal
-				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5h8", // d5 bishop rising diagonal
-				"d5d8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
+				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5g8", // d5 bishop rising diagonal
+				"d5a8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
 				"g1f1", "g1f2", "g1g2", "g1h1", "g1h2", // king
 			},
 		},

@@ -236,7 +236,7 @@ FIND_THREAT:
 					break
 				}
 			}
-			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
+			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
 				tobit = 1 << s
 				threatened |= tobit
 				if occupied&tobit != 0 {
@@ -260,14 +260,14 @@ FIND_THREAT:
 					break
 				}
 			}
-			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
+			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
 				tobit = 1 << se
 				threatened |= tobit
 				if occupied&tobit != 0 {
 					break
 				}
 			}
-			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
+			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
 				tobit = 1 << sw
 				threatened |= tobit
 				if occupied&tobit != 0 {
@@ -499,7 +499,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, e))
 			}
-			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
+			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
 				tobit = 1 << s
 				if occupied&tobit != 0 {
 					maybeCapture(from, s, tobit)
@@ -526,7 +526,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, ne))
 			}
-			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
+			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
 				tobit = 1 << se
 				if occupied&tobit != 0 {
 					maybeCapture(from, se, tobit)
@@ -534,7 +534,7 @@ FIND_MOVES:
 				}
 				moves = append(moves, NewMove(from, se))
 			}
-			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
+			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
 				tobit = 1 << sw
 				if occupied&tobit != 0 {
 					maybeCapture(from, sw, tobit)
