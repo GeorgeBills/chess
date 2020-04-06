@@ -326,7 +326,18 @@ func TestMoves(t *testing.T) {
 				"e8d7", "e8d8", "e8e7", "e8f8", // king
 			},
 		},
-		// TODO: test for black ks castle just to get the coverage
+		{
+			"black can ks castle only (qs into check)",
+			"r3k2r/p1R4p/8/8/8/8/8/4K3 b kq - 0 123",
+			[]string{
+				"O-O",
+				"a7a5", "a7a6", // queenside pawn
+				"h7h5", "h7h6", // kingside pawn
+				"a8b8", "a8c8", "a8d8", // queenside rook
+				"h8f8", "h8g8", // kingside rook
+				"e8d8", "e8f8", // king
+			},
+		},
 	}
 
 	for _, tt := range moves {
