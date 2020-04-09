@@ -143,8 +143,8 @@ const (
 )
 
 // Moves returns a slice of possible moves from the current board state.
-func (b Board) Moves() []Move {
-	moves := make([]Move, 0, 32)
+func (b Board) Moves(moves []Move) []Move {
+	moves = moves[:0] // empty passed in slice
 
 	var from uint8
 	var frombit, tobit uint64
