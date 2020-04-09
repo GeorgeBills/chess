@@ -30,6 +30,11 @@ func main() {
 		if err != nil {
 			fatal(err)
 		}
+	case strings.HasPrefix(bitstring, "0d"):
+		board, err = strconv.ParseUint(bitstring[2:], 10, 64)
+		if err != nil {
+			fatal(err)
+		}
 	default:
 		fatal(fmt.Sprintf("invalid board: %s; should be a 64 bit hex (0x...) or binary (0b...) variable", bitstring))
 	}
