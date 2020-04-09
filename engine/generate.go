@@ -2,18 +2,69 @@ package engine
 
 // TODO: use init block to pregenerate moves
 
-// n: north; e: east; s: south; w: west
-// nn, ss: north north and south south (used by pawns performing double moves)
-// nne, een, ssw: north north east, etc (used by knights)
-//
-// North and South are easy; add or subtract 8 (a full rank). With bit shifting
-// you don't even need to check if that's off the board: shifting above 64 will
-// shift the bits out, and subtracting past 0 with an unsigned int ends up
-// wrapping into a very large shift up and off the board again.
-//
-// East and West require checking if you'll leave the board or not, since
-// leaving the board in either of those directions will wrap around; e.g. a king
-// shouldn't be able to move one square West from A2 (8) and end up on H1 (7).
+// Pregenerated masks for moves in any of the compass directions from any given
+// square. Takes up 8 * 64 * 64 = 32kb of memory, which should fit in L1 cache
+// on a modern CPU.
+var (
+	north     [64]uint64
+	northEast [64]uint64
+	east      [64]uint64
+	southEast [64]uint64
+	south     [64]uint64
+	southWest [64]uint64
+	west      [64]uint64
+	northWest [64]uint64
+)
+
+func init() {
+	// n: north; e: east; s: south; w: west nn, ss: north north and south south
+	// (used by pawns performing double moves) nne, een, ssw: north north east,
+	// etc (used by knights)
+	//
+	// North and South are easy; add or subtract 8 (a full rank). With bit
+	// shifting you don't even need to check if that's off the board: shifting
+	// above 64 will shift the bits out, and subtracting past 0 with an unsigned
+	// int ends up wrapping into a very large shift up and off the board again.
+	//
+	// East and West require checking if you'll leave the board or not, since
+	// leaving the board in either of those directions will wrap around; e.g. a
+	// king shouldn't be able to move one square West from A2 (8) and end up on
+	// H1 (7).
+
+	var from uint8
+
+	for from = 0; from < 64; from++ {
+		rank := Rank(from)
+
+		// horizontal: rooks, queens
+		for n := from + 8; n < 64; n += 8 {
+			north[from] |= 1 << n
+		}
+		for e := from + 1; e < (rank+1)*8; e++ {
+			east[from] |= 1 << e
+		}
+		for s := from - 8; s < 64; s -= 8 {
+			south[from] |= 1 << s
+		}
+		for w := from - 1; w != (rank*8)-1; w-- {
+			west[from] = 1 << w
+		}
+
+		// diagonal: bishops, queens
+		for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+			northEast[from] |= 1 << ne
+		}
+		for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
+			southEast[from] |= 1 << se
+		}
+		for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
+			southWest[from] |= 1 << sw
+		}
+		for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+			northWest[from] |= 1 << nw
+		}
+	}
+}
 
 // whitePawnPushes returns the moves a white pawn at index i can make, ignoring
 // captures and en passant.
