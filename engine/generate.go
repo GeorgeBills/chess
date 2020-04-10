@@ -105,44 +105,6 @@ func init() {
 	}
 }
 
-// whitePawnPushes returns the moves a white pawn at index i can make, ignoring
-// captures and en passant.
-func whitePawnPushes(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 8) // n
-	// if a white pawn is on rank 2 it may move two squares
-	if Rank(i) == rank2 {
-		moves |= 1 << (i + 16) // nn
-	}
-	return moves
-}
-
-// blackPawnPushes returns the moves a black pawn at index i can make, ignoring
-// captures and en passant.
-func blackPawnPushes(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i - 8) // s
-	// if a black pawn is on rank 7 it may move two squares
-	if Rank(i) == rank7 {
-		moves |= 1 << (i - 16) // ss
-	}
-	return moves
-}
-
-func whitePawnCaptures(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 9) // ne
-	moves |= 1 << (i + 7) // nw
-	return moves
-}
-
-func blackPawnCaptures(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i - 7) // se
-	moves |= 1 << (i - 9) // sw
-	return moves
-}
-
 const (
 	checkNone   = 0
 	checkDouble = 0xFFFFFFFF
