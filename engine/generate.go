@@ -411,6 +411,22 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
+	addQuietMoves := func(from uint8, quiet uint64) {
+		for quiet != 0 {
+			to := uint8(bits.TrailingZeros64(quiet))
+			quiet ^= (1 << to) // unset bit
+			moves = append(moves, NewMove(from, to))
+		}
+	}
+
+	addCaptures := func(from uint8, captures uint64) {
+		for captures != 0 {
+			to := uint8(bits.TrailingZeros64(captures))
+			captures ^= (1 << to) // unset bit
+			moves = append(moves, NewCapture(from, to))
+		}
+	}
+
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -512,35 +528,15 @@ func (b Board) Moves(moves []Move) []Move {
 
 			if knights&frombit != 0 { // is there a knight on this square?
 				m := movesKnights[from] &^ colour
-				captures := m & opposing
-				quiet := m &^ occupied
-				for captures != 0 {
-					to := uint8(bits.TrailingZeros64(captures))
-					captures ^= (1 << to) // unset bit
-					moves = append(moves, NewCapture(from, to))
-				}
-				for quiet != 0 {
-					to := uint8(bits.TrailingZeros64(quiet))
-					quiet ^= (1 << to) // unset bit
-					moves = append(moves, NewMove(from, to))
-				}
+				addCaptures(from, m&opposing)
+				addQuietMoves(from, m&^occupied)
 				continue FIND_MOVES
 			}
 
 			if king&frombit != 0 { // is there a king on this square?
 				m := movesKing[from] &^ colour &^ threatened
-				captures := m & opposing
-				quiet := m &^ occupied
-				for captures != 0 {
-					to := uint8(bits.TrailingZeros64(captures))
-					captures ^= (1 << to) // unset bit
-					moves = append(moves, NewCapture(from, to))
-				}
-				for quiet != 0 {
-					to := uint8(bits.TrailingZeros64(quiet))
-					quiet ^= (1 << to) // unset bit
-					moves = append(moves, NewMove(from, to))
-				}
+				addCaptures(from, m&opposing)
+				addQuietMoves(from, m&^occupied)
 				continue FIND_MOVES
 			}
 
@@ -612,19 +608,8 @@ func (b Board) Moves(moves []Move) []Move {
 				}
 				movesqs |= ray
 
-				captures := movesqs & opposing
-				for captures != 0 {
-					var sqidx uint8 = uint8(bits.TrailingZeros64(captures))
-					captures ^= (1 << sqidx) // pop
-					moves = append(moves, NewCapture(from, sqidx))
-				}
-
-				quiet := movesqs & ^occupied
-				for quiet != 0 {
-					var sqidx uint8 = uint8(bits.TrailingZeros64(quiet))
-					quiet ^= (1 << sqidx) // pop
-					moves = append(moves, NewMove(from, sqidx))
-				}
+				addCaptures(from, movesqs&opposing)
+				addQuietMoves(from, movesqs&^occupied)
 			}
 		}
 	}
