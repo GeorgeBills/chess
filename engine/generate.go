@@ -408,20 +408,6 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	maybeMove := func(from, to uint8) {
-		if to > 63 {
-			return // out of range
-		}
-		var tobit uint64 = 1 << to
-		if occupied&tobit != 0 {
-			if opposing&tobit != 0 {
-				moves = append(moves, NewCapture(from, to)) // occupied by opposing colour
-			}
-			return // occupied by our own colour
-		}
-		moves = append(moves, NewMove(from, to)) // empty
-	}
-
 	maybeMoveKing := func(from, to uint8) {
 		if to > 63 {
 			return // out of range
@@ -526,22 +512,18 @@ func (b Board) Moves(moves []Move) []Move {
 			}
 
 			if knights&frombit != 0 { // is there a knight on this square?
-				file := File(from)
-				if file > fileA {
-					maybeMove(from, from+15) // nnw (+2×8, -1)
-					maybeMove(from, from-17) // ssw (-2×8, -1)
-					if file > fileB {
-						maybeMove(from, from+6)  // wwn (+8, -2×1)
-						maybeMove(from, from-10) // wws (-8, -2×1)
-					}
+				m := movesKnights[from] &^ colour
+				captures := m & opposing
+				quiet := m &^ occupied
+				for captures != 0 {
+					to := uint8(bits.TrailingZeros64(captures))
+					captures ^= (1 << to) // unset bit
+					moves = append(moves, NewCapture(from, to))
 				}
-				if file < fileH {
-					maybeMove(from, from+17) // nne (+2×8, +1)
-					maybeMove(from, from-15) // sse (-2×8, +1)
-					if file < fileG {
-						maybeMove(from, from+10) // een (+8, +2×1)
-						maybeMove(from, from-6)  // ees (-8, +2×1)
-					}
+				for quiet != 0 {
+					to := uint8(bits.TrailingZeros64(quiet))
+					quiet ^= (1 << to) // unset bit
+					moves = append(moves, NewMove(from, to))
 				}
 				continue FIND_MOVES
 			}
