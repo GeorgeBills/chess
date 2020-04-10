@@ -408,23 +408,6 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	maybeMoveKing := func(from, to uint8) {
-		if to > 63 {
-			return // out of range
-		}
-		var tobit uint64 = 1 << to
-		if tobit&threatened != 0 {
-			return // king cannot move into check
-		}
-		if occupied&tobit != 0 {
-			if opposing&tobit != 0 {
-				moves = append(moves, NewCapture(from, to)) // occupied by opposing colour
-			}
-			return // occupied by our own colour
-		}
-		moves = append(moves, NewMove(from, to)) // empty
-	}
-
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -529,20 +512,18 @@ func (b Board) Moves(moves []Move) []Move {
 			}
 
 			if king&frombit != 0 { // is there a king on this square?
-				file := File(from)
-				maybeMoveKing(from, from+8) // n
-				maybeMoveKing(from, from-8) // s
-				// can't move east if we're on file h
-				if file != fileH {
-					maybeMoveKing(from, from+1) // e
-					maybeMoveKing(from, from+9) // ne
-					maybeMoveKing(from, from-7) // se
+				m := movesKing[from] &^ colour &^ threatened
+				captures := m & opposing
+				quiet := m &^ occupied
+				for captures != 0 {
+					to := uint8(bits.TrailingZeros64(captures))
+					captures ^= (1 << to) // unset bit
+					moves = append(moves, NewCapture(from, to))
 				}
-				// can't move west if we're on file a
-				if file != fileA {
-					maybeMoveKing(from, from-1) // w
-					maybeMoveKing(from, from+7) // nw
-					maybeMoveKing(from, from-9) // sw
+				for quiet != 0 {
+					to := uint8(bits.TrailingZeros64(quiet))
+					quiet ^= (1 << to) // unset bit
+					moves = append(moves, NewMove(from, to))
 				}
 				continue FIND_MOVES
 			}
