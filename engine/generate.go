@@ -4,8 +4,6 @@ import (
 	"math/bits"
 )
 
-// TODO: use init block to pregenerate moves
-
 // Pregenerated masks for moves in any of the compass directions from any given
 // square, and for kings and knights. Takes up 10 * 64 * 64 = 40kb of memory,
 // which should fit in L1 cache on a modern CPU.
@@ -164,7 +162,6 @@ const (
 	fileG = 6
 	fileH = 7
 
-	// TODO: can we use filemasks to speed up file checks?
 	maskFileA = 1<<A1 | 1<<A2 | 1<<A3 | 1<<A4 | 1<<A5 | 1<<A6 | 1<<A7 | 1<<A8
 	maskFileH = 1<<H1 | 1<<H2 | 1<<H3 | 1<<H4 | 1<<H5 | 1<<H6 | 1<<H7 | 1<<H8
 )
@@ -276,6 +273,10 @@ func (b Board) Moves(moves []Move) []Move {
 
 			if opposingknights&frombit != 0 { // is there a knight on this square?
 				threatened |= movesKnights[from]
+				// if threatened&king != 0 {
+				// 	check++
+				// 	// TODO: now need to mark the checking piece; reverse the moves from king
+				// }
 				continue FIND_THREAT
 			}
 
@@ -284,6 +285,7 @@ func (b Board) Moves(moves []Move) []Move {
 				// threatened for more than just a "can our king move to this
 				// square?" check - not all of these moves will be legal for the
 				// opposing king to make.
+				// note that kings can never check another king
 				threatened |= movesKing[from]
 				continue FIND_THREAT
 			}
@@ -576,40 +578,52 @@ func (b Board) Moves(moves []Move) []Move {
 					}
 					moves = append(moves, NewMove(from, w))
 				}
+				// need to fall through here in case we have a queen
 			}
 
 			if bishops&frombit != 0 { // is there a bishop on this square?
-				for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-					tobit = 1 << ne
-					if occupied&tobit != 0 {
-						maybeCapture(from, ne, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, ne))
+				var ray, intersect, movesqs uint64
+
+				ray = movesNorthEast[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
 				}
-				for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-					tobit = 1 << se
-					if occupied&tobit != 0 {
-						maybeCapture(from, se, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, se))
+				movesqs |= ray
+
+				ray = movesSouthEast[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesSouthEast[uint8(bits.TrailingZeros64(intersect))]
 				}
-				for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-					tobit = 1 << sw
-					if occupied&tobit != 0 {
-						maybeCapture(from, sw, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, sw))
+				movesqs |= ray
+
+				ray = movesSouthWest[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesSouthWest[uint8(bits.TrailingZeros64(intersect))]
 				}
-				for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-					tobit = 1 << nw
-					if occupied&tobit != 0 {
-						maybeCapture(from, nw, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, nw))
+				movesqs |= ray
+
+				ray = movesNorthWest[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
+				}
+				movesqs |= ray
+
+				captures := movesqs & opposing
+				for captures != 0 {
+					var sqidx uint8 = uint8(bits.TrailingZeros64(captures))
+					captures ^= (1 << sqidx) // pop
+					moves = append(moves, NewCapture(from, sqidx))
+				}
+
+				quiet := movesqs & ^occupied
+				for quiet != 0 {
+					var sqidx uint8 = uint8(bits.TrailingZeros64(quiet))
+					quiet ^= (1 << sqidx) // pop
+					moves = append(moves, NewMove(from, sqidx))
 				}
 			}
 		}
