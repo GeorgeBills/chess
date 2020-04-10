@@ -7,17 +7,19 @@ import (
 // TODO: use init block to pregenerate moves
 
 // Pregenerated masks for moves in any of the compass directions from any given
-// square. Takes up 8 * 64 * 64 = 32kb of memory, which should fit in L1 cache
-// on a modern CPU.
+// square, and for kings and knights. Takes up 10 * 64 * 64 = 40kb of memory,
+// which should fit in L1 cache on a modern CPU.
 var (
-	north     [64]uint64
-	northEast [64]uint64
-	east      [64]uint64
-	southEast [64]uint64
-	south     [64]uint64
-	southWest [64]uint64
-	west      [64]uint64
-	northWest [64]uint64
+	movesNorth     [64]uint64
+	movesNorthEast [64]uint64
+	movesEast      [64]uint64
+	movesSouthEast [64]uint64
+	movesSouth     [64]uint64
+	movesSouthWest [64]uint64
+	movesWest      [64]uint64
+	movesNorthWest [64]uint64
+	movesKing      [64]uint64
+	movesKnights   [64]uint64
 )
 
 func init() {
@@ -39,33 +41,68 @@ func init() {
 
 	for from = 0; from < 64; from++ {
 		rank := Rank(from)
+		file := File(from)
 
 		// horizontal: rooks, queens
 		for n := from + 8; n < 64; n += 8 {
-			north[from] |= 1 << n
+			movesNorth[from] |= 1 << n
 		}
 		for e := from + 1; e < (rank+1)*8; e++ {
-			east[from] |= 1 << e
+			movesEast[from] |= 1 << e
 		}
 		for s := from - 8; s < 64; s -= 8 {
-			south[from] |= 1 << s
+			movesSouth[from] |= 1 << s
 		}
 		for w := from - 1; w != (rank*8)-1; w-- {
-			west[from] = 1 << w
+			movesWest[from] = 1 << w
 		}
 
 		// diagonal: bishops, queens
 		for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-			northEast[from] |= 1 << ne
+			movesNorthEast[from] |= 1 << ne
 		}
 		for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-			southEast[from] |= 1 << se
+			movesSouthEast[from] |= 1 << se
 		}
 		for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-			southWest[from] |= 1 << sw
+			movesSouthWest[from] |= 1 << sw
 		}
 		for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-			northWest[from] |= 1 << nw
+			movesNorthWest[from] |= 1 << nw
+		}
+
+		// king
+		movesKing[from] |= 1 << (from + 8) // n
+		movesKing[from] |= 1 << (from - 8) // s
+		// can't move east if we're on file h
+		if file != fileH {
+			movesKing[from] |= 1 << (from + 1) // e
+			movesKing[from] |= 1 << (from + 9) // ne
+			movesKing[from] |= 1 << (from - 7) // se
+		}
+		// can't move west if we're on file a
+		if file != fileA {
+			movesKing[from] |= 1 << (from - 1) // w
+			movesKing[from] |= 1 << (from + 7) // nw
+			movesKing[from] |= 1 << (from - 9) // sw
+		}
+
+		// knights
+		if file > fileA {
+			movesKnights[from] |= 1 << (from + 15) // nnw (+2×8, -1)
+			movesKnights[from] |= 1 << (from - 17) // ssw (-2×8, -1)
+			if file > fileB {
+				movesKnights[from] |= 1 << (from + 6)  // wwn (+8, -2×1)
+				movesKnights[from] |= 1 << (from - 10) // wws (-8, -2×1)
+			}
+		}
+		if file < fileH {
+			movesKnights[from] |= 1 << (from + 17) // nne (+2×8, +1)
+			movesKnights[from] |= 1 << (from - 15) // sse (-2×8, +1)
+			if file < fileG {
+				movesKnights[from] |= 1 << (from + 10) // een (+8, +2×1)
+				movesKnights[from] |= 1 << (from - 6)  // ees (-8, +2×1)
+			}
 		}
 	}
 }
@@ -105,49 +142,6 @@ func blackPawnCaptures(i uint8) uint64 {
 	var moves uint64
 	moves |= 1 << (i - 7) // se
 	moves |= 1 << (i - 9) // sw
-	return moves
-}
-
-// kingMoves returns the moves a king at index i can make, ignoring castling.
-func kingMoves(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 8) // n
-	moves |= 1 << (i - 8) // s
-	// can't move east if we're on file h
-	if File(i) != fileH {
-		moves |= 1 << (i + 1) // e
-		moves |= 1 << (i + 9) // ne
-		moves |= 1 << (i - 7) // se
-	}
-	// can't move west if we're on file a
-	if File(i) != fileA {
-		moves |= 1 << (i - 1) // w
-		moves |= 1 << (i + 7) // nw
-		moves |= 1 << (i - 9) // sw
-	}
-	return moves
-}
-
-// knightMoves returns the moves a knight at index i can make.
-func knightMoves(i uint8) uint64 {
-	var moves uint64
-	file := File(i)
-	if file > fileA {
-		moves |= 1 << (i + 15) // nnw (+2×8, -1)
-		moves |= 1 << (i - 17) // ssw (-2×8, -1)
-		if file > fileB {
-			moves |= 1 << (i + 6)  // wwn (+8, -2×1)
-			moves |= 1 << (i - 10) // wws (-8, -2×1)
-		}
-	}
-	if file < fileH {
-		moves |= 1 << (i + 17) // nne (+2×8, +1)
-		moves |= 1 << (i - 15) // sse (-2×8, +1)
-		if file < fileG {
-			moves |= 1 << (i + 10) // een (+8, +2×1)
-			moves |= 1 << (i - 6)  // ees (-8, +2×1)
-		}
-	}
 	return moves
 }
 
@@ -273,12 +267,16 @@ func (b Board) Moves(moves []Move) []Move {
 			}
 
 			if opposingknights&frombit != 0 { // is there a knight on this square?
-				threatened |= knightMoves(from)
+				threatened |= movesKnights[from]
 				continue FIND_THREAT
 			}
 
 			if opposingking&frombit != 0 { // is there a king on this square?
-				threatened |= kingMoves(from)
+				// note that there's a subtle bug here if we start using
+				// threatened for more than just a "can our king move to this
+				// square?" check - not all of these moves will be legal for the
+				// opposing king to make.
+				threatened |= movesKing[from]
 				continue FIND_THREAT
 			}
 
