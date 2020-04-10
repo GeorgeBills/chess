@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"math/bits"
+)
+
 // TODO: use init block to pregenerate moves
 
 // Pregenerated masks for moves in any of the compass directions from any given
@@ -439,12 +443,10 @@ func (b Board) Moves(moves []Move) []Move {
 		rooks := (b.rooks | b.queens) & colour
 		king := b.kings & colour
 	FIND_MOVES:
-		for from = 0; from < 64; from++ {
+		for colour != 0 {
+			from = uint8(bits.TrailingZeros64(colour))
 			frombit = 1 << from
-
-			if colour&frombit == 0 {
-				continue FIND_MOVES
-			}
+			colour ^= frombit // unset
 
 			if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
 				if tomove == White {
