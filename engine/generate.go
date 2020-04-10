@@ -447,6 +447,11 @@ func (b Board) Moves(moves []Move) []Move {
 			colour ^= frombit // unset
 
 			if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
+				// we could calculate masks for the below checks (e.g. pawns
+				// that can promote by pushing are just pawns that can push
+				// bitwise AND'ed with pawns that can promote), but generating
+				// that mask every time we generate moves doesn't pay off when
+				// pawns being in position to promote is so rare.
 				if tomove == White {
 					if ne := from + 9; opposing&(1<<ne) != 0 {
 						addpromos(from, ne, true)
