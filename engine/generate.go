@@ -201,6 +201,10 @@ const (
 func (b Board) Moves(moves []Move) []Move {
 	moves = moves[:0] // empty passed in slice
 
+	// checkers is a mask for pieces giving check. if there is more than one bit
+	// set then we're in double check.
+	// var checkers uint64
+
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
@@ -226,6 +230,8 @@ func (b Board) Moves(moves []Move) []Move {
 		pawnsdbl = pawnssgl & rank7mask &^ ((occupied & rank5mask) << 16)
 		pawnspromo = pawns & rank2mask
 	}
+
+	king := b.kings & colour
 
 	// Loop over opposing pieces to see if we're in check, and to mark both
 	// threatened squares and pinned pieces.
@@ -319,6 +325,11 @@ func (b Board) Moves(moves []Move) []Move {
 				for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
 					tobit = 1 << se
 					threatened |= tobit
+					// if king&tobit != 0 {
+					// 	// king in threat
+					// 	checkers |= frombit
+					// 	break
+					// }
 					if occupied&tobit != 0 {
 						break
 					}
@@ -438,10 +449,29 @@ func (b Board) Moves(moves []Move) []Move {
 	// We evaluate pieces in descending frequency order (pawn, knight, king) to
 	// hopefully skip a loop iteration as early as possible.
 	{
+		// var maymoveto uint64
+		// switch bits.OnesCount64(checkers) {
+		// case 0:
+		// 	// no check:
+		// 	// most pieces can move anywhere
+		// 	// pinned pieces may only move on their pinned ray
+		// 	// king can only move to unthreatened squares
+		// 	maymoveto = 0xFFFFFFFF // all squares
+		// case 1:
+		// 	// single check; we must either:
+		// 	// capture the piece giving check
+		// 	// move a piece on to the threat ray
+		// 	// move our king out of threat
+		// 	maymoveto = checkers & threatray
+		// case 2:
+		// 	// double check: we must move our king
+		// 	// TODO: should we just goto the king moves here?
+		// 	maymoveto = 0x00000000 // no squares
+		// }
+
 		knights := b.knights & colour
 		bishops := (b.bishops | b.queens) & colour
 		rooks := (b.rooks | b.queens) & colour
-		king := b.kings & colour
 	FIND_MOVES:
 		for colour != 0 {
 			from = uint8(bits.TrailingZeros64(colour))

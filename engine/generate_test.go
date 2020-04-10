@@ -263,9 +263,21 @@ func TestMoves(t *testing.T) {
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
-		// TODO: must capture piece to clear check
+		// {
+		// 	"must capture piece to clear check",
+		// 	"4k3/8/8/8/1b6/P7/4PP2/3BKB2 w - - 0 123",
+		// 	[]string{
+		// 		"a3xb4", // pawn must capture bishop
+		// 	},
+		// },
 		// TODO: king must capture piece to clear check
-		// TODO: piece must block to clear check
+		// {
+		// 	"piece must block to clear check",
+		// 	"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
+		// 	[]string{
+		// 		"b1c3", // knight must sacrifice itself
+		// 	},
+		// },
 		// TODO: king may not capture a covered piece
 		// TODO: capturing or blocking piece doesn't work if double check; king must move
 		// TODO: en passant to clear check https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
