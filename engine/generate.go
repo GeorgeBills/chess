@@ -52,7 +52,7 @@ func init() {
 			movesSouth[from] |= 1 << s
 		}
 		for w := from - 1; w != (rank*8)-1; w-- {
-			movesWest[from] = 1 << w
+			movesWest[from] |= 1 << w
 		}
 
 		// diagonal: bishops, queens
