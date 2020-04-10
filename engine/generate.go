@@ -165,6 +165,8 @@ const (
 	fileH = 7
 
 	// TODO: can we use filemasks to speed up file checks?
+	maskFileA = 1<<A1 | 1<<A2 | 1<<A3 | 1<<A4 | 1<<A5 | 1<<A6 | 1<<A7 | 1<<A8
+	maskFileH = 1<<H1 | 1<<H2 | 1<<H3 | 1<<H4 | 1<<H5 | 1<<H6 | 1<<H7 | 1<<H8
 )
 
 // "One may not castle out of, through, or into check".
@@ -202,7 +204,7 @@ func (b Board) Moves(moves []Move) []Move {
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnssgl, pawnsdbl, pawnspromo uint64
+	var pawnssgl, pawnsdbl, pawnspromo, pawnscaptureEast, pawnscaptureWest uint64
 
 	occupied := b.white | b.black
 
@@ -216,6 +218,9 @@ func (b Board) Moves(moves []Move) []Move {
 		pawnssgl = pawns &^ (occupied >> 8)
 		pawnsdbl = pawnssgl & rank2mask &^ ((occupied & rank4mask) >> 16)
 		pawnspromo = pawns & rank7mask
+
+		pawnscaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
+		pawnscaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
 	} else {
 		colour = b.black
 		opposing = b.white
@@ -223,6 +228,9 @@ func (b Board) Moves(moves []Move) []Move {
 		pawnssgl = pawns &^ (occupied << 8)
 		pawnsdbl = pawnssgl & rank7mask &^ ((occupied & rank5mask) << 16)
 		pawnspromo = pawns & rank2mask
+
+		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileH // se
+		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileA // sw
 	}
 
 	king := b.kings & colour
@@ -401,13 +409,6 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	maybeCapturePawn := func(from, to uint8) {
-		var tobit uint64 = 1 << to
-		if opposing&tobit != 0 {
-			moves = append(moves, NewCapture(from, to))
-		}
-	}
-
 	// - Find all pieces of the given colour.
 	// - For each square, check if we have a piece there.
 	// - If there is a piece there, find all the moves that piece can make.
@@ -479,8 +480,12 @@ func (b Board) Moves(moves []Move) []Move {
 					if pawnssgl&frombit != 0 {
 						moves = append(moves, NewMove(from, from+8))
 					}
-					maybeCapturePawn(from, from+9)
-					maybeCapturePawn(from, from+7)
+					if pawnscaptureEast&frombit != 0 {
+						moves = append(moves, NewCapture(from, from+9))
+					}
+					if pawnscaptureWest&frombit != 0 {
+						moves = append(moves, NewCapture(from, from+7))
+					}
 				} else {
 					if pawnsdbl&frombit != 0 {
 						moves = append(moves, NewMove(from, from-16))
@@ -488,8 +493,12 @@ func (b Board) Moves(moves []Move) []Move {
 					if pawnssgl&frombit != 0 {
 						moves = append(moves, NewMove(from, from-8))
 					}
-					maybeCapturePawn(from, from-7)
-					maybeCapturePawn(from, from-9)
+					if pawnscaptureEast&frombit != 0 {
+						moves = append(moves, NewCapture(from, from-9))
+					}
+					if pawnscaptureWest&frombit != 0 {
+						moves = append(moves, NewCapture(from, from-7))
+					}
 				}
 				continue FIND_MOVES
 			}
