@@ -552,14 +552,14 @@ func (b Board) Moves(moves []Move) []Move {
 				ray = movesSouthEast[from]
 				intersect = ray & occupied
 				if intersect != 0 {
-					ray ^= movesSouthEast[uint8(bits.TrailingZeros64(intersect))]
+					ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
 				}
 				movesqs |= ray
 
 				ray = movesSouthWest[from]
 				intersect = ray & occupied
 				if intersect != 0 {
-					ray ^= movesSouthWest[uint8(bits.TrailingZeros64(intersect))]
+					ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
 				}
 				movesqs |= ray
 

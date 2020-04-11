@@ -170,6 +170,17 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"bishop moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
+			"rn2k1n1/pP2p3/p3P3/3b4/8/1P3p2/P7/4K2R b - - 0 123",
+			[]string{
+				"g8f6", "g8h6", // kingside knight
+				"e8d7", "e8d8", "e8f7", "e8f8", // king
+				"a6a5", "f3f2", // pawns
+				"b8c6", "b8d7", // queenside knight
+				"d5c4", "d5e4", "d5c6", "d5xb3", "d5xb7", "d5xe6", // bishop
+			},
+		},
+		{
 			"edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
