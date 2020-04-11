@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math"
 	"math/bits"
 )
 
@@ -343,7 +344,7 @@ func (b Board) Moves(moves []Move) []Move {
 	}
 
 	ep := b.EnPassant()
-	if ep != 0 { // FIXME: BUG BUG BUG
+	if ep != math.MaxUint8 {
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 		if tomove == White {
