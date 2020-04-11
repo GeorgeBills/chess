@@ -188,8 +188,8 @@ func (b Board) Moves(moves []Move) []Move {
 		pawnsdbl = pawnssgl & rank7mask &^ ((occupied & rank5mask) << 16)
 		pawnspromo = pawns & rank2mask
 
-		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileH // se
-		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileA // sw
+		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileA // se
+		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
 	}
 
 	king := b.kings & colour

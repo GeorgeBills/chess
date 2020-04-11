@@ -69,15 +69,23 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn captures",
-			"4k3/8/8/2bpp3/3PPPp1/r5PP/1P6/4K3 w - - 0 123",
+			"pawn captures (white)",
+			"4k3/8/8/p1bpp2p/P2PPPpP/r5PP/1P6/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 				"b2xa3", "b2b3", "b2b4", // b2 pawn
 				"d4xc5", "d4xe5", // d4 pawn
 				"e4xd5",         // e4 pawn
 				"f4f5", "f4xe5", // f4 pawn
-				"h3xg4", "h3h4", // h3 pawn
+				"h3xg4", // h3 pawn
+			},
+		},
+		{
+			"pawn captures (black)",
+			"4k3/8/8/p2pp2p/P2PPPpP/R5PR/1P6/4K3 b - - 0 123",
+			[]string{
+				"e8e7", "e8f7", "e8f8", "e8d7", "e8d8", // king
+				"d5xe4", "e5xd4", "e5xf4", "g4xh3", // pawns
 			},
 		},
 		{
