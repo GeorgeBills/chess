@@ -340,7 +340,7 @@ func (b Board) Moves(moves []Move) []Move {
 	}
 
 	ep := b.EnPassant()
-	if ep != 0 {
+	if ep != 0 { // FIXME: BUG BUG BUG
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 		if tomove == White {
@@ -383,191 +383,183 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	// - Find all pieces of the given colour.
-	// - For each square, check if we have a piece there.
-	// - If there is a piece there, find all the moves that piece can make.
-	// - AND NOT the moves with our colour (we can't move to a square we occupy).
-	//
-	// We evaluate pieces in descending frequency order (pawn, knight, king) to
-	// hopefully skip a loop iteration as early as possible.
-	{
-		// var maymoveto uint64
-		// switch bits.OnesCount64(checkers) {
-		// case 0:
-		// 	// no check:
-		// 	// most pieces can move anywhere
-		// 	// pinned pieces may only move on their pinned ray
-		// 	// king can only move to unthreatened squares
-		// 	maymoveto = 0xFFFFFFFF // all squares
-		// case 1:
-		// 	// single check; we must either:
-		// 	// capture the piece giving check
-		// 	// move a piece on to the threat ray
-		// 	// move our king out of threat
-		// 	maymoveto = checkers & threatray
-		// case 2:
-		// 	// double check: we must move our king
-		// 	// TODO: should we just goto the king moves here?
-		// 	maymoveto = 0x00000000 // no squares
-		// }
+	// var maymoveto uint64
+	// switch bits.OnesCount64(checkers) {
+	// case 0:
+	// 	// no check:
+	// 	// most pieces can move anywhere
+	// 	// pinned pieces may only move on their pinned ray
+	// 	// king can only move to unthreatened squares
+	// 	maymoveto = 0xFFFFFFFF // all squares
+	// case 1:
+	// 	// single check; we must either:
+	// 	// capture the piece giving check
+	// 	// move a piece on to the threat ray
+	// 	// move our king out of threat
+	// 	maymoveto = checkers & threatray
+	// case 2:
+	// 	// double check: we must move our king
+	// 	// TODO: should we just goto the king moves here?
+	// 	maymoveto = 0x00000000 // no squares
+	// }
 
-		knights := b.knights & colour
-		bishops := (b.bishops | b.queens) & colour
-		rooks := (b.rooks | b.queens) & colour
-	FIND_MOVES:
-		for colour != 0 {
-			from = uint8(bits.TrailingZeros64(colour))
-			frombit = 1 << from
-			colour ^= frombit // unset
+	pawnsnotpromo := pawns &^ pawnspromo // need to set this before we start unsetting bits in pawnspromo
 
-			if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
-				// we could calculate masks for the below checks (e.g. pawns
-				// that can promote by pushing are just pawns that can push
-				// bitwise AND'ed with pawns that can promote), but generating
-				// that mask every time we generate moves doesn't pay off when
-				// pawns being in position to promote is so rare.
-				if tomove == White {
-					if ne := from + 9; opposing&(1<<ne) != 0 {
-						addpromos(from, ne, true)
-					}
-					if nw := from + 7; opposing&(1<<nw) != 0 {
-						addpromos(from, nw, true)
-					}
-					if push := from + 8; occupied&(1<<push) == 0 {
-						addpromos(from, push, false)
-					}
-				} else {
-					if se := from - 7; opposing&(1<<se) != 0 {
-						addpromos(from, se, true)
-					}
-					if sw := from - 9; opposing&(1<<sw) != 0 {
-						addpromos(from, sw, true)
-					}
-					if push := from - 8; occupied&(1<<push) == 0 {
-						addpromos(from, push, false)
-					}
-				}
-				continue FIND_MOVES
+	for pawnspromo != 0 {
+		from = uint8(bits.TrailingZeros64(pawnspromo))
+		pawnspromo ^= (1 << from) // unset bit
+
+		// we could calculate masks for the below checks (e.g. pawns that can
+		// promote by pushing are just pawns that can push bitwise AND'ed with
+		// pawns that can promote), but generating that mask every time we
+		// generate moves doesn't pay off when pawns being in position to
+		// promote is so rare.
+		if tomove == White {
+			if ne := from + 9; opposing&(1<<ne) != 0 {
+				addpromos(from, ne, true)
 			}
-
-			if pawns&frombit != 0 { // is there a pawn on this square?
-				// TODO: set en passant target on double pawn moves
-				if tomove == White {
-					if pawnsdbl&frombit != 0 {
-						moves = append(moves, NewMove(from, from+16))
-					}
-					if pawnssgl&frombit != 0 {
-						moves = append(moves, NewMove(from, from+8))
-					}
-					if pawnscaptureEast&frombit != 0 {
-						moves = append(moves, NewCapture(from, from+9))
-					}
-					if pawnscaptureWest&frombit != 0 {
-						moves = append(moves, NewCapture(from, from+7))
-					}
-				} else {
-					if pawnsdbl&frombit != 0 {
-						moves = append(moves, NewMove(from, from-16))
-					}
-					if pawnssgl&frombit != 0 {
-						moves = append(moves, NewMove(from, from-8))
-					}
-					if pawnscaptureEast&frombit != 0 {
-						moves = append(moves, NewCapture(from, from-9))
-					}
-					if pawnscaptureWest&frombit != 0 {
-						moves = append(moves, NewCapture(from, from-7))
-					}
-				}
-				continue FIND_MOVES
+			if nw := from + 7; opposing&(1<<nw) != 0 {
+				addpromos(from, nw, true)
 			}
-
-			if knights&frombit != 0 { // is there a knight on this square?
-				m := movesKnights[from] &^ colour
-				addCaptures(from, m&opposing)
-				addQuietMoves(from, m&^occupied)
-				continue FIND_MOVES
+			if push := from + 8; occupied&(1<<push) == 0 {
+				addpromos(from, push, false)
 			}
-
-			if king&frombit != 0 { // is there a king on this square?
-				m := movesKing[from] &^ colour &^ threatened
-				addCaptures(from, m&opposing)
-				addQuietMoves(from, m&^occupied)
-				continue FIND_MOVES
+		} else {
+			if se := from - 7; opposing&(1<<se) != 0 {
+				addpromos(from, se, true)
 			}
-
-			if rooks&frombit != 0 { // is there a rook on this square?
-				var ray, intersect, movesqs uint64
-
-				ray = movesNorth[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesEast[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesSouth[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesWest[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				addCaptures(from, movesqs&opposing)
-				addQuietMoves(from, movesqs&^occupied)
-
-				// need to fall through here in case we have a queen
+			if sw := from - 9; opposing&(1<<sw) != 0 {
+				addpromos(from, sw, true)
 			}
-
-			if bishops&frombit != 0 { // is there a bishop on this square?
-				var ray, intersect, movesqs uint64
-
-				ray = movesNorthEast[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesSouthEast[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesSouthWest[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				ray = movesNorthWest[from]
-				intersect = ray & occupied
-				if intersect != 0 {
-					ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
-				}
-				movesqs |= ray
-
-				addCaptures(from, movesqs&opposing)
-				addQuietMoves(from, movesqs&^occupied)
+			if push := from - 8; occupied&(1<<push) == 0 {
+				addpromos(from, push, false)
 			}
 		}
+	}
+
+	for pawnsnotpromo != 0 {
+		from = uint8(bits.TrailingZeros64(pawnsnotpromo))
+		frombit = 1 << from
+		pawnsnotpromo ^= frombit // unset bit
+		// TODO: set en passant target on double pawn moves
+		if tomove == White {
+			if pawnsdbl&frombit != 0 {
+				moves = append(moves, NewMove(from, from+16))
+			}
+			if pawnssgl&frombit != 0 {
+				moves = append(moves, NewMove(from, from+8))
+			}
+			if pawnscaptureEast&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+9))
+			}
+			if pawnscaptureWest&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+7))
+			}
+		} else {
+			if pawnsdbl&frombit != 0 {
+				moves = append(moves, NewMove(from, from-16))
+			}
+			if pawnssgl&frombit != 0 {
+				moves = append(moves, NewMove(from, from-8))
+			}
+			if pawnscaptureEast&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-9))
+			}
+			if pawnscaptureWest&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-7))
+			}
+		}
+	}
+
+	knights := b.knights & colour
+	for knights != 0 {
+		from = uint8(bits.TrailingZeros64(knights))
+		knights ^= (1 << from) // unset bit
+		m := movesKnights[from] &^ colour
+		addCaptures(from, m&opposing)
+		addQuietMoves(from, m&^occupied)
+	}
+
+	from = uint8(bits.TrailingZeros64(king)) // always exactly one king
+	m := movesKing[from] &^ colour &^ threatened
+	addCaptures(from, m&opposing)
+	addQuietMoves(from, m&^occupied)
+
+	rooks := (b.rooks | b.queens) & colour
+	for rooks != 0 {
+		from = uint8(bits.TrailingZeros64(rooks))
+		rooks ^= (1 << from) // unset bit
+
+		var ray, intersect, movesqs uint64
+
+		ray = movesNorth[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesEast[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesSouth[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesWest[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
+	}
+
+	bishops := (b.bishops | b.queens) & colour
+	for bishops != 0 {
+		from = uint8(bits.TrailingZeros64(bishops))
+		bishops ^= (1 << from) // unset bit
+		var ray, intersect, movesqs uint64
+
+		ray = movesNorthEast[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesSouthEast[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesSouthWest[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		ray = movesNorthWest[from]
+		intersect = ray & occupied
+		if intersect != 0 {
+			ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
+		}
+		movesqs |= ray
+
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
 	}
 
 	// TODO: disallow moves placing the king in check
