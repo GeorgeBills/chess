@@ -154,6 +154,15 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"rook moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
+			"2bqk3/1pppp3/8/P1pr1P1p/8/3P4/8/3QK3 b - - 0 123",
+			[]string{
+				"d5xd3", "d5d4", "d5d6", "d5e5", "d5xf5", // rook
+				"e8f7", "e8f8", // king
+				"c7c6", "d7d6", "e7e6", "e7e5", "b7b6", "b7b5", "c5c4", "h5h4", // pawns
+			},
+		},
+		{
 			"bishop moves",
 			"4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
 			[]string{

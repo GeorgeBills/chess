@@ -367,12 +367,6 @@ func (b Board) Moves(moves []Move) []Move {
 		moves = append(moves, NewBishopPromotion(from, to, capture))
 	}
 
-	maybeCapture := func(from, to uint8, tobit uint64) {
-		if opposing&tobit != 0 {
-			moves = append(moves, NewCapture(from, to))
-		}
-	}
-
 	addQuietMoves := func(from uint8, quiet uint64) {
 		for quiet != 0 {
 			to := uint8(bits.TrailingZeros64(quiet))
@@ -503,39 +497,39 @@ func (b Board) Moves(moves []Move) []Move {
 			}
 
 			if rooks&frombit != 0 { // is there a rook on this square?
-				rank := Rank(from)
-				for n := from + 8; n < 64; n += 8 {
-					tobit = 1 << n
-					if occupied&tobit != 0 {
-						maybeCapture(from, n, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, n))
+				var ray, intersect, movesqs uint64
+
+				ray = movesNorth[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
 				}
-				for e := from + 1; e < (rank+1)*8; e++ {
-					tobit = 1 << e
-					if occupied&tobit != 0 {
-						maybeCapture(from, e, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, e))
+				movesqs |= ray
+
+				ray = movesEast[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
 				}
-				for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
-					tobit = 1 << s
-					if occupied&tobit != 0 {
-						maybeCapture(from, s, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, s))
+				movesqs |= ray
+
+				ray = movesSouth[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
 				}
-				for w := from - 1; w != (rank*8)-1; w-- {
-					tobit = 1 << w
-					if occupied&tobit != 0 {
-						maybeCapture(from, w, tobit)
-						break
-					}
-					moves = append(moves, NewMove(from, w))
+				movesqs |= ray
+
+				ray = movesWest[from]
+				intersect = ray & occupied
+				if intersect != 0 {
+					ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
 				}
+				movesqs |= ray
+
+				addCaptures(from, movesqs&opposing)
+				addQuietMoves(from, movesqs&^occupied)
+
 				// need to fall through here in case we have a queen
 			}
 
