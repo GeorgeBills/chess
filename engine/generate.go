@@ -421,180 +421,191 @@ func (b Board) Moves(moves []Move) []Move {
 		maymoveto = checkers //& threatray
 	case 2:
 		// double check: we must move our king
-		// TODO: should we just goto the king moves here?
-		maymoveto = maskNone // no squares
+		goto KING_MOVES
 	default:
 		panic(fmt.Sprintf("invalid board state: %#v", b))
 	}
 
-	// TODO: limit pawnsnotpromo when generating
-	pawnsnotpromo := pawns &^ pawnspromo // need to set this before we start unsetting bits in pawnspromo
-
-	for pawnspromo != 0 {
-		from = uint8(bits.TrailingZeros64(pawnspromo))
-		pawnspromo ^= (1 << from) // unset bit
-
-		// we could calculate masks for the below checks (e.g. pawns that can
-		// promote by pushing are just pawns that can push bitwise AND'ed with
-		// pawns that can promote), but generating that mask every time we
-		// generate moves doesn't pay off when pawns being in position to
-		// promote is so rare.
-		// TODO: disjoint masks for promo and not promo, combined for captures and pushes
-		// TODO: can mask pawn moves (single, double, capture) on maymoveto en masse
-		if tomove == White {
-			ne := from + 9
-			if tobit = 1 << ne; opposing&maymoveto&tobit&^maskFileH != 0 {
-				addpromos(from, ne, true)
-			}
-			nw := from + 7
-			if tobit = 1 << nw; opposing&maymoveto&tobit&^maskFileA != 0 {
-				addpromos(from, nw, true)
-			}
-			push := from + 8
-			if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
-				addpromos(from, push, false)
-			}
-		} else {
-			se := from - 7
-			if tobit = 1 << se; opposing&maymoveto&tobit&^maskFileA != 0 {
-				addpromos(from, se, true)
-			}
-			sw := from - 9
-			if tobit = 1 << sw; opposing&maymoveto&tobit&^maskFileH != 0 {
-				addpromos(from, sw, true)
-			}
-			push := from - 8
-			if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
-				addpromos(from, push, false)
-			}
-		}
-	}
-
-	for pawnsnotpromo != 0 {
-		from = uint8(bits.TrailingZeros64(pawnsnotpromo))
-		frombit = 1 << from
-		pawnsnotpromo ^= frombit // unset bit
-		// TODO: set en passant target on double pawn moves
-		if tomove == White {
-			if pawnsdbl&maymoveto&frombit != 0 {
-				moves = append(moves, NewMove(from, from+16))
-			}
-			if pawnssgl&maymoveto&frombit != 0 {
-				moves = append(moves, NewMove(from, from+8))
-			}
-			if pawnscaptureEast&maymoveto&frombit != 0 {
-				moves = append(moves, NewCapture(from, from+9))
-			}
-			if pawnscaptureWest&maymoveto&frombit != 0 {
-				moves = append(moves, NewCapture(from, from+7))
-			}
-		} else {
-			if pawnsdbl&maymoveto&frombit != 0 {
-				moves = append(moves, NewMove(from, from-16))
-			}
-			if pawnssgl&maymoveto&frombit != 0 {
-				moves = append(moves, NewMove(from, from-8))
-			}
-			if pawnscaptureEast&maymoveto&frombit != 0 {
-				moves = append(moves, NewCapture(from, from-9))
-			}
-			if pawnscaptureWest&maymoveto&frombit != 0 {
-				moves = append(moves, NewCapture(from, from-7))
+	{
+		ppcopy := pawnspromo
+		for ppcopy != 0 {
+			from = uint8(bits.TrailingZeros64(ppcopy))
+			ppcopy ^= (1 << from) // unset bit
+			// we could calculate masks for the below checks (e.g. pawns that
+			// can promote by pushing are just pawns that can push bitwise
+			// AND'ed with pawns that can promote), but generating that mask
+			// every time we generate moves doesn't pay off when pawns being in
+			// position to promote is so rare.
+			// TODO: disjoint masks for promo and not promo, combined for captures and pushes
+			// TODO: can mask pawn moves (single, double, capture) on maymoveto en masse
+			if tomove == White {
+				ne := from + 9
+				if tobit = 1 << ne; opposing&maymoveto&tobit&^maskFileH != 0 {
+					addpromos(from, ne, true)
+				}
+				nw := from + 7
+				if tobit = 1 << nw; opposing&maymoveto&tobit&^maskFileA != 0 {
+					addpromos(from, nw, true)
+				}
+				push := from + 8
+				if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
+					addpromos(from, push, false)
+				}
+			} else {
+				se := from - 7
+				if tobit = 1 << se; opposing&maymoveto&tobit&^maskFileA != 0 {
+					addpromos(from, se, true)
+				}
+				sw := from - 9
+				if tobit = 1 << sw; opposing&maymoveto&tobit&^maskFileH != 0 {
+					addpromos(from, sw, true)
+				}
+				push := from - 8
+				if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
+					addpromos(from, push, false)
+				}
 			}
 		}
 	}
 
-	knights := b.knights & colour
-	for knights != 0 {
-		from = uint8(bits.TrailingZeros64(knights))
-		knights ^= (1 << from) // unset bit
-		m := movesKnights[from] &^ colour & maymoveto
+	{
+		// TODO: limit pawnsnotpromo when generating
+		pawnsnotpromo := pawns &^ pawnspromo // need to set this before we start unsetting bits in pawnspromo
+		for pawnsnotpromo != 0 {
+			from = uint8(bits.TrailingZeros64(pawnsnotpromo))
+			frombit = 1 << from
+			pawnsnotpromo ^= frombit // unset bit
+			// TODO: set en passant target on double pawn moves
+			if tomove == White {
+				if pawnsdbl&maymoveto&frombit != 0 {
+					moves = append(moves, NewMove(from, from+16))
+				}
+				if pawnssgl&maymoveto&frombit != 0 {
+					moves = append(moves, NewMove(from, from+8))
+				}
+				if pawnscaptureEast&maymoveto&frombit != 0 {
+					moves = append(moves, NewCapture(from, from+9))
+				}
+				if pawnscaptureWest&maymoveto&frombit != 0 {
+					moves = append(moves, NewCapture(from, from+7))
+				}
+			} else {
+				if pawnsdbl&maymoveto&frombit != 0 {
+					moves = append(moves, NewMove(from, from-16))
+				}
+				if pawnssgl&maymoveto&frombit != 0 {
+					moves = append(moves, NewMove(from, from-8))
+				}
+				if pawnscaptureEast&maymoveto&frombit != 0 {
+					moves = append(moves, NewCapture(from, from-9))
+				}
+				if pawnscaptureWest&maymoveto&frombit != 0 {
+					moves = append(moves, NewCapture(from, from-7))
+				}
+			}
+		}
+	}
+
+	{
+		knights := b.knights & colour
+		for knights != 0 {
+			from = uint8(bits.TrailingZeros64(knights))
+			knights ^= (1 << from) // unset bit
+			m := movesKnights[from] &^ colour & maymoveto
+			addCaptures(from, m&opposing)
+			addQuietMoves(from, m&^occupied)
+		}
+	}
+
+	{
+		rooks := (b.rooks | b.queens) & colour
+		for rooks != 0 {
+			from = uint8(bits.TrailingZeros64(rooks))
+			rooks ^= (1 << from) // unset bit
+
+			var ray, intersect, movesqs uint64
+
+			ray = movesNorth[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesEast[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesSouth[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesWest[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			movesqs &= maymoveto
+			addCaptures(from, movesqs&opposing)
+			addQuietMoves(from, movesqs&^occupied)
+		}
+	}
+
+	{
+		bishops := (b.bishops | b.queens) & colour
+		for bishops != 0 {
+			from = uint8(bits.TrailingZeros64(bishops))
+			bishops ^= (1 << from) // unset bit
+			var ray, intersect, movesqs uint64
+
+			ray = movesNorthEast[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesSouthEast[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesSouthWest[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			ray = movesNorthWest[from]
+			intersect = ray & occupied
+			if intersect != 0 {
+				ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
+			}
+			movesqs |= ray
+
+			movesqs &= maymoveto
+			addCaptures(from, movesqs&opposing)
+			addQuietMoves(from, movesqs&^occupied)
+		}
+	}
+
+KING_MOVES:
+	{
+		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
+		m := movesKing[from] &^ colour &^ threatened
 		addCaptures(from, m&opposing)
 		addQuietMoves(from, m&^occupied)
-	}
-
-	from = uint8(bits.TrailingZeros64(king)) // always exactly one king
-	m := movesKing[from] &^ colour &^ threatened
-	addCaptures(from, m&opposing)
-	addQuietMoves(from, m&^occupied)
-
-	rooks := (b.rooks | b.queens) & colour
-	for rooks != 0 {
-		from = uint8(bits.TrailingZeros64(rooks))
-		rooks ^= (1 << from) // unset bit
-
-		var ray, intersect, movesqs uint64
-
-		ray = movesNorth[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesEast[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesSouth[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesWest[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		movesqs &= maymoveto
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
-	}
-
-	bishops := (b.bishops | b.queens) & colour
-	for bishops != 0 {
-		from = uint8(bits.TrailingZeros64(bishops))
-		bishops ^= (1 << from) // unset bit
-		var ray, intersect, movesqs uint64
-
-		ray = movesNorthEast[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesSouthEast[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesSouthWest[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		ray = movesNorthWest[from]
-		intersect = ray & occupied
-		if intersect != 0 {
-			ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
-		}
-		movesqs |= ray
-
-		movesqs &= maymoveto
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
 	}
 
 	// TODO: disallow moves placing the king in check
