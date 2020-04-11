@@ -405,6 +405,24 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
+	rayForward := func(moves *[64]uint64, from uint8) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		if intersection != 0 {
+			ray ^= moves[uint8(bits.TrailingZeros64(intersection))]
+		}
+		return ray
+	}
+
+	rayBackward := func(moves *[64]uint64, from uint8) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		if intersection != 0 {
+			ray ^= moves[uint8(63-bits.LeadingZeros64(intersection))]
+		}
+		return ray
+	}
+
 	var maymoveto uint64
 	switch bits.OnesCount64(checkers) {
 	case 0:
@@ -522,37 +540,11 @@ func (b Board) Moves(moves []Move) []Move {
 		for rooks != 0 {
 			from = uint8(bits.TrailingZeros64(rooks))
 			rooks ^= (1 << from) // unset bit
-
-			var ray, intersect, movesqs uint64
-
-			ray = movesNorth[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesNorth[uint8(bits.TrailingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesEast[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesEast[uint8(bits.TrailingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesSouth[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesSouth[uint8(63-bits.LeadingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesWest[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesWest[uint8(63-bits.LeadingZeros64(intersect))]
-			}
-			movesqs |= ray
-
+			var movesqs uint64
+			movesqs |= rayForward(&movesNorth, from)
+			movesqs |= rayBackward(&movesSouth, from)
+			movesqs |= rayForward(&movesEast, from)
+			movesqs |= rayBackward(&movesWest, from)
 			movesqs &= maymoveto
 			addCaptures(from, movesqs&opposing)
 			addQuietMoves(from, movesqs&^occupied)
@@ -564,36 +556,11 @@ func (b Board) Moves(moves []Move) []Move {
 		for bishops != 0 {
 			from = uint8(bits.TrailingZeros64(bishops))
 			bishops ^= (1 << from) // unset bit
-			var ray, intersect, movesqs uint64
-
-			ray = movesNorthEast[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesNorthEast[uint8(bits.TrailingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesSouthEast[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesSouthEast[uint8(63-bits.LeadingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesSouthWest[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesSouthWest[uint8(63-bits.LeadingZeros64(intersect))]
-			}
-			movesqs |= ray
-
-			ray = movesNorthWest[from]
-			intersect = ray & occupied
-			if intersect != 0 {
-				ray ^= movesNorthWest[uint8(bits.TrailingZeros64(intersect))]
-			}
-			movesqs |= ray
-
+			var movesqs uint64
+			movesqs |= rayForward(&movesNorthEast, from)
+			movesqs |= rayBackward(&movesSouthEast, from)
+			movesqs |= rayBackward(&movesSouthWest, from)
+			movesqs |= rayForward(&movesNorthWest, from)
 			movesqs &= maymoveto
 			addCaptures(from, movesqs&opposing)
 			addQuietMoves(from, movesqs&^occupied)
