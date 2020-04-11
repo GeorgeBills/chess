@@ -88,6 +88,7 @@ func TestMoves(t *testing.T) {
 				"d5xe4", "e5xd4", "e5xf4", "g4xh3", // pawns
 			},
 		},
+		// TODO: update pawn promo tests to check for wrapping A => H or H => A file on captures
 		{
 			"pawn promotions (white)",
 			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
@@ -107,7 +108,6 @@ func TestMoves(t *testing.T) {
 			"pawn promotions (black)",
 			"4k3/8/8/8/8/3P4/1pp4p/bN1QK2R b - - 0 123",
 			[]string{
-
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 				// c2 pawn can either capture or advance
 				"c2xb1=B", "c2xb1=N", "c2xb1=Q", "c2xb1=R",
@@ -291,8 +291,15 @@ func TestMoves(t *testing.T) {
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
+		{
+			"must capture knight to clear check",
+			"r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
+			[]string{
+				"d1xc2", // queen must capture knight
+			},
+		},
 		// {
-		// 	"must capture piece to clear check",
+		// 	"must capture bishop to clear check",
 		// 	"4k3/8/8/8/1b6/P7/4PP2/3BKB2 w - - 0 123",
 		// 	[]string{
 		// 		"a3xb4", // pawn must capture bishop
@@ -360,9 +367,7 @@ func TestMoves(t *testing.T) {
 			"black can castle neither (king in check)",
 			"r3k2r/p6p/3N4/8/8/8/8/4K3 b kq - 0 1",
 			[]string{
-				"a7a6", "a7a5", "h7h6", "h7h5", // pawns
-				"a8b8", "a8c8", "a8d8", // kingside rook
-				"h8f8", "h8g8", // queenside rook
+				// king must move to clear check; no other piece can move
 				"e8d7", "e8d8", "e8e7", "e8f8", // king
 			},
 		},

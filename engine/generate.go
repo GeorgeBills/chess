@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"math/bits"
 )
 
@@ -106,8 +107,8 @@ func init() {
 }
 
 const (
-	checkNone   = 0
-	checkDouble = 0xFFFFFFFF
+	maskAll  = 0xFFFFFFFFFFFFFFFF
+	maskNone = 0x0000000000000000
 
 	rank2 = 1
 	rank7 = 6
@@ -158,7 +159,7 @@ func (b Board) Moves(moves []Move) []Move {
 
 	// checkers is a mask for pieces giving check. if there is more than one bit
 	// set then we're in double check.
-	// var checkers uint64
+	var checkers uint64
 
 	var from uint8
 	var frombit, tobit uint64
@@ -233,12 +234,14 @@ func (b Board) Moves(moves []Move) []Move {
 				continue FIND_THREAT
 			}
 
+			// TODO: pawns
+
 			if opposingknights&frombit != 0 { // is there a knight on this square?
-				threatened |= movesKnights[from]
-				// if threatened&king != 0 {
-				// 	check++
-				// 	// TODO: now need to mark the checking piece; reverse the moves from king
-				// }
+				knightMoves := movesKnights[from]
+				if knightMoves&king != 0 {
+					checkers |= frombit
+				}
+				threatened |= knightMoves
 				continue FIND_THREAT
 			}
 
@@ -383,26 +386,29 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	// var maymoveto uint64
-	// switch bits.OnesCount64(checkers) {
-	// case 0:
-	// 	// no check:
-	// 	// most pieces can move anywhere
-	// 	// pinned pieces may only move on their pinned ray
-	// 	// king can only move to unthreatened squares
-	// 	maymoveto = 0xFFFFFFFF // all squares
-	// case 1:
-	// 	// single check; we must either:
-	// 	// capture the piece giving check
-	// 	// move a piece on to the threat ray
-	// 	// move our king out of threat
-	// 	maymoveto = checkers & threatray
-	// case 2:
-	// 	// double check: we must move our king
-	// 	// TODO: should we just goto the king moves here?
-	// 	maymoveto = 0x00000000 // no squares
-	// }
+	var maymoveto uint64
+	switch bits.OnesCount64(checkers) {
+	case 0:
+		// no check:
+		// most pieces can move anywhere
+		// pinned pieces may only move on their pinned ray
+		// king can only move to unthreatened squares
+		maymoveto = maskAll // all squares
+	case 1:
+		// single check; we must either:
+		// capture the piece giving check
+		// move a piece on to the threat ray
+		// move our king out of threat
+		maymoveto = checkers //& threatray
+	case 2:
+		// double check: we must move our king
+		// TODO: should we just goto the king moves here?
+		maymoveto = maskNone // no squares
+	default:
+		panic(fmt.Sprintf("invalid board state: %#v", b))
+	}
 
+	// TODO: limit pawnsnotpromo when generating
 	pawnsnotpromo := pawns &^ pawnspromo // need to set this before we start unsetting bits in pawnspromo
 
 	for pawnspromo != 0 {
@@ -414,24 +420,32 @@ func (b Board) Moves(moves []Move) []Move {
 		// pawns that can promote), but generating that mask every time we
 		// generate moves doesn't pay off when pawns being in position to
 		// promote is so rare.
+		// TODO: disjoint masks for promo and not promo, combined for captures and pushes
+		// TODO: can mask pawn moves (single, double, capture) on maymoveto en masse
 		if tomove == White {
-			if ne := from + 9; opposing&(1<<ne) != 0 {
+			ne := from + 9
+			if tobit = 1 << ne; opposing&maymoveto&tobit&^maskFileH != 0 {
 				addpromos(from, ne, true)
 			}
-			if nw := from + 7; opposing&(1<<nw) != 0 {
+			nw := from + 7
+			if tobit = 1 << nw; opposing&maymoveto&tobit&^maskFileA != 0 {
 				addpromos(from, nw, true)
 			}
-			if push := from + 8; occupied&(1<<push) == 0 {
+			push := from + 8
+			if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
 				addpromos(from, push, false)
 			}
 		} else {
-			if se := from - 7; opposing&(1<<se) != 0 {
+			se := from - 7
+			if tobit = 1 << se; opposing&maymoveto&tobit&^maskFileA != 0 {
 				addpromos(from, se, true)
 			}
-			if sw := from - 9; opposing&(1<<sw) != 0 {
+			sw := from - 9
+			if tobit = 1 << sw; opposing&maymoveto&tobit&^maskFileH != 0 {
 				addpromos(from, sw, true)
 			}
-			if push := from - 8; occupied&(1<<push) == 0 {
+			push := from - 8
+			if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
 				addpromos(from, push, false)
 			}
 		}
@@ -443,29 +457,29 @@ func (b Board) Moves(moves []Move) []Move {
 		pawnsnotpromo ^= frombit // unset bit
 		// TODO: set en passant target on double pawn moves
 		if tomove == White {
-			if pawnsdbl&frombit != 0 {
+			if pawnsdbl&maymoveto&frombit != 0 {
 				moves = append(moves, NewMove(from, from+16))
 			}
-			if pawnssgl&frombit != 0 {
+			if pawnssgl&maymoveto&frombit != 0 {
 				moves = append(moves, NewMove(from, from+8))
 			}
-			if pawnscaptureEast&frombit != 0 {
+			if pawnscaptureEast&maymoveto&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+9))
 			}
-			if pawnscaptureWest&frombit != 0 {
+			if pawnscaptureWest&maymoveto&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+7))
 			}
 		} else {
-			if pawnsdbl&frombit != 0 {
+			if pawnsdbl&maymoveto&frombit != 0 {
 				moves = append(moves, NewMove(from, from-16))
 			}
-			if pawnssgl&frombit != 0 {
+			if pawnssgl&maymoveto&frombit != 0 {
 				moves = append(moves, NewMove(from, from-8))
 			}
-			if pawnscaptureEast&frombit != 0 {
+			if pawnscaptureEast&maymoveto&frombit != 0 {
 				moves = append(moves, NewCapture(from, from-9))
 			}
-			if pawnscaptureWest&frombit != 0 {
+			if pawnscaptureWest&maymoveto&frombit != 0 {
 				moves = append(moves, NewCapture(from, from-7))
 			}
 		}
@@ -475,7 +489,7 @@ func (b Board) Moves(moves []Move) []Move {
 	for knights != 0 {
 		from = uint8(bits.TrailingZeros64(knights))
 		knights ^= (1 << from) // unset bit
-		m := movesKnights[from] &^ colour
+		m := movesKnights[from] &^ colour & maymoveto
 		addCaptures(from, m&opposing)
 		addQuietMoves(from, m&^occupied)
 	}
@@ -520,6 +534,7 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 		movesqs |= ray
 
+		movesqs &= maymoveto
 		addCaptures(from, movesqs&opposing)
 		addQuietMoves(from, movesqs&^occupied)
 	}
@@ -558,6 +573,7 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 		movesqs |= ray
 
+		movesqs &= maymoveto
 		addCaptures(from, movesqs&opposing)
 		addQuietMoves(from, movesqs&^occupied)
 	}
