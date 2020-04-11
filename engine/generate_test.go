@@ -188,7 +188,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"bishop moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
-			"rn2k1n1/pP2p3/p3P3/3b4/8/1P3p2/P7/4K2R b - - 0 123",
+			"rn2k1n1/pP2p3/p3R3/3b4/8/1P3p2/P7/4K2R b - - 0 123",
 			[]string{
 				"g8f6", "g8h6", // kingside knight
 				"e8d7", "e8d8", "e8f7", "e8f8", // king
@@ -232,11 +232,11 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"queen moves",
-			"4k3/2p3P1/B2q3B/8/8/P7/7P/3QK3 b - - 1 123",
+			"3k4/2p3P1/P2q3B/8/8/P7/7P/3QK3 b - - 1 123",
 			[]string{
 				"c7c5", "c7c6", // pawn
-				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-				"d6d7", "d6d8", // queen north
+				"d8c8", "d8d7", "d8e7", "d8e8", // king
+				"d6d7",         // queen north
 				"d6f8", "d6e7", // queen north east
 				"d6f6", "d6e6", "d6g6", "d6xh6", // queen east
 				"d6f4", "d6e5", "d6g3", "d6xh2", // queen south east
@@ -269,8 +269,13 @@ func TestMoves(t *testing.T) {
 			"k7/2K5/7R/8/8/8/8/8 b - - 1 123",
 			[]string{"a8a7"},
 		},
-		// TODO: test for pawn threat
+		{
+			"king must not move into check (pawns)",
+			"4k3/8/8/8/8/3ppp2/8/4K3 w - - 0 123",
+			[]string{"e1d1", "e1f1"},
+		},
 		// TODO: test for queen threat
+		// TODO: test for en passant threat
 		{
 			"stalemate (no moves possible)",
 			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",

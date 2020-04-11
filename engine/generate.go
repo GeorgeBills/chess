@@ -223,6 +223,26 @@ func (b Board) Moves(moves []Move) []Move {
 	// TODO: "covered" seems to be the appropriate chess term
 	var threatened uint64 // threatened tracks squares we may not move our king to
 	{
+		opposingpawns := b.pawns & opposing
+		// the king can only be under threat from one pawn at a time; it's not
+		// possible to simultaneously move two pawns within capture range, nor
+		// is it legal for a king to move to where a pawn could capture it.
+		if tomove == White {
+			m := (opposingpawns&^maskFileA)>>9 | // sw
+				(opposingpawns&^maskFileH)>>7 // se
+			if m&king != 0 {
+				checkers |= frombit
+			}
+			threatened |= m
+		} else {
+			m := (opposingpawns&^maskFileH)<<9 | // ne
+				(opposingpawns&^maskFileA)<<7 // nw
+			if m&king != 0 {
+				checkers |= frombit
+			}
+			threatened |= m
+		}
+
 		opposingknights := b.knights & opposing
 		opposingking := b.kings & opposing
 		opposingrooks := (b.rooks | b.queens) & opposing
@@ -234,8 +254,6 @@ func (b Board) Moves(moves []Move) []Move {
 			if opposing&frombit == 0 {
 				continue FIND_THREAT
 			}
-
-			// TODO: pawns
 
 			if opposingknights&frombit != 0 { // is there a knight on this square?
 				knightMoves := movesKnights[from]
