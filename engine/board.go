@@ -148,7 +148,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.IsKingAt(i):
 			return PieceWhiteKing
 		default:
-			panic(fmt.Sprintf("invalid board state: %#v", b))
+			panic(fmt.Sprintf("invalid white piece at index %d; %#v", i, b))
 		}
 	}
 	if b.IsBlackAt(i) {
@@ -166,7 +166,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.IsKingAt(i):
 			return PieceBlackKing
 		default:
-			panic(fmt.Sprintf("invalid board state: %#v", b))
+			panic(fmt.Sprintf("invalid black piece at index %d; %#v", i, b))
 		}
 	}
 	return PieceNone

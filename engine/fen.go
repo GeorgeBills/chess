@@ -60,7 +60,7 @@ func (b Board) FEN() string {
 		case PieceNone:
 			empty++
 		default:
-			panic(fmt.Sprintf("invalid piece: %b", p))
+			panic(fmt.Sprintf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
 		}
 	}
 	// flush any remaining empty squares

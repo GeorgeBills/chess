@@ -454,7 +454,7 @@ func (b Board) Moves(moves []Move) []Move {
 		// double check: we must move our king
 		goto KING_MOVES
 	default:
-		panic(fmt.Sprintf("invalid board state: %#v", b))
+		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
 	{
