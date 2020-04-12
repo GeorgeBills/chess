@@ -343,28 +343,24 @@ func (b Board) Moves(moves []Move) []Move {
 			blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
 			var blockSecondBit uint64 = 1 << blockSecond
 
+			// occlude the ray based on whether it hits the king or not
 			switch {
-			case blockSecondBit&king != 0:
-				// second piece is the king, so the first piece is pinned
-				// set pin ray to this ray
-				// if piece is on pin ray, must stay on pin ray
-				pinnedDiagonal |= blockFirstBit
+			case blockFirstBit&king == 0 && blockFirst != math.MaxUint8:
 				ray ^= movesSouthEast[blockFirst]
-			case blockFirstBit&king != 0 && blockSecond == math.MaxUint8:
-				ray ^= movesSouthEast[blockFirst]
-				threatRay = ray
-				checkers |= frombit
 			case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
-				// need to calc covered ignoring king; second is skewered
-				// calc ray ignoring king, since for the purposes of "threat to
-				// the king" the whole ray is unsafe
+				// pierce "through" the king
 				ray ^= movesSouthEast[blockSecond]
-				threatRay = ray
-				checkers |= frombit
-			case blockFirst != math.MaxUint8:
-				// ray intersects with blocker
-				ray ^= movesSouthEast[blockFirst]
 			}
+
+			// set check and pinned appropriately
+			switch {
+			case blockFirstBit&king != 0: // king is in check
+				checkers |= frombit
+				threatRay = ray
+			case blockSecondBit&king != 0: // piece is pinned
+				pinnedDiagonal |= blockFirstBit
+			}
+
 			threatened |= ray
 
 			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
