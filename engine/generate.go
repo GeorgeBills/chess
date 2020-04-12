@@ -162,6 +162,9 @@ func (b Board) Moves(moves []Move) []Move {
 	// set then we're in double check.
 	var checkers uint64
 
+	// pinnedSE is for pieces that must stay on the SE ray
+	var pinnedDiagonal uint64
+
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
@@ -320,7 +323,9 @@ func (b Board) Moves(moves []Move) []Move {
 		opposingbishops := (b.bishops | b.queens) & opposing
 		for opposingbishops != 0 {
 			from = uint8(bits.TrailingZeros64(opposingbishops))
-			opposingbishops ^= (1 << from) // unset bit
+			frombit = 1 << from
+			opposingbishops ^= frombit // unset bit
+
 			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
 				tobit = 1 << ne
 				threatened |= tobit
@@ -328,18 +333,36 @@ func (b Board) Moves(moves []Move) []Move {
 					break
 				}
 			}
-			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-				tobit = 1 << se
-				threatened |= tobit
-				// if king&tobit != 0 {
-				// 	// king in threat
-				// 	checkers |= frombit
-				// 	break
-				// }
-				if occupied&tobit != 0 {
-					break
-				}
+
+			ray := movesSouthEast[from]
+			intersection := ray & occupied
+			blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
+			var blockFirstBit uint64 = 1 << blockFirst
+			blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
+			var blockSecondBit uint64 = 1 << blockSecond
+
+			switch {
+			case blockSecondBit&king != 0:
+				// second piece is the king, so the first piece is pinned
+				// set pin ray to this ray
+				// if piece is on pin ray, must stay on pin ray
+				pinnedDiagonal |= blockFirstBit
+				ray ^= movesSouthEast[blockFirst]
+			case blockFirstBit&king != 0 && blockSecond == math.MaxUint8:
+				ray ^= movesSouthEast[blockFirst]
+				checkers |= frombit
+			case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
+				// need to calc covered ignoring king; second is skewered
+				// calc ray ignoring king, since for the purposes of "threat to
+				// the king" the whole ray is unsafe
+				ray ^= movesSouthEast[blockSecond]
+				checkers |= frombit
+			case blockFirst != math.MaxUint8:
+				// ray intersects with blocker
+				ray ^= movesSouthEast[blockFirst]
 			}
+			threatened |= ray
+
 			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
 				tobit = 1 << sw
 				threatened |= tobit
@@ -378,6 +401,7 @@ func (b Board) Moves(moves []Move) []Move {
 	if ep != math.MaxUint8 {
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
+		// FIXME: check maymoveto here
 		if tomove == White {
 			if from = ep - 7; pawns&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
@@ -469,6 +493,7 @@ func (b Board) Moves(moves []Move) []Move {
 			// position to promote is so rare.
 			// TODO: disjoint masks for promo and not promo, combined for captures and pushes
 			// TODO: can mask pawn moves (single, double, capture) on maymoveto en masse
+			// TODO: need to add tests for pawn promos capturing a checker
 			if tomove == White {
 				ne := from + 9
 				if tobit = 1 << ne; opposing&maymoveto&tobit&^maskFileH != 0 {
@@ -514,10 +539,10 @@ func (b Board) Moves(moves []Move) []Move {
 				if pawnssgl&maymoveto&frombit != 0 {
 					moves = append(moves, NewMove(from, from+8))
 				}
-				if pawnscaptureEast&maymoveto&frombit != 0 {
+				if pawnscaptureEast&(maymoveto>>9)&frombit != 0 {
 					moves = append(moves, NewCapture(from, from+9))
 				}
-				if pawnscaptureWest&maymoveto&frombit != 0 {
+				if pawnscaptureWest&(maymoveto>>7)&frombit != 0 {
 					moves = append(moves, NewCapture(from, from+7))
 				}
 			} else {
@@ -527,10 +552,10 @@ func (b Board) Moves(moves []Move) []Move {
 				if pawnssgl&maymoveto&frombit != 0 {
 					moves = append(moves, NewMove(from, from-8))
 				}
-				if pawnscaptureEast&maymoveto&frombit != 0 {
+				if pawnscaptureEast&(maymoveto<<9)&frombit != 0 {
 					moves = append(moves, NewCapture(from, from-9))
 				}
-				if pawnscaptureWest&maymoveto&frombit != 0 {
+				if pawnscaptureWest&(maymoveto<<7)&frombit != 0 {
 					moves = append(moves, NewCapture(from, from-7))
 				}
 			}
