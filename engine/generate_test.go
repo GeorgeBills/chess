@@ -338,9 +338,16 @@ func TestMoves(t *testing.T) {
 		// 		"b1c3", // knight must sacrifice itself
 		// 	},
 		// },
-		// TODO: king may not capture a covered piece
+		{
+			"king may not capture a covered piece",
+			"4k3/5B2/6P1/8/8/8/8/4K2R b K - 0 123",
+			[]string{
+				"e8f8", "e8e7", "e8d7", "e8d8",
+			},
+		},
 		// TODO: capturing or blocking piece doesn't work if double check; king must move
-		// TODO: en passant to clear check https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
+		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
+		// TODO: en passant to block check
 		// TODO: king MAY NOT move away from slider while still on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
 		// TODO: absolutely pinned piece must stay on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#part-3-pinned-pieces
 		// TODO: may not en passant if that exposes king https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
