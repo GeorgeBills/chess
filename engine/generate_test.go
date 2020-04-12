@@ -246,6 +246,20 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"king must not move into check (pawns; black to move)",
+			"4k3/6P1/2P1P3/8/8/8/8/4K3 b - - 0 123",
+			[]string{
+				"e8e7", "e8d8",
+			},
+		},
+		{
+			"king must not move into check (pawns; white to move)",
+			"4k3/8/8/8/8/2p3p1/8/4K3 w - - 0 123",
+			[]string{
+				"e1e2", "e1d1", "e1f1",
+			},
+		},
+		{
 			"king must not move into check (bishop)",
 			"4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
 			[]string{
@@ -310,7 +324,13 @@ func TestMoves(t *testing.T) {
 		// 		"a3xb4", // pawn must capture bishop
 		// 	},
 		// },
-		// TODO: king must capture piece to clear check
+		{
+			"must capture pawn to clear check",
+			"3qkb2/3ppP2/2PP4/8/8/8/8/4K2R b K - 0 123",
+			[]string{
+				"e8xf7", // king must capture pawn to clear check
+			},
+		},
 		// {
 		// 	"piece must block to clear check",
 		// 	"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",

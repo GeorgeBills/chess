@@ -227,118 +227,131 @@ func (b Board) Moves(moves []Move) []Move {
 		// the king can only be under threat from one pawn at a time; it's not
 		// possible to simultaneously move two pawns within capture range, nor
 		// is it legal for a king to move to where a pawn could capture it.
+
 		if tomove == White {
 			m := (opposingpawns&^maskFileA)>>9 | // sw
 				(opposingpawns&^maskFileH)>>7 // se
 			if m&king != 0 {
-				checkers |= frombit
+				// flip the check to find out which pawn is checking us
+				if frombit = king << 9; frombit&opposingpawns&^maskFileH != 0 {
+					checkers |= frombit
+				} else {
+					checkers |= king << 7 // must be nw
+				}
 			}
 			threatened |= m
 		} else {
 			m := (opposingpawns&^maskFileH)<<9 | // ne
 				(opposingpawns&^maskFileA)<<7 // nw
 			if m&king != 0 {
-				checkers |= frombit
+				// flip the check to find out which pawn is checking us
+				if frombit = king >> 9; frombit&opposingpawns&^maskFileA != 0 {
+					checkers |= frombit
+				} else {
+					checkers |= king >> 7 // must be sw
+				}
 			}
 			threatened |= m
 		}
+	}
 
+	{
 		opposingknights := b.knights & opposing
-		opposingking := b.kings & opposing
+		for opposingknights != 0 {
+			from = uint8(bits.TrailingZeros64(opposingknights))
+			frombit = 1 << from
+			opposingknights ^= (1 << from) // unset bit
+			knightMoves := movesKnights[from]
+			if knightMoves&king != 0 {
+				checkers |= frombit
+			}
+			threatened |= knightMoves
+		}
+	}
+
+	{
+		opposingking := b.kings & opposing // always exactly one king
+		from = uint8(bits.TrailingZeros64(opposingking))
+		// note that there's a subtle bug here if we start using threatened for more
+		// than just a "can our king move to this square?" check - not all of these
+		// moves will be legal for the opposing king to make.
+		// note that kings can never check another king
+		threatened |= movesKing[from]
+	}
+
+	{
 		opposingrooks := (b.rooks | b.queens) & opposing
+		for opposingrooks != 0 {
+			from = uint8(bits.TrailingZeros64(opposingrooks))
+			opposingrooks ^= (1 << from) // unset bit
+			rank := Rank(from)
+			for n := from + 8; n < 64; n += 8 {
+				tobit = 1 << n
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for e := from + 1; e < (rank+1)*8; e++ {
+				tobit = 1 << e
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
+				tobit = 1 << s
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+			for w := from - 1; w != (rank*8)-1; w-- {
+				tobit = 1 << w
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
+				}
+			}
+		}
+	}
+
+	{
 		opposingbishops := (b.bishops | b.queens) & opposing
-	FIND_THREAT:
-		for from = 0; from < 64; from++ {
-			frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
-
-			if opposing&frombit == 0 {
-				continue FIND_THREAT
-			}
-
-			if opposingknights&frombit != 0 { // is there a knight on this square?
-				knightMoves := movesKnights[from]
-				if knightMoves&king != 0 {
-					checkers |= frombit
-				}
-				threatened |= knightMoves
-				continue FIND_THREAT
-			}
-
-			if opposingking&frombit != 0 { // is there a king on this square?
-				// note that there's a subtle bug here if we start using
-				// threatened for more than just a "can our king move to this
-				// square?" check - not all of these moves will be legal for the
-				// opposing king to make.
-				// note that kings can never check another king
-				threatened |= movesKing[from]
-				continue FIND_THREAT
-			}
-
-			if opposingrooks&frombit != 0 { // is there a rook on this square?
-				rank := Rank(from)
-				for n := from + 8; n < 64; n += 8 {
-					tobit = 1 << n
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
-				}
-				for e := from + 1; e < (rank+1)*8; e++ {
-					tobit = 1 << e
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
-				}
-				for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
-					tobit = 1 << s
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
-				}
-				for w := from - 1; w != (rank*8)-1; w-- {
-					tobit = 1 << w
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
+		for opposingbishops != 0 {
+			from = uint8(bits.TrailingZeros64(opposingbishops))
+			opposingbishops ^= (1 << from) // unset bit
+			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+				tobit = 1 << ne
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
 				}
 			}
-
-			if opposingbishops&frombit != 0 { // is there a bishop on this square?
-				for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-					tobit = 1 << ne
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
+			for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
+				tobit = 1 << se
+				threatened |= tobit
+				// if king&tobit != 0 {
+				// 	// king in threat
+				// 	checkers |= frombit
+				// 	break
+				// }
+				if occupied&tobit != 0 {
+					break
 				}
-				for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
-					tobit = 1 << se
-					threatened |= tobit
-					// if king&tobit != 0 {
-					// 	// king in threat
-					// 	checkers |= frombit
-					// 	break
-					// }
-					if occupied&tobit != 0 {
-						break
-					}
+			}
+			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
+				tobit = 1 << sw
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
 				}
-				for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-					tobit = 1 << sw
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
-				}
-				for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-					tobit = 1 << nw
-					threatened |= tobit
-					if occupied&tobit != 0 {
-						break
-					}
+			}
+			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+				tobit = 1 << nw
+				threatened |= tobit
+				if occupied&tobit != 0 {
+					break
 				}
 			}
 		}
