@@ -227,6 +227,65 @@ func (b Board) Moves(moves []Move) []Move {
 
 	// TODO: "covered" seems to be the appropriate chess term
 	var threatened uint64 // threatened tracks squares we may not move our king to
+
+	rayEvaluateCheckPinForward := func(moves *[64]uint64) {
+		ray := moves[from]
+		intersection := ray & occupied
+		blockFirst := uint8(bits.TrailingZeros64(intersection))
+		var blockFirstBit uint64 = 1 << blockFirst
+		blockSecond := uint8(bits.TrailingZeros64(intersection &^ blockFirstBit))
+		var blockSecondBit uint64 = 1 << blockSecond
+
+		// occlude the ray based on whether it hits the king or not
+		switch {
+		case blockFirstBit&king == 0 && blockFirst != 64:
+			ray ^= moves[blockFirst]
+		case blockFirstBit&king != 0 && blockSecond != 64:
+			// pierce "through" the king
+			ray ^= moves[blockSecond]
+		}
+
+		// set check and pinned appropriately
+		switch {
+		case blockFirstBit&king != 0: // king is in check
+			checkers |= frombit
+			threatRay = ray
+		case blockSecondBit&king != 0: // piece is pinned
+			pinnedDiagonal |= blockFirstBit
+		}
+
+		threatened |= ray
+	}
+
+	rayEvaluateCheckPinBackward := func(moves *[64]uint64) {
+		ray := moves[from]
+		intersection := ray & occupied
+		blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
+		var blockFirstBit uint64 = 1 << blockFirst
+		blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
+		var blockSecondBit uint64 = 1 << blockSecond
+
+		// occlude the ray based on whether it hits the king or not
+		switch {
+		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8:
+			ray ^= moves[blockFirst]
+		case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
+			// pierce "through" the king
+			ray ^= moves[blockSecond]
+		}
+
+		// set check and pinned appropriately
+		switch {
+		case blockFirstBit&king != 0: // king is in check
+			checkers |= frombit
+			threatRay = ray
+		case blockSecondBit&king != 0: // piece is pinned
+			pinnedDiagonal |= blockFirstBit
+		}
+
+		threatened |= ray
+	}
+
 	{
 		opposingpawns := b.pawns & opposing
 		// the king can only be under threat from one pawn at a time; it's not
@@ -289,35 +348,10 @@ func (b Board) Moves(moves []Move) []Move {
 		for opposingrooks != 0 {
 			from = uint8(bits.TrailingZeros64(opposingrooks))
 			opposingrooks ^= (1 << from) // unset bit
-			rank := Rank(from)
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for s := from - 8; s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for w := from - 1; w != (rank*8)-1; w-- {
-				tobit = 1 << w
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
+			rayEvaluateCheckPinForward(&movesNorth)
+			rayEvaluateCheckPinForward(&movesEast)
+			rayEvaluateCheckPinBackward(&movesSouth)
+			rayEvaluateCheckPinBackward(&movesWest)
 		}
 	}
 
@@ -328,55 +362,10 @@ func (b Board) Moves(moves []Move) []Move {
 			frombit = 1 << from
 			opposingbishops ^= frombit // unset bit
 
-			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-				tobit = 1 << ne
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-
-			ray := movesSouthEast[from]
-			intersection := ray & occupied
-			blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
-			var blockFirstBit uint64 = 1 << blockFirst
-			blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
-			var blockSecondBit uint64 = 1 << blockSecond
-
-			// occlude the ray based on whether it hits the king or not
-			switch {
-			case blockFirstBit&king == 0 && blockFirst != math.MaxUint8:
-				ray ^= movesSouthEast[blockFirst]
-			case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
-				// pierce "through" the king
-				ray ^= movesSouthEast[blockSecond]
-			}
-
-			// set check and pinned appropriately
-			switch {
-			case blockFirstBit&king != 0: // king is in check
-				checkers |= frombit
-				threatRay = ray
-			case blockSecondBit&king != 0: // piece is pinned
-				pinnedDiagonal |= blockFirstBit
-			}
-
-			threatened |= ray
-
-			for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
-				tobit = 1 << sw
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-				tobit = 1 << nw
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
+			rayEvaluateCheckPinForward(&movesNorthEast)
+			rayEvaluateCheckPinBackward(&movesSouthEast)
+			rayEvaluateCheckPinBackward(&movesSouthWest)
+			rayEvaluateCheckPinForward(&movesNorthWest)
 		}
 	}
 
