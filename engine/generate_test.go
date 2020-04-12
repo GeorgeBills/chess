@@ -331,13 +331,13 @@ func TestMoves(t *testing.T) {
 				"e8xf7", // king must capture pawn to clear check
 			},
 		},
-		// {
-		// 	"piece must block to clear check (bishop)",
-		// 	"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
-		// 	[]string{
-		// 		"b1c3", // knight must sacrifice itself
-		// 	},
-		// },
+		{
+			"piece must block to clear check (bishop)",
+			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
+			[]string{
+				"b1c3", "b1d2", // knight must sacrifice itself
+			},
+		},
 		// TODO: piece must block to clear check (rook)
 		{
 			"king may not capture a covered piece",

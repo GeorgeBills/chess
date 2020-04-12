@@ -165,6 +165,8 @@ func (b Board) Moves(moves []Move) []Move {
 	// pinnedSE is for pieces that must stay on the SE ray
 	var pinnedDiagonal uint64
 
+	var threatRay uint64
+
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
@@ -350,12 +352,14 @@ func (b Board) Moves(moves []Move) []Move {
 				ray ^= movesSouthEast[blockFirst]
 			case blockFirstBit&king != 0 && blockSecond == math.MaxUint8:
 				ray ^= movesSouthEast[blockFirst]
+				threatRay = ray
 				checkers |= frombit
 			case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
 				// need to calc covered ignoring king; second is skewered
 				// calc ray ignoring king, since for the purposes of "threat to
 				// the king" the whole ray is unsafe
 				ray ^= movesSouthEast[blockSecond]
+				threatRay = ray
 				checkers |= frombit
 			case blockFirst != math.MaxUint8:
 				// ray intersects with blocker
@@ -473,7 +477,7 @@ func (b Board) Moves(moves []Move) []Move {
 		// capture the piece giving check
 		// move a piece on to the threat ray
 		// move our king out of threat
-		maymoveto = checkers //& threatray
+		maymoveto = checkers | threatRay
 	case 2:
 		// double check: we must move our king
 		goto KING_MOVES
