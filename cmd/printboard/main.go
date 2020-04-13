@@ -36,7 +36,7 @@ func main() {
 			fatal(err)
 		}
 	default:
-		fatal(fmt.Sprintf("invalid board: %s; should be a 64 bit hex (0x...) or binary (0b...) variable", bitstring))
+		fatal(fmt.Sprintf("invalid board: %s; should be a 64 bit decimal (0d...), hex (0x...), or binary (0b...) variable", bitstring))
 	}
 
 	f := bufio.NewWriter(os.Stdout)
