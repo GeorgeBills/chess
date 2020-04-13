@@ -16,7 +16,7 @@ func TestMoves(t *testing.T) {
 		expected []string
 	}{
 		{
-			"initial board",
+			"pawn pushes (white)",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 			[]string{
 				// knights
@@ -34,7 +34,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"1. Nf3 (Réti opening)",
+			"pawn pushes (black)",
 			"rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
 			[]string{
 				// knights
@@ -171,6 +171,28 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"rook move edge conditions: rooks h1 and a8",
+			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
+			[]string{
+				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
+				"a8b8", "a8c8", "a8d8", "a8e8", "a8f8", "a8g8", "a8h8", // a8 rook horizontal
+				"h1a1", "h1b1", "h1c1", "h1d1", "h1e1", "h1f1", "h1g1", // h1 rook vertical
+				"h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", // h1 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h2", "g2h3", // king
+			},
+		},
+		{
+			"rook move edge conditions: rooks a1 and h8",
+			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
+			[]string{
+				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
+				"a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1", // a1 rook horizontal
+				"h8h1", "h8h2", "h8h3", "h8h4", "h8h5", "h8h6", "h8h7", // h8 rook vertical
+				"h8a8", "h8b8", "h8c8", "h8d8", "h8e8", "h8f8", "h8g8", // h8 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h1", "g2h2", "g2h3", // king
+			},
+		},
+		{
 			"bishop moves",
 			"4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
 			[]string{
@@ -198,7 +220,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"edge conditions: bishops moving to corners of the board",
+			"bishop move edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
 				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
@@ -206,28 +228,6 @@ func TestMoves(t *testing.T) {
 				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5g8", // d5 bishop rising diagonal
 				"d5a8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
 				"g1f1", "g1f2", "g1g2", "g1h1", "g1h2", // king
-			},
-		},
-		{
-			"edge conditions: rooks h1 and a8",
-			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
-			[]string{
-				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
-				"a8b8", "a8c8", "a8d8", "a8e8", "a8f8", "a8g8", "a8h8", // a8 rook horizontal
-				"h1a1", "h1b1", "h1c1", "h1d1", "h1e1", "h1f1", "h1g1", // h1 rook vertical
-				"h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", // h1 rook horizontal
-				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h2", "g2h3", // king
-			},
-		},
-		{
-			"edge conditions: rooks a1 and h8",
-			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
-			[]string{
-				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
-				"a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1", // a1 rook horizontal
-				"h8h1", "h8h2", "h8h3", "h8h4", "h8h5", "h8h6", "h8h7", // h8 rook vertical
-				"h8a8", "h8b8", "h8c8", "h8d8", "h8e8", "h8f8", "h8g8", // h8 rook horizontal
-				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h1", "g2h2", "g2h3", // king
 			},
 		},
 		{
@@ -291,12 +291,12 @@ func TestMoves(t *testing.T) {
 		// TODO: test for queen threat
 		// TODO: test for en passant threat
 		{
-			"stalemate (no moves possible)",
+			"king must not move into check: stalemate (no moves possible)",
 			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
 			nil,
 		},
 		{
-			"king free to move: own piece blocks check",
+			"king must not move into check: free to move, own piece blocks check",
 			"3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
 			[]string{
 				"d2d3", "d2d4", // pawn
@@ -304,67 +304,74 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king free to move: opposing piece blocks check",
+			"king must not move into check: free to move, opposing piece blocks check",
 			"3qk3/3b4/8/8/8/8/8/3K4 w - - 1 123",
 			[]string{
 				"d1c1", "d1e1", "d1d2", "d1c2", "d1e2", // king
 			},
 		},
 		{
-			"must capture knight to clear check",
+			"king must not move into check: king may not capture a covered piece",
+			"4k3/5B2/6P1/8/8/8/8/4K2R b K - 0 123",
+			[]string{
+				"e8f8", "e8e7", "e8d7", "e8d8",
+			},
+		},
+		{
+			"clearing check: must capture to clear check",
 			"r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
 			[]string{
 				"d1xc2", // queen must capture knight
 			},
 		},
 		{
-			"must capture bishop to clear check",
+			"clearing check: pawn must capture ne to clear check",
 			"4k3/8/8/8/1b6/P7/4PP2/3BKB2 w - - 0 123",
 			[]string{
 				"a3xb4", // pawn must capture bishop
 			},
 		},
+		// TODO: pawn must capture nw to clear check
+		// TODO: pawn must capture se to clear check
+		// TODO: pawn must capture sw to clear check
 		{
-			"must capture pawn to clear check",
+			"clearing check: king must capture to clear check",
 			"3qkb2/3ppP2/2PP4/8/8/8/8/4K2R b K - 0 123",
 			[]string{
 				"e8xf7", // king must capture pawn to clear check
 			},
 		},
 		{
-			"piece must block to clear check (bishop)",
+			"clearing check: piece must block to clear check (bishop)",
 			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
 			[]string{
 				"b1c3", "b1d2", // knight must sacrifice itself
 			},
 		},
 		{
-			"piece must block to clear check (rook)",
+			"clearing check: piece must block to clear check (rook)",
 			"R3kb2/2brpp2/8/8/8/8/8/4K3 b - - 0 123",
 			[]string{
 				"c7b8", "c7d8", "d7d8", // either bishop or rook must sacrifice itself
 			},
 		},
-		{
-			"king may not capture a covered piece",
-			"4k3/5B2/6P1/8/8/8/8/4K2R b K - 0 123",
-			[]string{
-				"e8f8", "e8e7", "e8d7", "e8d8",
-			},
-		},
+		// TODO: pawn must push (single or double) to clear check (black)
+		// TODO: pawn must push (single or double) to clear check (white)
+		// TODO: pawn must promote to clear check (black)
+		// TODO: pawn must promote to clear check (white)
 		// TODO: capturing or blocking piece doesn't work if double check; king must move
 		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
 		// TODO: en passant to block check
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
-			"king may not move away from checking slider while still on ray",
+			"clearing check: king may not move away from checking slider while still on ray",
 			"4k3/1q6/8/8/2r1K3/8/8/8 w - - 0 1",
 			[]string{
 				"e4e5", "e4e3", "e4f5", "e4d3",
 			},
 		},
 		{
-			"absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
+			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
 				"c6b5", "c6d7", "c6xa4", // bishop pinned to SW/NE diagonal
@@ -372,7 +379,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"absolutely pinned piece must stay on ray (bishop NW/SE diagonal)",
+			"pinning: absolutely pinned piece must stay on ray (bishop NW/SE diagonal)",
 			"4k3/8/8/8/1b6/2B5/8/4K3 w - - 0 1",
 			[]string{
 				"c3xb4", "c3d2", // bishop pinned to NW/SE diagonal
@@ -380,7 +387,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"absolutely pinned piece must stay on ray (rook vertical)",
+			"pinning: absolutely pinned piece must stay on ray (rook vertical)",
 			"4k3/4r3/8/8/8/8/4R3/4K3 w - - 0 1",
 			[]string{
 				"e2e3", "e2e4", "e2e5", "e2e6", "e2xe7", // rook pinned to vertical
@@ -388,7 +395,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"absolutely pinned piece must stay on ray (rook horizontal)",
+			"pinning: absolutely pinned piece must stay on ray (rook horizontal)",
 			"Rr2k3/8/8/8/8/8/8/4K3 b - - 0 1",
 			[]string{
 				"b8c8", "b8d8", "b8xa8", // rook pinned to horizontal
@@ -398,7 +405,7 @@ func TestMoves(t *testing.T) {
 		// TODO: may not en passant if that exposes king https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
 		// TODO: checkmate
 		{
-			"white can ks castle only (qs blocked)",
+			"castling: white can ks castle only (qs blocked)",
 			"4k3/8/8/8/8/8/P6P/R3K1NR w KQ - 1 123",
 			[]string{
 				"O-O-O",
@@ -409,7 +416,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"white can castle both (ks pawn protects from check, qs despite rook being covered)",
+			"castling: white can castle both (ks pawn protects from check, qs despite rook being covered)",
 			"4kr2/8/8/8/8/r4P2/7P/R3K2R w KQ - 1 123",
 			[]string{
 				"O-O", "O-O-O",
@@ -420,7 +427,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"white can castle neither (ks pass through check, qs into check)",
+			"castling: white can castle neither (ks pass through check, qs into check)",
 			"2r1kr2/8/8/8/8/8/P6P/R3K2R w KQ - 1 123",
 			[]string{
 				"a1b1", "a1c1", "a1d1", // queenside rook
@@ -430,7 +437,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"black can qs castle only (board state)",
+			"castling: black can qs castle only (board state)",
 			"r3k2r/p6p/8/8/8/8/8/4K3 b q - 1 123",
 			[]string{
 				"O-O-O",
@@ -441,7 +448,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"black can castle neither (king in check)",
+			"castling: black can castle neither (king in check)",
 			"r3k2r/p6p/3N4/8/8/8/8/4K3 b kq - 0 1",
 			[]string{
 				// king must move to clear check; no other piece can move
@@ -449,7 +456,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"black can ks castle only (qs into check)",
+			"castling: black can ks castle only (qs into check)",
 			"r3k2r/p1R4p/8/8/8/8/8/4K3 b kq - 0 123",
 			[]string{
 				"O-O",
