@@ -232,7 +232,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			"queen moves",
-			"3k4/2p3P1/P2q3B/8/8/P7/7P/3QK3 b - - 1 123",
+			"3k4/2p3P1/P2q3B/8/8/P7/7P/3BK3 b - - 1 123",
 			[]string{
 				"c7c5", "c7c6", // pawn
 				"d8c8", "d8d7", "d8e7", "d8e8", // king
@@ -350,7 +350,38 @@ func TestMoves(t *testing.T) {
 		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
 		// TODO: en passant to block check
 		// TODO: king MAY NOT move away from slider while still on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
-		// TODO: absolutely pinned piece must stay on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#part-3-pinned-pieces
+		{
+			"absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
+			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
+			[]string{
+				"c6b5", "c6d7", "c6xa4", // bishop pinned to SW/NE diagonal
+				"e8e7", "e8d7", "e8d8", "e8f7", "e8f8", // king
+			},
+		},
+		{
+			"absolutely pinned piece must stay on ray (bishop NW/SE diagonal)",
+			"4k3/8/8/8/1b6/2B5/8/4K3 w - - 0 1",
+			[]string{
+				"c3xb4", "c3d2", // bishop pinned to NW/SE diagonal
+				"e1e2", "e1d1", "e1d2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"absolutely pinned piece must stay on ray (rook vertical)",
+			"4k3/4r3/8/8/8/8/4R3/4K3 w - - 0 1",
+			[]string{
+				"e2e3", "e2e4", "e2e5", "e2e6", "e2xe7", // rook pinned to vertical
+				"e1d1", "e1d2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"absolutely pinned piece must stay on ray (rook horizontal)",
+			"Rr2k3/8/8/8/8/8/8/4K3 b - - 0 1",
+			[]string{
+				"b8c8", "b8d8", "b8xa8", // rook pinned to horizontal
+				"e8e7", "e8d7", "e8d8", "e8f7", "e8f8", // king
+			},
+		},
 		// TODO: may not en passant if that exposes king https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
 		// TODO: checkmate
 		{

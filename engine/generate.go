@@ -162,8 +162,8 @@ func (b Board) Moves(moves []Move) []Move {
 	// set then we're in double check.
 	var checkers uint64
 
-	// pinnedSE is for pieces that must stay on the SE ray
-	var pinnedDiagonal uint64
+	// pinned variables are for pieces that must stay on the respective ray.
+	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
 
 	var threatRay uint64
 
@@ -228,7 +228,7 @@ func (b Board) Moves(moves []Move) []Move {
 	// TODO: "covered" seems to be the appropriate chess term
 	var threatened uint64 // threatened tracks squares we may not move our king to
 
-	rayEvaluateCheckPinForward := func(moves *[64]uint64) {
+	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
 		blockFirst := uint8(bits.TrailingZeros64(intersection))
@@ -245,19 +245,21 @@ func (b Board) Moves(moves []Move) []Move {
 			ray ^= moves[blockSecond]
 		}
 
+		threatened |= ray
+
 		// set check and pinned appropriately
 		switch {
 		case blockFirstBit&king != 0: // king is in check
 			checkers |= frombit
 			threatRay = ray
 		case blockSecondBit&king != 0: // piece is pinned
-			pinnedDiagonal |= blockFirstBit
+			return blockFirstBit
 		}
 
-		threatened |= ray
+		return 0
 	}
 
-	rayEvaluateCheckPinBackward := func(moves *[64]uint64) {
+	rayEvaluateCheckPinBackward := func(moves *[64]uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
 		blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
@@ -274,16 +276,18 @@ func (b Board) Moves(moves []Move) []Move {
 			ray ^= moves[blockSecond]
 		}
 
+		threatened |= ray
+
 		// set check and pinned appropriately
 		switch {
 		case blockFirstBit&king != 0: // king is in check
 			checkers |= frombit
 			threatRay = ray
 		case blockSecondBit&king != 0: // piece is pinned
-			pinnedDiagonal |= blockFirstBit
+			return blockFirstBit
 		}
 
-		threatened |= ray
+		return 0
 	}
 
 	{
@@ -348,10 +352,10 @@ func (b Board) Moves(moves []Move) []Move {
 		for opposingrooks != 0 {
 			from = uint8(bits.TrailingZeros64(opposingrooks))
 			opposingrooks ^= (1 << from) // unset bit
-			rayEvaluateCheckPinForward(&movesNorth)
-			rayEvaluateCheckPinForward(&movesEast)
-			rayEvaluateCheckPinBackward(&movesSouth)
-			rayEvaluateCheckPinBackward(&movesWest)
+			pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
+			pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
+			pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
+			pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
 		}
 	}
 
@@ -362,10 +366,10 @@ func (b Board) Moves(moves []Move) []Move {
 			frombit = 1 << from
 			opposingbishops ^= frombit // unset bit
 
-			rayEvaluateCheckPinForward(&movesNorthEast)
-			rayEvaluateCheckPinBackward(&movesSouthEast)
-			rayEvaluateCheckPinBackward(&movesSouthWest)
-			rayEvaluateCheckPinForward(&movesNorthWest)
+			pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
+			pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
+			pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
+			pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
 		}
 	}
 
@@ -566,12 +570,17 @@ func (b Board) Moves(moves []Move) []Move {
 		rooks := (b.rooks | b.queens) & colour
 		for rooks != 0 {
 			from = uint8(bits.TrailingZeros64(rooks))
-			rooks ^= (1 << from) // unset bit
+			frombit = 1 << from
+			rooks ^= frombit // unset bit
 			var movesqs uint64
-			movesqs |= rayForward(&movesNorth, from)
-			movesqs |= rayBackward(&movesSouth, from)
-			movesqs |= rayForward(&movesEast, from)
-			movesqs |= rayBackward(&movesWest, from)
+			if pinnedHorizontal&frombit == 0 { // not pinned horizontally, can move vertically
+				movesqs |= rayForward(&movesNorth, from)
+				movesqs |= rayBackward(&movesSouth, from)
+			}
+			if pinnedVertical&frombit == 0 { // not pinned vertically, can move horizontally
+				movesqs |= rayForward(&movesEast, from)
+				movesqs |= rayBackward(&movesWest, from)
+			}
 			movesqs &= maymoveto
 			addCaptures(from, movesqs&opposing)
 			addQuietMoves(from, movesqs&^occupied)
@@ -582,12 +591,17 @@ func (b Board) Moves(moves []Move) []Move {
 		bishops := (b.bishops | b.queens) & colour
 		for bishops != 0 {
 			from = uint8(bits.TrailingZeros64(bishops))
-			bishops ^= (1 << from) // unset bit
+			frombit = 1 << from
+			bishops ^= frombit // unset bit
 			var movesqs uint64
-			movesqs |= rayForward(&movesNorthEast, from)
-			movesqs |= rayBackward(&movesSouthEast, from)
-			movesqs |= rayBackward(&movesSouthWest, from)
-			movesqs |= rayForward(&movesNorthWest, from)
+			if pinnedDiagonalSWNE&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
+				movesqs |= rayForward(&movesNorthWest, from)
+				movesqs |= rayBackward(&movesSouthEast, from)
+			}
+			if pinnedDiagonalNWSE&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
+				movesqs |= rayForward(&movesNorthEast, from)
+				movesqs |= rayBackward(&movesSouthWest, from)
+			}
 			movesqs &= maymoveto
 			addCaptures(from, movesqs&opposing)
 			addQuietMoves(from, movesqs&^occupied)
