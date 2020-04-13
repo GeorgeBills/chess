@@ -479,6 +479,14 @@ func TestMoves(t *testing.T) {
 	}
 }
 
+func TestTooManyCheckersPanics(t *testing.T) {
+	fen := "4k3/4r3/8/q7/7b/8/8/4K3 w - - 0 123" // 3 checkers
+	b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
+	require.NoError(t, err)
+	require.NotNil(t, b)
+	assert.Panics(t, func() { _ = b.Moves(nil) })
+}
+
 func BenchmarkMoveGeneration10(b *testing.B) {
 	const fen = "r3k2r/pbqnbppp/1p2pn2/2p1N3/Q1P5/4P3/PB1PBPPP/RN3RK1 w kq - 8 11" // 10 ply in, white to play
 	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
