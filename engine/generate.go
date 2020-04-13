@@ -351,7 +351,8 @@ func (b Board) Moves(moves []Move) []Move {
 		opposingrooks := (b.rooks | b.queens) & opposing
 		for opposingrooks != 0 {
 			from = uint8(bits.TrailingZeros64(opposingrooks))
-			opposingrooks ^= (1 << from) // unset bit
+			frombit = 1 << from
+			opposingrooks ^= frombit // unset bit
 			pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
 			pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
 			pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)

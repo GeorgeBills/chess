@@ -338,7 +338,13 @@ func TestMoves(t *testing.T) {
 				"b1c3", "b1d2", // knight must sacrifice itself
 			},
 		},
-		// TODO: piece must block to clear check (rook)
+		{
+			"piece must block to clear check (rook)",
+			"R3kb2/2brpp2/8/8/8/8/8/4K3 b - - 0 123",
+			[]string{
+				"c7b8", "c7d8", "d7d8", // either bishop or rook must sacrifice itself
+			},
+		},
 		{
 			"king may not capture a covered piece",
 			"4k3/5B2/6P1/8/8/8/8/4K2R b K - 0 123",
@@ -352,9 +358,9 @@ func TestMoves(t *testing.T) {
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
 			"king may not move away from checking slider while still on ray",
-			"4k3/1q6/8/8/1r2K3/8/2b5/8 w - - 0 1",
+			"4k3/1q6/8/8/2r1K3/8/8/8 w - - 0 1",
 			[]string{
-				"e4e5", "e4e3",
+				"e4e5", "e4e3", "e4f5", "e4d3",
 			},
 		},
 		{
