@@ -349,7 +349,14 @@ func TestMoves(t *testing.T) {
 		// TODO: capturing or blocking piece doesn't work if double check; king must move
 		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
 		// TODO: en passant to block check
-		// TODO: king MAY NOT move away from slider while still on ray https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
+		{
+			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
+			"king may not move away from checking slider while still on ray",
+			"4k3/1q6/8/8/1r2K3/8/2b5/8 w - - 0 1",
+			[]string{
+				"e4e5", "e4e3",
+			},
+		},
 		{
 			"absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",

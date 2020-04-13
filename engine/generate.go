@@ -240,9 +240,9 @@ func (b Board) Moves(moves []Move) []Move {
 		switch {
 		case blockFirstBit&king == 0 && blockFirst != 64:
 			ray ^= moves[blockFirst]
-		case blockFirstBit&king != 0 && blockSecond != 64:
-			// pierce "through" the king
-			ray ^= moves[blockSecond]
+			// case blockFirstBit&king != 0 && blockSecond != 64:
+			// 	// pierce "through" the king
+			// 	ray ^= moves[blockSecond]
 		}
 
 		threatened |= ray
@@ -271,9 +271,9 @@ func (b Board) Moves(moves []Move) []Move {
 		switch {
 		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8:
 			ray ^= moves[blockFirst]
-		case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
-			// pierce "through" the king
-			ray ^= moves[blockSecond]
+			// case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
+			// 	// pierce "through" the king
+			// 	ray ^= moves[blockSecond]
 		}
 
 		threatened |= ray
