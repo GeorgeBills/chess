@@ -203,6 +203,11 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"invalid board state: black moved last; en passant on rank 3",
 		},
 		{
+			"invalid en passant (eof after single valid char)",
+			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a",
+			"unexpected EOF",
+		},
+		{
 			"invalid piece",
 			"rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
 			"unexpected 'X', expecting [PNBRQKpnbrqk1-8]",
