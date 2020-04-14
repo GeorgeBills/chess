@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"math/bits"
 	"strings"
 )
 
@@ -213,4 +215,23 @@ func (b Board) String() string {
 		sb.WriteRune(r)
 	}
 	return sb.String()
+}
+
+// Validate returns an error on an inconsistent or invalid board.
+func (b Board) Validate() error {
+	numWhiteKings := bits.OnesCount64(b.kings & b.white)
+	if numWhiteKings != 1 {
+		return fmt.Errorf("invalid board: %d white kings", numWhiteKings)
+	}
+	numBlackKings := bits.OnesCount64(b.kings & b.black)
+	if numBlackKings != 1 {
+		return fmt.Errorf("invalid board: %d black kings", numBlackKings)
+	}
+	if b.pawns&rank1mask != 0 {
+		return errors.New("invalid board: pawns on rank 1")
+	}
+	if b.pawns&rank8mask != 0 {
+		return errors.New("invalid board: pawns on rank 8")
+	}
+	return nil
 }

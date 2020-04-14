@@ -227,6 +227,37 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 	}
 }
 
+func TestNewInvalidBoardFromFEN(t *testing.T) {
+	fen := []struct{ name, fen, expected string }{
+		{
+			"multiple white kings",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
+			"invalid board: 2 white kings",
+		},
+		{
+			"zero black kings",
+			"rnbqqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"invalid board: 0 black kings",
+		},
+		{
+			"pawns on rank 8",
+			"pnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"invalid board: pawns on rank 8",
+		},
+		{
+			"pawns on rank 1",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/PNBQKBNR w KQkq - 0 1",
+			"invalid board: pawns on rank 1",
+		},
+	}
+	for _, tt := range fen {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := engine.NewBoardFromFEN(strings.NewReader(tt.fen))
+			assert.EqualError(t, err, tt.expected)
+		})
+	}
+}
+
 func TestRoundTripFEN(t *testing.T) {
 	fen := []string{
 		"k7/8/8/8/8/p7/P6K/8 b - - 1 123",

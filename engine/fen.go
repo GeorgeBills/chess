@@ -114,9 +114,8 @@ func (b Board) FEN() string {
 }
 
 // NewBoardFromFEN returns a new board initialised as per the provided
-// Forsyth–Edwards Notation. Only 8×8 boards are supported. No validation of
-// resulting board state is performed; e.g. if the FEN specifies multiple kings
-// per side then that's what the board will contain.
+// Forsyth–Edwards Notation. Only 8×8 boards are supported. Only basic
+// validation of resulting board state is performed.
 func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
 	r := bufio.NewReader(fen)
@@ -371,5 +370,5 @@ READ_CASTLING:
 		b.total++
 	}
 
-	return b, nil
+	return b, b.Validate()
 }
