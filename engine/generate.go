@@ -114,14 +114,14 @@ const (
 	rank2 = 1
 	rank7 = 6
 
-	rank8mask uint64 = 0xFF00000000000000
-	rank7mask uint64 = 0x00FF000000000000
-	rank6mask uint64 = 0x0000FF0000000000
-	rank5mask uint64 = 0x000000FF00000000
-	rank4mask uint64 = 0x00000000FF000000
-	rank3mask uint64 = 0x0000000000FF0000
-	rank2mask uint64 = 0x000000000000FF00
-	rank1mask uint64 = 0x00000000000000FF
+	maskRank8 uint64 = 0xFF00000000000000
+	maskRank7 uint64 = 0x00FF000000000000
+	maskRank6 uint64 = 0x0000FF0000000000
+	maskRank5 uint64 = 0x000000FF00000000
+	maskRank4 uint64 = 0x00000000FF000000
+	maskRank3 uint64 = 0x0000000000FF0000
+	maskRank2 uint64 = 0x000000000000FF00
+	maskRank1 uint64 = 0x00000000000000FF
 
 	fileA = 0
 	fileB = 1
@@ -189,8 +189,8 @@ func (b Board) Moves(moves []Move) []Move {
 		opposing = b.black
 		pawns = b.pawns & b.white
 		pawnssgl = pawns &^ (occupied >> 8)
-		pawnsdbl = pawnssgl & rank2mask &^ ((occupied & rank4mask) >> 16)
-		pawnspromo = pawns & rank7mask
+		pawnsdbl = pawnssgl & maskRank2 &^ ((occupied & maskRank4) >> 16)
+		pawnspromo = pawns & maskRank7
 
 		pawnscaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
 		pawnscaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
@@ -199,8 +199,8 @@ func (b Board) Moves(moves []Move) []Move {
 		opposing = b.white
 		pawns = b.pawns & b.black
 		pawnssgl = pawns &^ (occupied << 8)
-		pawnsdbl = pawnssgl & rank7mask &^ ((occupied & rank5mask) << 16)
-		pawnspromo = pawns & rank2mask
+		pawnsdbl = pawnssgl & maskRank7 &^ ((occupied & maskRank5) << 16)
+		pawnspromo = pawns & maskRank2
 
 		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileA // se
 		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileH // sw

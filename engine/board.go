@@ -227,10 +227,10 @@ func (b Board) Validate() error {
 	if numBlackKings != 1 {
 		return fmt.Errorf("invalid board: %d black kings", numBlackKings)
 	}
-	if b.pawns&rank1mask != 0 {
+	if b.pawns&maskRank1 != 0 {
 		return errors.New("invalid board: pawns on rank 1")
 	}
-	if b.pawns&rank8mask != 0 {
+	if b.pawns&maskRank8 != 0 {
 		return errors.New("invalid board: pawns on rank 8")
 	}
 	return nil
