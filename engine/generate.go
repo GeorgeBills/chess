@@ -243,7 +243,7 @@ func (b Board) Moves(moves []Move) []Move {
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
-		case blockFirstBit&king == 0 && blockFirst != 64:
+		case blockFirstBit&king == 0 && blockFirst != 64: // NOT the king
 			ray ^= moves[blockFirst]
 			// case blockFirstBit&king != 0 && blockSecond != 64:
 			// 	// pierce "through" the king
@@ -256,7 +256,7 @@ func (b Board) Moves(moves []Move) []Move {
 		switch {
 		case blockFirstBit&king != 0: // king is in check
 			checkers |= frombit
-			threatRay = ray
+			threatRay = ray &^ moves[blockFirst] // occlude threat by king
 		case blockSecondBit&king != 0: // piece is pinned
 			return blockFirstBit
 		}
@@ -274,7 +274,7 @@ func (b Board) Moves(moves []Move) []Move {
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
-		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8:
+		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8: // NOT the king
 			ray ^= moves[blockFirst]
 			// case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
 			// 	// pierce "through" the king
@@ -287,7 +287,7 @@ func (b Board) Moves(moves []Move) []Move {
 		switch {
 		case blockFirstBit&king != 0: // king is in check
 			checkers |= frombit
-			threatRay = ray
+			threatRay = ray &^ moves[blockFirst] // occlude threat by king
 		case blockSecondBit&king != 0: // piece is pinned
 			return blockFirstBit
 		}
