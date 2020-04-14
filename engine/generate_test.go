@@ -386,7 +386,13 @@ func TestMoves(t *testing.T) {
 		// TODO: pawn must push (single or double) to clear check (white)
 		// TODO: pawn must promote to clear check (black)
 		// TODO: pawn must promote to clear check (white)
-		// TODO: capturing or blocking piece doesn't work if double check; king must move
+		{
+			"clearing check: capturing or blocking piece doesn't work if double check; king must move",
+			"4k3/1pp5/2B5/1b3n2/8/3r1p2/4R2r/4K3 b - - 0 123",
+			[]string{
+				"e8d8", "e8f7", "e8f8", // only valid moves are king moves
+			},
+		},
 		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
 		// TODO: en passant to block check
 		{
