@@ -11,7 +11,18 @@ import (
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
 func (b Board) FEN() string {
-	var sb strings.Builder
+	sb := &strings.Builder{}
+	// strings.Builder Write() methods always return a nil error, so this can never error
+	b.WriteFEN(sb)
+	return sb.String()
+}
+
+// WriteFEN writes the Forsyth–Edwards Notation for the board to w.
+func (b Board) WriteFEN(w io.Writer) error {
+	// bufio.Writer helps us defer error handling till the final Flush()
+	// https://blog.golang.org/errors-are-values
+	sb := bufio.NewWriter(w)
+
 	var empty int
 	var i uint8
 
@@ -110,7 +121,7 @@ func (b Board) FEN() string {
 	// number of full moves
 	sb.WriteString(strconv.Itoa(b.FullMoves()))
 
-	return sb.String()
+	return sb.Flush()
 }
 
 // NewBoardFromFEN returns a new board initialised as per the provided
