@@ -63,11 +63,11 @@ type Board struct {
 }
 
 const (
-	wcks   = 0b10000000
-	wcqs   = 0b01000000
-	bcks   = 0b00100000
-	bcqs   = 0b00010000
-	epmask = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
+	maskWhiteCastleKingside  = 0b10000000
+	maskWhiteCastleQueenside = 0b01000000
+	maskBlackCastleKingside  = 0b00100000
+	maskBlackCastleQueenside = 0b00010000
+	maskEnPassant            = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
@@ -83,7 +83,7 @@ func NewBoard() Board {
 		kings:   1<<E1 | 1<<E8,
 		half:    0,
 		total:   0,
-		meta:    wcks | wcqs | bcks | bcqs,
+		meta:    maskWhiteCastleKingside | maskWhiteCastleQueenside | maskBlackCastleKingside | maskBlackCastleQueenside,
 	}
 }
 
@@ -117,7 +117,7 @@ func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
 func (b Board) EnPassant() uint8 {
-	file := uint8(b.meta & epmask)
+	file := uint8(b.meta & maskEnPassant)
 	if file == 0 {
 		return math.MaxUint8
 	}
@@ -183,16 +183,16 @@ func (b Board) ToMove() Colour {
 }
 
 // CanWhiteCastleKingSide returns true iff white can castle king side.
-func (b Board) CanWhiteCastleKingSide() bool { return b.meta&wcks != 0 }
+func (b Board) CanWhiteCastleKingSide() bool { return b.meta&maskWhiteCastleKingside != 0 }
 
 // CanWhiteCastleQueenSide returns true iff white can castle queen side.
-func (b Board) CanWhiteCastleQueenSide() bool { return b.meta&wcqs != 0 }
+func (b Board) CanWhiteCastleQueenSide() bool { return b.meta&maskWhiteCastleQueenside != 0 }
 
 // CanBlackCastleKingSide returns true iff black can castle king side.
-func (b Board) CanBlackCastleKingSide() bool { return b.meta&bcks != 0 }
+func (b Board) CanBlackCastleKingSide() bool { return b.meta&maskBlackCastleKingside != 0 }
 
 // CanBlackCastleQueenSide returns true iff black can castle queen side.
-func (b Board) CanBlackCastleQueenSide() bool { return b.meta&bcqs != 0 }
+func (b Board) CanBlackCastleQueenSide() bool { return b.meta&maskBlackCastleQueenside != 0 }
 
 // HalfMoves returns the number of half moves (moves by one player) since the
 // last pawn moved or piece was captured. This is used for determining if a draw

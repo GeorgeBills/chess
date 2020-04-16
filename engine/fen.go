@@ -78,7 +78,7 @@ func (b Board) FEN() string {
 
 	sb.WriteRune(' ')
 
-	if b.meta&(wcks|wcqs|bcks|bcqs) == 0 {
+	if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) == 0 {
 		sb.WriteRune('-')
 	} else {
 		if b.CanWhiteCastleKingSide() {
@@ -269,17 +269,17 @@ READ_CASTLING:
 		}
 		switch ch {
 		case 'K':
-			b.meta |= wcks
+			b.meta |= maskWhiteCastleKingside
 		case 'Q':
-			b.meta |= wcqs
+			b.meta |= maskWhiteCastleQueenside
 		case 'k':
-			b.meta |= bcks
+			b.meta |= maskBlackCastleKingside
 		case 'q':
-			b.meta |= bcqs
+			b.meta |= maskBlackCastleQueenside
 		case '-':
 			// '-' indicates that castling is unavailable
 			// if present it must be the one and only byte
-			if b.meta&(wcks|wcqs|bcks|bcqs) != 0 {
+			if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) != 0 {
 				return nil, errors.New("castling '-' must be solitary if present")
 			}
 			break READ_CASTLING
