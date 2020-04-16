@@ -188,7 +188,8 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	occupied := b.white | b.black
 
 	tomove := b.ToMove()
-	if tomove == White {
+	switch tomove {
+	case White:
 		colour = b.white
 		opposing = b.black
 		pawns := b.pawns & b.white
@@ -199,7 +200,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 
 		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
 		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
-	} else {
+	case Black:
 		colour = b.black
 		opposing = b.white
 		pawns := b.pawns & b.black
@@ -306,7 +307,8 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		// is it legal for a king to move to where a pawn could capture it.
 
 		// TODO: does setting pawn threat in the switch above save any time?
-		if tomove == White {
+		switch tomove {
+		case White:
 			m := (opposingpawns&^maskFileA)>>9 | // sw
 				(opposingpawns&^maskFileH)>>7 // se
 			if m&king != 0 {
@@ -318,7 +320,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 				}
 			}
 			threatened |= m
-		} else {
+		case Black:
 			m := (opposingpawns&^maskFileH)<<9 | // ne
 				(opposingpawns&^maskFileA)<<7 // nw
 			if m&king != 0 {
@@ -378,14 +380,15 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	}
 
 	// Check for castling.
-	if tomove == White {
+	switch tomove {
+	case White:
 		if b.CanWhiteCastleKingside() && threatened&maskWhiteKingsideCastleThreat == 0 && occupied&maskWhiteKingsideCastleBlocked == 0 {
 			moves = append(moves, NewWhiteKingsideCastle())
 		}
 		if b.CanWhiteCastleQueenside() && threatened&maskWhiteQueensideCastleThreat == 0 && occupied&maskWhiteQueensideCastleBlocked == 0 {
 			moves = append(moves, NewWhiteQueensideCastle())
 		}
-	} else {
+	case Black:
 		if b.CanBlackCastleKingside() && threatened&maskBlackKingsideCastleThreat == 0 && occupied&maskBlackKingsideCastleBlocked == 0 {
 			moves = append(moves, NewBlackKingsideCastle())
 		}
@@ -400,14 +403,15 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 		// FIXME: check maskMayMoveTo here
-		if tomove == White {
+		switch tomove {
+		case White:
 			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
 			if from = ep - 9; pawnsNotPromote&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
-		} else {
+		case Black:
 			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
@@ -492,7 +496,8 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		// TODO: can mask pawn moves (single, double, capture) on maskMayMoveTo en masse
 		// TODO: need to add tests for pawn promos capturing a checker
 		// TODO: don't need to check maskFileH and maskFileA here, we do it en masse above
-		if tomove == White {
+		switch tomove {
+		case White:
 			ne := from + 9
 			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
 				addPromotions(from, ne, true)
@@ -505,7 +510,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 			if tobit = 1 << push; maskMayMoveTo&tobit&(^occupied) != 0 {
 				addPromotions(from, push, false)
 			}
-		} else {
+		case Black:
 			se := from - 7
 			if tobit = 1 << se; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
 				addPromotions(from, se, true)
@@ -527,7 +532,8 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		pawnsNotPromote ^= frombit
 
 		// TODO: set en passant target on double pawn moves
-		if tomove == White {
+		switch tomove {
+		case White:
 			if pawnsPushDouble&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from+16))
 			}
@@ -540,7 +546,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 			if pawnsCaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+7))
 			}
-		} else {
+		case Black:
 			if pawnsPushDouble&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from-16))
 			}
