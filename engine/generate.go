@@ -169,21 +169,25 @@ func (b Board) Moves(moves []Move) []Move {
 	// set then we're in double check.
 	var checkers uint64
 
-	// pinned variables are for pieces that must stay on the respective ray.
+	// pinned variables are for pieces that are absolutely pinned must stay on
+	// the respective ray.
 	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
 
+	// threatened tracks squares we may not move our king to
+	var threatened uint64
+
+	// threatRay tracks a ray of threat from a bishop, rook or queen to the
+	// king. moving a piece on to this ray will block single check.
 	var threatRay uint64
 
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnssgl, pawnsdbl, pawnspromo, pawnscaptureEast, pawnscaptureWest uint64
+	var pawns, pawnssgl, pawnsdbl, pawnspromo, pawnscaptureEast, pawnscaptureWest uint64
 
 	occupied := b.white | b.black
 
 	tomove := b.ToMove()
-	var pawns uint64
-	// TODO: use pointers so we don't need to check tomove later
 	if tomove == White {
 		colour = b.white
 		opposing = b.black
@@ -220,8 +224,7 @@ func (b Board) Moves(moves []Move) []Move {
 	//
 	// We must never move our king to a threatened square, through a threatened
 	// square (in the case of castling) or make a move that exposes a check on
-	// our king. This includes capturing opposing pieces that are blocking
-	// check.
+	// our king.
 	//
 	// If our king is in check, then we must either capture the checking piece,
 	// move our king to an unthreatened square, or (in the case of scanners)
@@ -231,9 +234,6 @@ func (b Board) Moves(moves []Move) []Move {
 	// must move our king to a safe square. It's neither possible to capture nor
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
-
-	// TODO: "covered" seems to be the appropriate chess term
-	var threatened uint64 // threatened tracks squares we may not move our king to
 
 	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
 		ray := moves[from]
@@ -303,6 +303,7 @@ func (b Board) Moves(moves []Move) []Move {
 		// possible to simultaneously move two pawns within capture range, nor
 		// is it legal for a king to move to where a pawn could capture it.
 
+		// TODO: does setting pawn threat in the switch above save any time?
 		if tomove == White {
 			m := (opposingpawns&^maskFileA)>>9 | // sw
 				(opposingpawns&^maskFileH)>>7 // se
@@ -330,55 +331,48 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	{
-		opposingknights := b.knights & opposing
-		for opposingknights != 0 {
-			from = uint8(bits.TrailingZeros64(opposingknights))
-			frombit = 1 << from
-			opposingknights ^= (1 << from) // unset bit
-			knightMoves := movesKnights[from]
-			if knightMoves&king != 0 {
-				checkers |= frombit
-			}
-			threatened |= knightMoves
+	for opposingknights := b.knights & opposing; opposingknights != 0; {
+		from = uint8(bits.TrailingZeros64(opposingknights))
+		frombit = 1 << from
+		opposingknights ^= frombit
+
+		knightMoves := movesKnights[from]
+		if knightMoves&king != 0 {
+			checkers |= frombit
 		}
+		threatened |= knightMoves
 	}
 
 	{
 		opposingking := b.kings & opposing // always exactly one king
 		from = uint8(bits.TrailingZeros64(opposingking))
-		// note that there's a subtle bug here if we start using threatened for more
-		// than just a "can our king move to this square?" check - not all of these
+		// there's a subtle bug here if we start using threatened for more than
+		// just a "can our king move to this square?" check - not all of these
 		// moves will be legal for the opposing king to make.
-		// note that kings can never check another king
+		// kings can never check another king, so don't bother evaluating check.
 		threatened |= movesKing[from]
 	}
 
-	{
-		opposingrooks := (b.rooks | b.queens) & opposing
-		for opposingrooks != 0 {
-			from = uint8(bits.TrailingZeros64(opposingrooks))
-			frombit = 1 << from
-			opposingrooks ^= frombit // unset bit
-			pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
-			pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
-			pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
-			pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
-		}
+	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
+		from = uint8(bits.TrailingZeros64(opposingrooks))
+		frombit = 1 << from
+		opposingrooks ^= frombit
+
+		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
+		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
+		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
+		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
 	}
 
-	{
-		opposingbishops := (b.bishops | b.queens) & opposing
-		for opposingbishops != 0 {
-			from = uint8(bits.TrailingZeros64(opposingbishops))
-			frombit = 1 << from
-			opposingbishops ^= frombit // unset bit
+	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
+		from = uint8(bits.TrailingZeros64(opposingbishops))
+		frombit = 1 << from
+		opposingbishops ^= frombit
 
-			pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
-			pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
-			pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
-			pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
-		}
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
 	}
 
 	// Check for castling.
@@ -398,11 +392,12 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
+	// Check for en passant.
 	ep := b.EnPassant()
 	if ep != math.MaxUint8 {
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
-		// FIXME: check maymoveto here
+		// FIXME: check maskMayMoveTo here
 		if tomove == White {
 			if from = ep - 7; pawns&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
@@ -420,7 +415,7 @@ func (b Board) Moves(moves []Move) []Move {
 		}
 	}
 
-	addpromos := func(from, to uint8, capture bool) {
+	addPromotions := func(from, to uint8, capture bool) {
 		moves = append(moves, NewQueenPromotion(from, to, capture))
 		moves = append(moves, NewKnightPromotion(from, to, capture))
 		moves = append(moves, NewRookPromotion(from, to, capture))
@@ -430,7 +425,7 @@ func (b Board) Moves(moves []Move) []Move {
 	addQuietMoves := func(from uint8, quiet uint64) {
 		for quiet != 0 {
 			to := uint8(bits.TrailingZeros64(quiet))
-			quiet ^= (1 << to) // unset bit
+			quiet ^= (1 << to)
 			moves = append(moves, NewMove(from, to))
 		}
 	}
@@ -438,7 +433,7 @@ func (b Board) Moves(moves []Move) []Move {
 	addCaptures := func(from uint8, captures uint64) {
 		for captures != 0 {
 			to := uint8(bits.TrailingZeros64(captures))
-			captures ^= (1 << to) // unset bit
+			captures ^= (1 << to)
 			moves = append(moves, NewCapture(from, to))
 		}
 	}
@@ -461,20 +456,20 @@ func (b Board) Moves(moves []Move) []Move {
 		return ray
 	}
 
-	var maymoveto uint64
+	var maskMayMoveTo uint64
 	switch bits.OnesCount64(checkers) {
 	case 0:
 		// no check:
 		// most pieces can move anywhere
 		// pinned pieces may only move on their pinned ray
 		// king can only move to unthreatened squares
-		maymoveto = maskAll // all squares
+		maskMayMoveTo = maskAll // all squares
 	case 1:
 		// single check; we must either:
 		// capture the piece giving check
 		// move a piece on to the threat ray
 		// move our king out of threat
-		maymoveto = checkers | threatRay
+		maskMayMoveTo = checkers | threatRay
 	case 2:
 		// double check: we must move our king
 		goto KING_MOVES
@@ -482,138 +477,131 @@ func (b Board) Moves(moves []Move) []Move {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
-	{
-		ppcopy := pawnspromo
-		for ppcopy != 0 {
-			from = uint8(bits.TrailingZeros64(ppcopy))
-			ppcopy ^= (1 << from) // unset bit
-			// we could calculate masks for the below checks (e.g. pawns that
-			// can promote by pushing are just pawns that can push bitwise
-			// AND'ed with pawns that can promote), but generating that mask
-			// every time we generate moves doesn't pay off when pawns being in
-			// position to promote is so rare.
-			// TODO: disjoint masks for promo and not promo, combined for captures and pushes
-			// TODO: can mask pawn moves (single, double, capture) on maymoveto en masse
-			// TODO: need to add tests for pawn promos capturing a checker
-			if tomove == White {
-				ne := from + 9
-				if tobit = 1 << ne; opposing&maymoveto&tobit&^maskFileH != 0 {
-					addpromos(from, ne, true)
-				}
-				nw := from + 7
-				if tobit = 1 << nw; opposing&maymoveto&tobit&^maskFileA != 0 {
-					addpromos(from, nw, true)
-				}
-				push := from + 8
-				if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
-					addpromos(from, push, false)
-				}
-			} else {
-				se := from - 7
-				if tobit = 1 << se; opposing&maymoveto&tobit&^maskFileA != 0 {
-					addpromos(from, se, true)
-				}
-				sw := from - 9
-				if tobit = 1 << sw; opposing&maymoveto&tobit&^maskFileH != 0 {
-					addpromos(from, sw, true)
-				}
-				push := from - 8
-				if tobit = 1 << push; maymoveto&tobit&(^occupied) != 0 {
-					addpromos(from, push, false)
-				}
+	for ppcopy := pawnspromo; ppcopy != 0; {
+		from = uint8(bits.TrailingZeros64(ppcopy))
+		frombit = 1 << from
+		ppcopy ^= frombit
+
+		// we could calculate masks for the below checks (e.g. pawns that can
+		// promote by pushing are just pawns that can push bitwise AND'ed with
+		// pawns that can promote), but generating that mask every time we
+		// generate moves doesn't pay off when pawns being in position to
+		// promote is so rare.
+		// TODO: disjoint masks for promo and not promo, combined for captures and pushes
+		// TODO: can mask pawn moves (single, double, capture) on maskMayMoveTo en masse
+		// TODO: need to add tests for pawn promos capturing a checker
+		if tomove == White {
+			ne := from + 9
+			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
+				addPromotions(from, ne, true)
+			}
+			nw := from + 7
+			if tobit = 1 << nw; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
+				addPromotions(from, nw, true)
+			}
+			push := from + 8
+			if tobit = 1 << push; maskMayMoveTo&tobit&(^occupied) != 0 {
+				addPromotions(from, push, false)
+			}
+		} else {
+			se := from - 7
+			if tobit = 1 << se; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
+				addPromotions(from, se, true)
+			}
+			sw := from - 9
+			if tobit = 1 << sw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
+				addPromotions(from, sw, true)
+			}
+			push := from - 8
+			if tobit = 1 << push; maskMayMoveTo&tobit&(^occupied) != 0 {
+				addPromotions(from, push, false)
 			}
 		}
 	}
 
-	{
-		// TODO: limit pawnsnotpromo when generating
-		pawnsnotpromo := pawns &^ pawnspromo // need to set this before we start unsetting bits in pawnspromo
-		for pawnsnotpromo != 0 {
-			from = uint8(bits.TrailingZeros64(pawnsnotpromo))
-			frombit = 1 << from
-			pawnsnotpromo ^= frombit // unset bit
-			// TODO: set en passant target on double pawn moves
-			if tomove == White {
-				if pawnsdbl&maymoveto&frombit != 0 {
-					moves = append(moves, NewMove(from, from+16))
-				}
-				if pawnssgl&maymoveto&frombit != 0 {
-					moves = append(moves, NewMove(from, from+8))
-				}
-				if pawnscaptureEast&(maymoveto>>9)&frombit != 0 {
-					moves = append(moves, NewCapture(from, from+9))
-				}
-				if pawnscaptureWest&(maymoveto>>7)&frombit != 0 {
-					moves = append(moves, NewCapture(from, from+7))
-				}
-			} else {
-				if pawnsdbl&maymoveto&frombit != 0 {
-					moves = append(moves, NewMove(from, from-16))
-				}
-				if pawnssgl&maymoveto&frombit != 0 {
-					moves = append(moves, NewMove(from, from-8))
-				}
-				if pawnscaptureEast&(maymoveto<<9)&frombit != 0 {
-					moves = append(moves, NewCapture(from, from-9))
-				}
-				if pawnscaptureWest&(maymoveto<<7)&frombit != 0 {
-					moves = append(moves, NewCapture(from, from-7))
-				}
+	// TODO: limit pawnsnotpromo when generating
+	// TODO: set pawnsnotpromo before we start unsetting bits in pawnspromo
+	for pawnsnotpromo := pawns &^ pawnspromo; pawnsnotpromo != 0; {
+		from = uint8(bits.TrailingZeros64(pawnsnotpromo))
+		frombit = 1 << from
+		pawnsnotpromo ^= frombit
+
+		// TODO: set en passant target on double pawn moves
+		if tomove == White {
+			if pawnsdbl&maskMayMoveTo&frombit != 0 {
+				moves = append(moves, NewMove(from, from+16))
+			}
+			if pawnssgl&maskMayMoveTo&frombit != 0 {
+				moves = append(moves, NewMove(from, from+8))
+			}
+			if pawnscaptureEast&(maskMayMoveTo>>9)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+9))
+			}
+			if pawnscaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+7))
+			}
+		} else {
+			if pawnsdbl&maskMayMoveTo&frombit != 0 {
+				moves = append(moves, NewMove(from, from-16))
+			}
+			if pawnssgl&maskMayMoveTo&frombit != 0 {
+				moves = append(moves, NewMove(from, from-8))
+			}
+			if pawnscaptureEast&(maskMayMoveTo<<9)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-9))
+			}
+			if pawnscaptureWest&(maskMayMoveTo<<7)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-7))
 			}
 		}
 	}
 
-	{
-		knights := b.knights & colour
-		for knights != 0 {
-			from = uint8(bits.TrailingZeros64(knights))
-			knights ^= (1 << from) // unset bit
-			m := movesKnights[from] &^ colour & maymoveto
-			addCaptures(from, m&opposing)
-			addQuietMoves(from, m&^occupied)
-		}
+	for knights := b.knights & colour; knights != 0; {
+		from = uint8(bits.TrailingZeros64(knights))
+		frombit = 1 << from
+		knights ^= frombit
+
+		m := movesKnights[from] &^ colour & maskMayMoveTo
+		addCaptures(from, m&opposing)
+		addQuietMoves(from, m&^occupied)
 	}
 
-	{
-		rooks := (b.rooks | b.queens) & colour
-		for rooks != 0 {
-			from = uint8(bits.TrailingZeros64(rooks))
-			frombit = 1 << from
-			rooks ^= frombit // unset bit
-			var movesqs uint64
-			if pinnedHorizontal&frombit == 0 { // not pinned horizontally, can move vertically
-				movesqs |= rayForward(&movesNorth, from)
-				movesqs |= rayBackward(&movesSouth, from)
-			}
-			if pinnedVertical&frombit == 0 { // not pinned vertically, can move horizontally
-				movesqs |= rayForward(&movesEast, from)
-				movesqs |= rayBackward(&movesWest, from)
-			}
-			movesqs &= maymoveto
-			addCaptures(from, movesqs&opposing)
-			addQuietMoves(from, movesqs&^occupied)
+	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
+		from = uint8(bits.TrailingZeros64(rooks))
+		frombit = 1 << from
+		rooks ^= frombit
+
+		var movesqs uint64
+		if pinnedHorizontal&frombit == 0 { // not pinned horizontally, can move vertically
+			movesqs |= rayForward(&movesNorth, from)
+			movesqs |= rayBackward(&movesSouth, from)
 		}
+		if pinnedVertical&frombit == 0 { // not pinned vertically, can move horizontally
+			movesqs |= rayForward(&movesEast, from)
+			movesqs |= rayBackward(&movesWest, from)
+		}
+		movesqs &= maskMayMoveTo
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
 	}
 
-	{
-		bishops := (b.bishops | b.queens) & colour
-		for bishops != 0 {
-			from = uint8(bits.TrailingZeros64(bishops))
-			frombit = 1 << from
-			bishops ^= frombit // unset bit
-			var movesqs uint64
-			if pinnedDiagonalSWNE&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
-				movesqs |= rayForward(&movesNorthWest, from)
-				movesqs |= rayBackward(&movesSouthEast, from)
-			}
-			if pinnedDiagonalNWSE&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
-				movesqs |= rayForward(&movesNorthEast, from)
-				movesqs |= rayBackward(&movesSouthWest, from)
-			}
-			movesqs &= maymoveto
-			addCaptures(from, movesqs&opposing)
-			addQuietMoves(from, movesqs&^occupied)
+	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
+		from = uint8(bits.TrailingZeros64(bishops))
+		frombit = 1 << from
+		bishops ^= frombit
+
+		var movesqs uint64
+		if pinnedDiagonalSWNE&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
+			movesqs |= rayForward(&movesNorthWest, from)
+			movesqs |= rayBackward(&movesSouthEast, from)
 		}
+		if pinnedDiagonalNWSE&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
+			movesqs |= rayForward(&movesNorthEast, from)
+			movesqs |= rayBackward(&movesSouthWest, from)
+		}
+		movesqs &= maskMayMoveTo
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
 	}
 
 KING_MOVES:
@@ -623,8 +611,6 @@ KING_MOVES:
 		addCaptures(from, m&opposing)
 		addQuietMoves(from, m&^occupied)
 	}
-
-	// TODO: disallow moves placing the king in check
 
 	return moves
 }
