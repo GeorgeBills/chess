@@ -139,10 +139,10 @@ const (
 // position. If one of these squares is under threat then the relevant castling
 // is not legal.
 const (
-	whiteKingsideCastleThreatMask  uint64 = 1<<E1 | 1<<F1 | 1<<G1
-	whiteQueensideCastleThreatMask uint64 = 1<<C1 | 1<<D1 | 1<<E1
-	blackKingsideCastleThreatMask  uint64 = 1<<E8 | 1<<F8 | 1<<G8
-	blackQueensideCastleThreatMask uint64 = 1<<C8 | 1<<D8 | 1<<E8
+	maskWhiteKingsideCastleThreat  uint64 = 1<<E1 | 1<<F1 | 1<<G1
+	maskWhiteQueensideCastleThreat uint64 = 1<<C1 | 1<<D1 | 1<<E1
+	maskBlackKingsideCastleThreat  uint64 = 1<<E8 | 1<<F8 | 1<<G8
+	maskBlackQueensideCastleThreat uint64 = 1<<C8 | 1<<D8 | 1<<E8
 )
 
 // In order to castle there must be no spaces in between the king and the rook.
@@ -150,10 +150,10 @@ const (
 // rook. If one of these squares is occupied then the relevant castling is not
 // legal.
 const (
-	whiteKingsideCastleBlockMask  uint64 = 1<<F1 | 1<<G1
-	whiteQueensideCastleBlockMask uint64 = 1<<B1 | 1<<C1 | 1<<D1
-	blackKingsideCastleBlockMask  uint64 = 1<<F8 | 1<<G8
-	blackQueensideCastleBlockMask uint64 = 1<<B8 | 1<<C8 | 1<<D8
+	maskWhiteKingsideCastleBlocked  uint64 = 1<<F1 | 1<<G1
+	maskWhiteQueensideCastleBlocked uint64 = 1<<B1 | 1<<C1 | 1<<D1
+	maskBlackKingsideCastleBlocked  uint64 = 1<<F8 | 1<<G8
+	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
 // GenerateMoves returns a slice of possible moves from the current board state.
@@ -377,17 +377,17 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 
 	// Check for castling.
 	if tomove == White {
-		if b.CanWhiteCastleKingside() && threatened&whiteKingsideCastleThreatMask == 0 && occupied&whiteKingsideCastleBlockMask == 0 {
+		if b.CanWhiteCastleKingside() && threatened&maskWhiteKingsideCastleThreat == 0 && occupied&maskWhiteKingsideCastleBlocked == 0 {
 			moves = append(moves, NewWhiteKingsideCastle())
 		}
-		if b.CanWhiteCastleQueenside() && threatened&whiteQueensideCastleThreatMask == 0 && occupied&whiteQueensideCastleBlockMask == 0 {
+		if b.CanWhiteCastleQueenside() && threatened&maskWhiteQueensideCastleThreat == 0 && occupied&maskWhiteQueensideCastleBlocked == 0 {
 			moves = append(moves, NewWhiteQueensideCastle())
 		}
 	} else {
-		if b.CanBlackCastleKingside() && threatened&blackKingsideCastleThreatMask == 0 && occupied&blackKingsideCastleBlockMask == 0 {
+		if b.CanBlackCastleKingside() && threatened&maskBlackKingsideCastleThreat == 0 && occupied&maskBlackKingsideCastleBlocked == 0 {
 			moves = append(moves, NewBlackKingsideCastle())
 		}
-		if b.CanBlackCastleQueenside() && threatened&blackQueensideCastleThreatMask == 0 && occupied&blackQueensideCastleBlockMask == 0 {
+		if b.CanBlackCastleQueenside() && threatened&maskBlackQueensideCastleThreat == 0 && occupied&maskBlackQueensideCastleBlocked == 0 {
 			moves = append(moves, NewBlackQueensideCastle())
 		}
 	}
