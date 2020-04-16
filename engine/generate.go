@@ -183,7 +183,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawns, pawnssgl, pawnsdbl, pawnspromo, pawnscaptureEast, pawnscaptureWest uint64
+	var pawnssgl, pawnsdbl, pawnsNotPromote, pawnsCanPromote, pawnscaptureEast, pawnscaptureWest uint64
 
 	occupied := b.white | b.black
 
@@ -191,20 +191,22 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	if tomove == White {
 		colour = b.white
 		opposing = b.black
-		pawns = b.pawns & b.white
+		pawns := b.pawns & b.white
 		pawnssgl = pawns &^ (occupied >> 8)
 		pawnsdbl = pawnssgl & maskRank2 &^ ((occupied & maskRank4) >> 16)
-		pawnspromo = pawns & maskRank7
+		pawnsCanPromote = pawns & maskRank7
+		pawnsNotPromote = pawns &^ maskRank7
 
 		pawnscaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
 		pawnscaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
 	} else {
 		colour = b.black
 		opposing = b.white
-		pawns = b.pawns & b.black
+		pawns := b.pawns & b.black
 		pawnssgl = pawns &^ (occupied << 8)
 		pawnsdbl = pawnssgl & maskRank7 &^ ((occupied & maskRank5) << 16)
-		pawnspromo = pawns & maskRank2
+		pawnsCanPromote = pawns & maskRank2
+		pawnsNotPromote = pawns &^ maskRank2
 
 		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileA // se
 		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
@@ -399,17 +401,17 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 		// FIXME: check maskMayMoveTo here
 		if tomove == White {
-			if from = ep - 7; pawns&(1<<from) != 0 { // sw
+			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = ep - 9; pawns&(1<<from) != 0 { // se
+			if from = ep - 9; pawnsNotPromote&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		} else {
-			if from = ep + 7; pawns&(1<<from) != 0 {
+			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = ep + 9; pawns&(1<<from) != 0 {
+			if from = ep + 9; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}
@@ -477,19 +479,19 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
-	for ppcopy := pawnspromo; ppcopy != 0; {
-		from = uint8(bits.TrailingZeros64(ppcopy))
+	for pawnsCanPromote != 0 {
+		from = uint8(bits.TrailingZeros64(pawnsCanPromote))
 		frombit = 1 << from
-		ppcopy ^= frombit
+		pawnsCanPromote ^= frombit
 
 		// we could calculate masks for the below checks (e.g. pawns that can
 		// promote by pushing are just pawns that can push bitwise AND'ed with
 		// pawns that can promote), but generating that mask every time we
 		// generate moves doesn't pay off when pawns being in position to
 		// promote is so rare.
-		// TODO: disjoint masks for promo and not promo, combined for captures and pushes
 		// TODO: can mask pawn moves (single, double, capture) on maskMayMoveTo en masse
 		// TODO: need to add tests for pawn promos capturing a checker
+		// TODO: don't need to check maskFileH and maskFileA here, we do it en masse above
 		if tomove == White {
 			ne := from + 9
 			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
@@ -519,12 +521,10 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		}
 	}
 
-	// TODO: limit pawnsnotpromo when generating
-	// TODO: set pawnsnotpromo before we start unsetting bits in pawnspromo
-	for pawnsnotpromo := pawns &^ pawnspromo; pawnsnotpromo != 0; {
-		from = uint8(bits.TrailingZeros64(pawnsnotpromo))
+	for pawnsNotPromote != 0 {
+		from = uint8(bits.TrailingZeros64(pawnsNotPromote))
 		frombit = 1 << from
-		pawnsnotpromo ^= frombit
+		pawnsNotPromote ^= frombit
 
 		// TODO: set en passant target on double pawn moves
 		if tomove == White {
