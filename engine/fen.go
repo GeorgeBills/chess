@@ -381,5 +381,10 @@ READ_CASTLING:
 		b.total++
 	}
 
-	return b, b.Validate()
+	err = b.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }

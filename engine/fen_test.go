@@ -217,18 +217,6 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 		// 	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 999999",
 		// 	"",
 		// },
-	}
-	for _, tt := range invalid {
-		t.Run(tt.name, func(t *testing.T) {
-			b, err := engine.NewBoardFromFEN(strings.NewReader(tt.fen))
-			assert.EqualError(t, err, tt.expected)
-			assert.Nil(t, b)
-		})
-	}
-}
-
-func TestNewInvalidBoardFromFEN(t *testing.T) {
-	fen := []struct{ name, fen, expected string }{
 		{
 			"multiple white kings",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
@@ -250,10 +238,11 @@ func TestNewInvalidBoardFromFEN(t *testing.T) {
 			"invalid board: pawns on rank 1",
 		},
 	}
-	for _, tt := range fen {
+	for _, tt := range invalid {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := engine.NewBoardFromFEN(strings.NewReader(tt.fen))
+			b, err := engine.NewBoardFromFEN(strings.NewReader(tt.fen))
 			assert.EqualError(t, err, tt.expected)
+			assert.Nil(t, b)
 		})
 	}
 }
