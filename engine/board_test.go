@@ -15,10 +15,10 @@ func TestNewBoard(t *testing.T) {
 
 	assert.EqualValues(t, White, board.ToMove())
 
-	assert.True(t, board.CanWhiteCastleKingSide())
-	assert.True(t, board.CanWhiteCastleQueenSide())
-	assert.True(t, board.CanBlackCastleKingSide())
-	assert.True(t, board.CanBlackCastleQueenSide())
+	assert.True(t, board.CanWhiteCastleKingside())
+	assert.True(t, board.CanWhiteCastleQueenside())
+	assert.True(t, board.CanBlackCastleKingside())
+	assert.True(t, board.CanBlackCastleQueenside())
 
 	assert.Equal(t, 0, board.HalfMoves())
 	assert.Equal(t, 1, board.FullMoves())

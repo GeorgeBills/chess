@@ -81,16 +81,16 @@ func (b Board) FEN() string {
 	if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) == 0 {
 		sb.WriteRune('-')
 	} else {
-		if b.CanWhiteCastleKingSide() {
+		if b.CanWhiteCastleKingside() {
 			sb.WriteRune('K')
 		}
-		if b.CanWhiteCastleQueenSide() {
+		if b.CanWhiteCastleQueenside() {
 			sb.WriteRune('Q')
 		}
-		if b.CanBlackCastleKingSide() {
+		if b.CanBlackCastleKingside() {
 			sb.WriteRune('k')
 		}
-		if b.CanBlackCastleQueenSide() {
+		if b.CanBlackCastleQueenside() {
 			sb.WriteRune('q')
 		}
 	}

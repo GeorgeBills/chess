@@ -383,17 +383,17 @@ func (b Board) Moves(moves []Move) []Move {
 
 	// Check for castling.
 	if tomove == White {
-		if b.CanWhiteCastleKingSide() && threatened&whiteKingsideCastleThreatMask == 0 && occupied&whiteKingsideCastleBlockMask == 0 {
+		if b.CanWhiteCastleKingside() && threatened&whiteKingsideCastleThreatMask == 0 && occupied&whiteKingsideCastleBlockMask == 0 {
 			moves = append(moves, NewWhiteKingsideCastle())
 		}
-		if b.CanWhiteCastleQueenSide() && threatened&whiteQueensideCastleThreatMask == 0 && occupied&whiteQueensideCastleBlockMask == 0 {
+		if b.CanWhiteCastleQueenside() && threatened&whiteQueensideCastleThreatMask == 0 && occupied&whiteQueensideCastleBlockMask == 0 {
 			moves = append(moves, NewWhiteQueensideCastle())
 		}
 	} else {
-		if b.CanBlackCastleKingSide() && threatened&blackKingsideCastleThreatMask == 0 && occupied&blackKingsideCastleBlockMask == 0 {
+		if b.CanBlackCastleKingside() && threatened&blackKingsideCastleThreatMask == 0 && occupied&blackKingsideCastleBlockMask == 0 {
 			moves = append(moves, NewBlackKingsideCastle())
 		}
-		if b.CanBlackCastleQueenSide() && threatened&blackQueensideCastleThreatMask == 0 && occupied&blackQueensideCastleBlockMask == 0 {
+		if b.CanBlackCastleQueenside() && threatened&blackQueensideCastleThreatMask == 0 && occupied&blackQueensideCastleBlockMask == 0 {
 			moves = append(moves, NewBlackQueensideCastle())
 		}
 	}
