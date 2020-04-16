@@ -183,7 +183,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnssgl, pawnsdbl, pawnsNotPromote, pawnsCanPromote, pawnscaptureEast, pawnscaptureWest uint64
+	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
 
 	occupied := b.white | b.black
 
@@ -192,24 +192,24 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		colour = b.white
 		opposing = b.black
 		pawns := b.pawns & b.white
-		pawnssgl = pawns &^ (occupied >> 8)
-		pawnsdbl = pawnssgl & maskRank2 &^ ((occupied & maskRank4) >> 16)
+		pawnsPushSingle = pawns &^ (occupied >> 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
 
-		pawnscaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
-		pawnscaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
+		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
+		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
 	} else {
 		colour = b.black
 		opposing = b.white
 		pawns := b.pawns & b.black
-		pawnssgl = pawns &^ (occupied << 8)
-		pawnsdbl = pawnssgl & maskRank7 &^ ((occupied & maskRank5) << 16)
+		pawnsPushSingle = pawns &^ (occupied << 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
 
-		pawnscaptureEast = pawns & (opposing << 9) &^ maskFileA // se
-		pawnscaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
+		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA // se
+		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
 	}
 
 	king := b.kings & colour
@@ -528,29 +528,29 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 
 		// TODO: set en passant target on double pawn moves
 		if tomove == White {
-			if pawnsdbl&maskMayMoveTo&frombit != 0 {
+			if pawnsPushDouble&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from+16))
 			}
-			if pawnssgl&maskMayMoveTo&frombit != 0 {
+			if pawnsPushSingle&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from+8))
 			}
-			if pawnscaptureEast&(maskMayMoveTo>>9)&frombit != 0 {
+			if pawnsCaptureEast&(maskMayMoveTo>>9)&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+9))
 			}
-			if pawnscaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
+			if pawnsCaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+7))
 			}
 		} else {
-			if pawnsdbl&maskMayMoveTo&frombit != 0 {
+			if pawnsPushDouble&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from-16))
 			}
-			if pawnssgl&maskMayMoveTo&frombit != 0 {
+			if pawnsPushSingle&maskMayMoveTo&frombit != 0 {
 				moves = append(moves, NewMove(from, from-8))
 			}
-			if pawnscaptureEast&(maskMayMoveTo<<9)&frombit != 0 {
+			if pawnsCaptureEast&(maskMayMoveTo<<9)&frombit != 0 {
 				moves = append(moves, NewCapture(from, from-9))
 			}
-			if pawnscaptureWest&(maskMayMoveTo<<7)&frombit != 0 {
+			if pawnsCaptureWest&(maskMayMoveTo<<7)&frombit != 0 {
 				moves = append(moves, NewCapture(from, from-7))
 			}
 		}
