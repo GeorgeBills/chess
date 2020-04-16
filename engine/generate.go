@@ -156,13 +156,13 @@ const (
 	blackQueensideCastleBlockMask uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
-// Moves returns a slice of possible moves from the current board state.
+// GenerateMoves returns a slice of possible moves from the current board state.
 //
 // This function will panic if run with certain invalid boards, e.g. if there
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
-// only calling it on valid boards.
-func (b Board) Moves(moves []Move) []Move {
+// only calling GenerateMoves() on valid boards by calling Validate() first.
+func (b Board) GenerateMoves(moves []Move) []Move {
 	moves = moves[:0] // empty passed in slice
 
 	// checkers is a mask for pieces giving check. if there is more than one bit

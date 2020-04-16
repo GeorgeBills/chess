@@ -9,7 +9,7 @@
 
 ## Useful commands
 
- * `go test ./engine -bench 'MoveGen'`
+ * `go test ./engine -bench 'GenerateMoves'`
 
    Run unit tests and move generation micro-benchmarks.
 
@@ -21,7 +21,7 @@
 
    View coverage report.
 
- * `go test ./engine  -bench 'MoveGen' -cpuprofile cpu.prof -memprofile mem.prof`
+ * `go test ./engine  -bench 'GenerateMoves' -cpuprofile cpu.prof -memprofile mem.prof`
 
    Write out profiling information.
 
