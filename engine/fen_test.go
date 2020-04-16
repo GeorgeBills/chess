@@ -2,6 +2,7 @@ package engine_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
 	"strings"
 	"testing"
@@ -276,5 +277,12 @@ func BenchmarkNewBoardFromFEN(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 		engine.NewBoardFromFEN(fen)
+	}
+}
+
+func BenchmarkWriteFEN(b *testing.B) {
+	board := engine.NewBoard()
+	for i := 0; i < b.N; i++ {
+		board.WriteFEN(ioutil.Discard)
 	}
 }
