@@ -25,7 +25,7 @@
 
    Write out profiling information.
 
- * `go tool pprof cpu.prof` (followed by e.g. `top`)
+ * `go tool pprof cpu.prof` (followed by e.g. `top` or `list GenerateMoves`)
 
    View profiling information.
 
