@@ -8,15 +8,6 @@ import (
 	"strings"
 )
 
-// Colour is used to represent each colour.
-type Colour byte
-
-// White and Black are constants defined for the colours.
-const (
-	White Colour = 'w'
-	Black Colour = 'b'
-)
-
 // Board represents an 8×8 chess board.
 //
 // The 0th index represents A1 and the 63rd index represents H8.

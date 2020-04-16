@@ -107,31 +107,6 @@ func init() {
 	}
 }
 
-const (
-	maskAll  = 0xFFFFFFFFFFFFFFFF
-	maskNone = 0x0000000000000000
-
-	rank2 = 1
-	rank7 = 6
-
-	maskRank8 uint64 = 0xFF00000000000000
-	maskRank7 uint64 = 0x00FF000000000000
-	maskRank6 uint64 = 0x0000FF0000000000
-	maskRank5 uint64 = 0x000000FF00000000
-	maskRank4 uint64 = 0x00000000FF000000
-	maskRank3 uint64 = 0x0000000000FF0000
-	maskRank2 uint64 = 0x000000000000FF00
-	maskRank1 uint64 = 0x00000000000000FF
-
-	fileA = 0
-	fileB = 1
-	fileG = 6
-	fileH = 7
-
-	maskFileA = 1<<A1 | 1<<A2 | 1<<A3 | 1<<A4 | 1<<A5 | 1<<A6 | 1<<A7 | 1<<A8
-	maskFileH = 1<<H1 | 1<<H2 | 1<<H3 | 1<<H4 | 1<<H5 | 1<<H6 | 1<<H7 | 1<<H8
-)
-
 // "One may not castle out of, through, or into check".
 //
 // The castle threat mask constants track the squares for the kings starting
