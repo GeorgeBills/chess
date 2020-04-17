@@ -389,7 +389,20 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		// TODO: pawn must push (single or double) to clear check (white)
-		// TODO: pawn must promote to clear check (black)
+		{
+			"pawn must promote to clear check (black)",
+			"8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+			[]string{
+				"g2xh1=Q",
+				"g2xh1=N",
+				"g2xh1=R",
+				"g2xh1=B",
+				"g2g1=Q",
+				"g2g1=N",
+				"g2g1=R",
+				"g2g1=B",
+			},
+		},
 		// TODO: pawn must promote to clear check (white)
 		{
 			"clearing check: capturing or blocking piece doesn't work if double check; king must move",
