@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -170,7 +171,17 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 			}
 			switch ch {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				n = 10*n + uint8(ch-'0') // FIXME: check for overflow
+				if n > math.MaxUint8/10 {
+					return 0, strconv.ErrRange
+				}
+				n *= 10
+
+				add := uint8(ch - '0')
+				if n > math.MaxUint8-add {
+					return 0, strconv.ErrRange
+				}
+				n += add
+
 				seen = true
 			case ' ':
 				err = r.UnreadByte()

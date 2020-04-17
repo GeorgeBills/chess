@@ -220,11 +220,11 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
 			"unexpected 'X', expecting [PNBRQKpnbrqk1-8]",
 		},
-		// {
-		// 	"full moves too large",
-		// 	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 999999",
-		// 	"",
-		// },
+		{
+			"full moves too large",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 256",
+			"value out of range",
+		},
 		{
 			"multiple white kings",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
