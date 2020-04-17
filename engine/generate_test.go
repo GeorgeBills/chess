@@ -289,7 +289,6 @@ func TestMoves(t *testing.T) {
 			[]string{"e1d1", "e1f1"},
 		},
 		// TODO: test for queen threat
-		// TODO: test for en passant threat
 		{
 			"king must not move into check: stalemate (no moves possible)",
 			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
