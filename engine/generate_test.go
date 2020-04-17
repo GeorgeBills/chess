@@ -381,7 +381,13 @@ func TestMoves(t *testing.T) {
 				"e3f1", // knight must move in between king and queen
 			},
 		},
-		// TODO: pawn must push (single or double) to clear check (black)
+		{
+			"pawn must push (single or double) to clear check (black)",
+			"4k3/1pp5/8/8/Q6B/8/8/3RKR2 b - - 0 1",
+			[]string{
+				"b7b5", "c7c6", // either pawn must sacrifice itself
+			},
+		},
 		// TODO: pawn must push (single or double) to clear check (white)
 		// TODO: pawn must promote to clear check (black)
 		// TODO: pawn must promote to clear check (white)
