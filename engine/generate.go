@@ -380,30 +380,6 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		}
 	}
 
-	// Check for en passant.
-	ep := b.EnPassant()
-	if ep != math.MaxUint8 {
-		// ep records the square behind, so we check the squares to the ne and
-		// nw (for black) or se and sw (for white) to find pawns adjacent.
-		// FIXME: check maskMayMoveTo here
-		switch tomove {
-		case White:
-			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
-				moves = append(moves, NewEnPassant(from, from+7)) // ne
-			}
-			if from = ep - 9; pawnsNotPromote&(1<<from) != 0 { // se
-				moves = append(moves, NewEnPassant(from, from+9)) // nw
-			}
-		case Black:
-			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
-				moves = append(moves, NewEnPassant(from, from-7)) // se
-			}
-			if from = ep + 9; pawnsNotPromote&(1<<from) != 0 {
-				moves = append(moves, NewEnPassant(from, from-9)) // sw
-			}
-		}
-	}
-
 	addPromotions := func(from, to uint8, capture bool) {
 		moves = append(moves, NewQueenPromotion(from, to, capture))
 		moves = append(moves, NewKnightPromotion(from, to, capture))
@@ -464,6 +440,28 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		goto KING_MOVES
 	default:
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
+	}
+
+	// Check for en passant.
+	if ep := b.EnPassant(); ep != math.MaxUint8 {
+		// ep records the square behind, so we check the squares to the ne and
+		// nw (for black) or se and sw (for white) to find pawns adjacent.
+		switch tomove {
+		case White:
+			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
+				moves = append(moves, NewEnPassant(from, from+7)) // ne
+			}
+			if from = ep - 9; pawnsNotPromote&(1<<from) != 0 { // se
+				moves = append(moves, NewEnPassant(from, from+9)) // nw
+			}
+		case Black:
+			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-7)) // se
+			}
+			if from = ep + 9; pawnsNotPromote&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-9)) // sw
+			}
+		}
 	}
 
 	for pawnsCanPromote != 0 {
