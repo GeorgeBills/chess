@@ -357,17 +357,25 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	// Check for castling.
 	switch tomove {
 	case White:
-		if b.CanWhiteCastleKingside() && threatened&maskWhiteKingsideCastleThreat == 0 && occupied&maskWhiteKingsideCastleBlocked == 0 {
+		if b.CanWhiteCastleKingside() &&
+			threatened&maskWhiteKingsideCastleThreat == 0 &&
+			occupied&maskWhiteKingsideCastleBlocked == 0 {
 			moves = append(moves, WhiteKingsideCastle)
 		}
-		if b.CanWhiteCastleQueenside() && threatened&maskWhiteQueensideCastleThreat == 0 && occupied&maskWhiteQueensideCastleBlocked == 0 {
+		if b.CanWhiteCastleQueenside() &&
+			threatened&maskWhiteQueensideCastleThreat == 0 &&
+			occupied&maskWhiteQueensideCastleBlocked == 0 {
 			moves = append(moves, WhiteQueensideCastle)
 		}
 	case Black:
-		if b.CanBlackCastleKingside() && threatened&maskBlackKingsideCastleThreat == 0 && occupied&maskBlackKingsideCastleBlocked == 0 {
+		if b.CanBlackCastleKingside() &&
+			threatened&maskBlackKingsideCastleThreat == 0 &&
+			occupied&maskBlackKingsideCastleBlocked == 0 {
 			moves = append(moves, BlackKingsideCastle)
 		}
-		if b.CanBlackCastleQueenside() && threatened&maskBlackQueensideCastleThreat == 0 && occupied&maskBlackQueensideCastleBlocked == 0 {
+		if b.CanBlackCastleQueenside() &&
+			threatened&maskBlackQueensideCastleThreat == 0 &&
+			occupied&maskBlackQueensideCastleBlocked == 0 {
 			moves = append(moves, BlackQueensideCastle)
 		}
 	}
