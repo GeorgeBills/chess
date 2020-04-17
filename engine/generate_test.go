@@ -411,8 +411,31 @@ func TestMoves(t *testing.T) {
 				"e8d8", "e8f7", "e8f8", // only valid moves are king moves
 			},
 		},
-		// TODO: en passant to take checking piece https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
-		// TODO: en passant to block check
+		{
+			"clearing check: en passant valid if it would block check",
+			"4k3/8/r6K/4pP2/8/8/8/8 w - e6 0 123",
+			[]string{
+				"f5xe6e.p.", "f5f6", // pawn may push or en passant
+				"h6g5", "h6g7", "h6h5", "h6h7", // king
+			},
+		},
+		{
+			"clearing check: en passant not valid if it would not clear check",
+			"3qk3/8/8/4pP2/7K/8/8/8 w - e6 0 123",
+			[]string{
+				"f5f6",
+				"h4h5", "h4g4", "h4g3", "h4h3",
+			},
+		},
+		{
+			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions
+			"clearing check: en passant valid to capture checking piece",
+			"4k3/8/6p1/4pP2/3K4/8/8/8 w - e6 0 123",
+			[]string{
+				"f5xe6e.p.",                                                     // pawn en passant to capture checking pawn
+				"d4c3", "d4c4", "d4c5", "d4d3", "d4d5", "d4e3", "d4e4", "d4xe5", // king
+			},
+		},
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider
 			"clearing check: king may not move away from checking slider while still on ray",

@@ -448,6 +448,10 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 		switch tomove {
 		case White:
+			capture := ep - 8
+			if maskMayMoveTo&(1<<capture) == 0 && maskMayMoveTo&(1<<ep) == 0 { // either capture or block, two diff sqs
+				break // invalid en passant
+			}
 			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
@@ -455,6 +459,10 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
+			capture := ep + 8
+			if maskMayMoveTo&(1<<capture) == 0 && maskMayMoveTo&(1<<ep) == 0 { // either capture or block, two diff sqs
+				break // invalid en passant
+			}
 			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
