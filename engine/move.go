@@ -22,29 +22,13 @@ func NewEnPassant(from, to uint8) Move {
 	return NewMove(from, to) | moveIsEnPassant
 }
 
-// NewBlackKingsideCastle returns a new move where the move represents kingside
-// castling for black.
-func NewBlackKingsideCastle() Move {
-	return NewMove(E8, G8) | moveIsKingsideCastle
-}
-
-// NewBlackQueensideCastle returns a new move where the move represents
-// queenside castling for black.
-func NewBlackQueensideCastle() Move {
-	return NewMove(E8, C8) | moveIsQueensideCastle
-}
-
-// NewWhiteKingsideCastle returns a new move where the move represents kingside
-// castling for black.
-func NewWhiteKingsideCastle() Move {
-	return NewMove(E1, G1) | moveIsKingsideCastle
-}
-
-// NewWhiteQueensideCastle returns a new move where the move represents
-// queenside castling for black.
-func NewWhiteQueensideCastle() Move {
-	return NewMove(E1, C1) | moveIsQueensideCastle
-}
+// Castling moves are represented with constants.
+const (
+	BlackKingsideCastle  = Move(uint16(E8)<<6|uint16(G8)) | moveIsKingsideCastle
+	BlackQueensideCastle = Move(uint16(E8)<<6|uint16(C8)) | moveIsQueensideCastle
+	WhiteKingsideCastle  = Move(uint16(E1)<<6|uint16(G1)) | moveIsKingsideCastle
+	WhiteQueensideCastle = Move(uint16(E1)<<6|uint16(C1)) | moveIsQueensideCastle
+)
 
 func newPromotion(from, to uint8, capture bool) Move {
 	if capture {
