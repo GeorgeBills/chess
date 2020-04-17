@@ -1,6 +1,7 @@
 package engine_test
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -12,6 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type errorWriter struct{}
+
+func (*errorWriter) Write([]byte) (int, error) {
+	return 0, errors.New("error writing")
+}
 
 func TestNewBoardToFEN(t *testing.T) {
 	fen := engine.NewBoard().FEN()
@@ -271,6 +278,13 @@ func TestRoundTripFEN(t *testing.T) {
 			assert.Equal(t, tt, b.FEN())
 		})
 	}
+}
+
+func TestWriteFENError(t *testing.T) {
+	b := engine.NewBoard()
+	w := &errorWriter{}
+	err := b.WriteFEN(w)
+	assert.EqualError(t, err, "error writing")
 }
 
 func BenchmarkNewBoardFromFEN(b *testing.B) {
