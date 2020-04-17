@@ -54,11 +54,11 @@ type Board struct {
 }
 
 const (
-	maskWhiteCastleKingside  = 0b10000000
-	maskWhiteCastleQueenside = 0b01000000
-	maskBlackCastleKingside  = 0b00100000
-	maskBlackCastleQueenside = 0b00010000
-	maskEnPassant            = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
+	maskWhiteCastleKingside  uint8 = 0b10000000
+	maskWhiteCastleQueenside uint8 = 0b01000000
+	maskBlackCastleKingside  uint8 = 0b00100000
+	maskBlackCastleQueenside uint8 = 0b00010000
+	maskEnPassant            uint8 = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
