@@ -8,12 +8,12 @@ func ToAlgebraicNotation(i uint8) string {
 	return string([]byte{'a' + file, '1' + rank})
 }
 
-// Rank returns the rank number (0...7) for a given index.
+// Rank returns the rank index (0...7) for a given square index.
 func Rank(i uint8) uint8 {
 	return i / 8
 }
 
-// File returns the file number (0 for A....7 for H) for a given index.
+// File returns the file index (0 for A, ..., 7 for H) for a given square index.
 func File(i uint8) uint8 {
 	return i % 8
 }

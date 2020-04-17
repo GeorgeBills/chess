@@ -173,16 +173,16 @@ func (b Board) ToMove() Colour {
 	return Black
 }
 
-// CanWhiteCastleKingside returns true iff white can castle king side.
+// CanWhiteCastleKingside returns true iff white can castle kingside.
 func (b Board) CanWhiteCastleKingside() bool { return b.meta&maskWhiteCastleKingside != 0 }
 
-// CanWhiteCastleQueenside returns true iff white can castle queen side.
+// CanWhiteCastleQueenside returns true iff white can castle queenside.
 func (b Board) CanWhiteCastleQueenside() bool { return b.meta&maskWhiteCastleQueenside != 0 }
 
-// CanBlackCastleKingside returns true iff black can castle king side.
+// CanBlackCastleKingside returns true iff black can castle kingside.
 func (b Board) CanBlackCastleKingside() bool { return b.meta&maskBlackCastleKingside != 0 }
 
-// CanBlackCastleQueenside returns true iff black can castle queen side.
+// CanBlackCastleQueenside returns true iff black can castle queenside.
 func (b Board) CanBlackCastleQueenside() bool { return b.meta&maskBlackCastleQueenside != 0 }
 
 // HalfMoves returns the number of half moves (moves by one player) since the

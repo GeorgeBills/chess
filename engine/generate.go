@@ -23,9 +23,9 @@ var (
 )
 
 func init() {
-	// n: north; e: east; s: south; w: west nn, ss: north north and south south
-	// (used by pawns performing double moves) nne, een, ssw: north north east,
-	// etc (used by knights)
+	// n: north; e: east; s: south; w: west
+	// nn, ss: north north and south south (used by pawns performing double moves)
+	// nne, een, ssw: north north east, etc (used by knights)
 	//
 	// North and South are easy; add or subtract 8 (a full rank). With bit
 	// shifting you don't even need to check if that's off the board: shifting
@@ -144,11 +144,11 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	// set then we're in double check.
 	var checkers uint64
 
-	// pinned variables are for pieces that are absolutely pinned must stay on
-	// the respective ray.
+	// pinned variables are for pieces that are absolutely pinned and must stay
+	// on the respective ray.
 	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
 
-	// threatened tracks squares we may not move our king to
+	// threatened tracks squares we may not move our king to.
 	var threatened uint64
 
 	// threatRay tracks a ray of threat from a bishop, rook or queen to the
