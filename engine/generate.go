@@ -496,7 +496,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 				addPromotions(from, nw, true)
 			}
 			push := from + 8
-			if tobit = 1 << push; maskMayMoveTo&tobit&(^occupied) != 0 {
+			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
 				addPromotions(from, push, false)
 			}
 		case Black:
@@ -509,7 +509,7 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 				addPromotions(from, sw, true)
 			}
 			push := from - 8
-			if tobit = 1 << push; maskMayMoveTo&tobit&(^occupied) != 0 {
+			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
 				addPromotions(from, push, false)
 			}
 		}
