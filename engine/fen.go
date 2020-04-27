@@ -5,13 +5,25 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 )
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
 func (b Board) FEN() string {
-	var sb strings.Builder
+	sb := &strings.Builder{}
+	// strings.Builder Write() methods always return a nil error, so this can never error
+	b.WriteFEN(sb)
+	return sb.String()
+}
+
+// WriteFEN writes the Forsyth–Edwards Notation for the board to w.
+func (b Board) WriteFEN(w io.Writer) error {
+	// bufio.Writer helps us defer error handling till the final Flush()
+	// https://blog.golang.org/errors-are-values
+	sb := bufio.NewWriter(w)
+
 	var empty int
 	var i uint8
 
@@ -60,7 +72,7 @@ func (b Board) FEN() string {
 		case PieceNone:
 			empty++
 		default:
-			panic(fmt.Sprintf("invalid piece: %b", p))
+			panic(fmt.Sprintf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
 		}
 	}
 	// flush any remaining empty squares
@@ -78,19 +90,19 @@ func (b Board) FEN() string {
 
 	sb.WriteRune(' ')
 
-	if b.meta&(wcks|wcqs|bcks|bcqs) == 0 {
+	if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) == 0 {
 		sb.WriteRune('-')
 	} else {
-		if b.CanWhiteCastleKingSide() {
+		if b.CanWhiteCastleKingside() {
 			sb.WriteRune('K')
 		}
-		if b.CanWhiteCastleQueenSide() {
+		if b.CanWhiteCastleQueenside() {
 			sb.WriteRune('Q')
 		}
-		if b.CanBlackCastleKingSide() {
+		if b.CanBlackCastleKingside() {
 			sb.WriteRune('k')
 		}
-		if b.CanBlackCastleQueenSide() {
+		if b.CanBlackCastleQueenside() {
 			sb.WriteRune('q')
 		}
 	}
@@ -110,13 +122,12 @@ func (b Board) FEN() string {
 	// number of full moves
 	sb.WriteString(strconv.Itoa(b.FullMoves()))
 
-	return sb.String()
+	return sb.Flush()
 }
 
 // NewBoardFromFEN returns a new board initialised as per the provided
-// Forsyth–Edwards Notation. Only 8×8 boards are supported. No validation of
-// resulting board state is performed; e.g. if the FEN specifies multiple kings
-// per side then that's what the board will contain.
+// Forsyth–Edwards Notation. Only 8×8 boards are supported. Only basic
+// validation of resulting board state is performed.
 func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
 	r := bufio.NewReader(fen)
@@ -160,7 +171,17 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 			}
 			switch ch {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				n = 10*n + uint8(ch-'0') // FIXME: check for overflow
+				if n > math.MaxUint8/10 {
+					return 0, strconv.ErrRange
+				}
+				n *= 10
+
+				add := uint8(ch - '0')
+				if n > math.MaxUint8-add {
+					return 0, strconv.ErrRange
+				}
+				n += add
+
 				seen = true
 			case ' ':
 				err = r.UnreadByte()
@@ -270,18 +291,18 @@ READ_CASTLING:
 		}
 		switch ch {
 		case 'K':
-			b.meta |= wcks
+			b.meta |= maskWhiteCastleKingside
 		case 'Q':
-			b.meta |= wcqs
+			b.meta |= maskWhiteCastleQueenside
 		case 'k':
-			b.meta |= bcks
+			b.meta |= maskBlackCastleKingside
 		case 'q':
-			b.meta |= bcqs
+			b.meta |= maskBlackCastleQueenside
 		case '-':
 			// '-' indicates that castling is unavailable
 			// if present it must be the one and only byte
-			if b.meta&(wcks|wcqs|bcks|bcqs) != 0 {
-				return nil, errors.New("unexpected '-', expecting [KQkq]")
+			if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) != 0 {
+				return nil, errors.New("castling '-' must be solitary if present")
 			}
 			break READ_CASTLING
 		case ' ':
@@ -369,6 +390,11 @@ READ_CASTLING:
 	b.total = uint16(2 * (full - 1))
 	if tomove == 'b' {
 		b.total++
+	}
+
+	err = b.Validate()
+	if err != nil {
+		return nil, err
 	}
 
 	return b, nil

@@ -1,150 +1,197 @@
 package engine
 
-// TODO: use init block to pregenerate moves
-
-// n: north; e: east; s: south; w: west
-// nn, ss: north north and south south (used by pawns performing double moves)
-// nne, een, ssw: north north east, etc (used by knights)
-//
-// North and South are easy; add or subtract 8 (a full rank). With bit shifting
-// you don't even need to check if that's off the board: shifting above 64 will
-// shift the bits out, and subtracting past 0 with an unsigned int ends up
-// wrapping into a very large shift up and off the board again.
-//
-// East and West require checking if you'll leave the board or not, since
-// leaving the board in either of those directions will wrap around; e.g. a king
-// shouldn't be able to move one square West from A2 (8) and end up on H1 (7).
-
-// whitePawnPushes returns the moves a white pawn at index i can make, ignoring
-// captures and en passant.
-func whitePawnPushes(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 8) // n
-	// if a white pawn is on rank 2 it may move two squares
-	if Rank(i) == rank2 {
-		moves |= 1 << (i + 16) // nn
-	}
-	return moves
-}
-
-// blackPawnPushes returns the moves a black pawn at index i can make, ignoring
-// captures and en passant.
-func blackPawnPushes(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i - 8) // s
-	// if a black pawn is on rank 7 it may move two squares
-	if Rank(i) == rank7 {
-		moves |= 1 << (i - 16) // ss
-	}
-	return moves
-}
-
-func whitePawnCaptures(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 9) // ne
-	moves |= 1 << (i + 7) // nw
-	return moves
-}
-
-func blackPawnCaptures(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i - 7) // se
-	moves |= 1 << (i - 9) // sw
-	return moves
-}
-
-// kingMoves returns the moves a king at index i can make, ignoring castling.
-func kingMoves(i uint8) uint64 {
-	var moves uint64
-	moves |= 1 << (i + 8) // n
-	moves |= 1 << (i - 8) // s
-	// can't move east if we're on file h
-	if File(i) != fileH {
-		moves |= 1 << (i + 1) // e
-		moves |= 1 << (i + 9) // ne
-		moves |= 1 << (i - 7) // se
-	}
-	// can't move west if we're on file a
-	if File(i) != fileA {
-		moves |= 1 << (i - 1) // w
-		moves |= 1 << (i + 7) // nw
-		moves |= 1 << (i - 9) // sw
-	}
-	return moves
-}
-
-// knightMoves returns the moves a knight at index i can make.
-func knightMoves(i uint8) uint64 {
-	var moves uint64
-	file := File(i)
-	if file > fileA {
-		moves |= 1 << (i + 15) // nnw (+2×8, -1)
-		moves |= 1 << (i - 17) // ssw (-2×8, -1)
-		if file > fileB {
-			moves |= 1 << (i + 6)  // wwn (+8, -2×1)
-			moves |= 1 << (i - 10) // wws (-8, -2×1)
-		}
-	}
-	if file < fileH {
-		moves |= 1 << (i + 17) // nne (+2×8, +1)
-		moves |= 1 << (i - 15) // sse (-2×8, +1)
-		if file < fileG {
-			moves |= 1 << (i + 10) // een (+8, +2×1)
-			moves |= 1 << (i - 6)  // ees (-8, +2×1)
-		}
-	}
-	return moves
-}
-
-const (
-	checkNone   = 0
-	checkDouble = 0xFFFFFFFF
-
-	rank2 = 1
-	rank7 = 6
-
-	rank7mask uint64 = 0x00FF000000000000
-	rank6mask uint64 = 0x0000FF0000000000
-	rank5mask uint64 = 0x000000FF00000000
-	rank4mask uint64 = 0x00000000FF000000
-	rank3mask uint64 = 0x0000000000FF0000
-	rank2mask uint64 = 0x000000000000FF00
-
-	fileA = 0
-	fileB = 1
-	fileG = 6
-	fileH = 7
-
-	// TODO: can we use filemasks to speed up file checks?
+import (
+	"fmt"
+	"math"
+	"math/bits"
 )
 
-// Moves returns a slice of possible moves from the current board state.
-func (b Board) Moves() []Move {
-	moves := make([]Move, 0, 32)
+// Pregenerated masks for moves in any of the compass directions from any given
+// square, and for kings and knights. Takes up 10 * 64 * 64 = 40kb of memory,
+// which should fit in L1 cache on a modern CPU.
+var (
+	movesNorth     [64]uint64
+	movesNorthEast [64]uint64
+	movesEast      [64]uint64
+	movesSouthEast [64]uint64
+	movesSouth     [64]uint64
+	movesSouthWest [64]uint64
+	movesWest      [64]uint64
+	movesNorthWest [64]uint64
+	movesKing      [64]uint64
+	movesKnights   [64]uint64
+)
 
-	var from, to uint8
+func init() {
+	// n: north; e: east; s: south; w: west
+	// nn, ss: north north and south south (used by pawns performing double moves)
+	// nne, een, ssw: north north east, etc (used by knights)
+	//
+	// North and South are easy; add or subtract 8 (a full rank). With bit
+	// shifting you don't even need to check if that's off the board: shifting
+	// above 64 will shift the bits out, and subtracting past 0 with an unsigned
+	// int ends up wrapping into a very large shift up and off the board again.
+	//
+	// East and West require checking if you'll leave the board or not, since
+	// leaving the board in either of those directions will wrap around; e.g. a
+	// king shouldn't be able to move one square West from A2 (8) and end up on
+	// H1 (7).
+
+	var from uint8
+
+	for from = 0; from < 64; from++ {
+		rank := Rank(from)
+		file := File(from)
+
+		// horizontal: rooks, queens
+		for n := from + 8; n < 64; n += 8 {
+			movesNorth[from] |= 1 << n
+		}
+		for e := from + 1; e < (rank+1)*8; e++ {
+			movesEast[from] |= 1 << e
+		}
+		for s := from - 8; s < 64; s -= 8 {
+			movesSouth[from] |= 1 << s
+		}
+		for w := from - 1; w != (rank*8)-1; w-- {
+			movesWest[from] |= 1 << w
+		}
+
+		// diagonal: bishops, queens
+		for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
+			movesNorthEast[from] |= 1 << ne
+		}
+		for se := from - 7; se < 64 && File(se) != fileA; se -= 7 {
+			movesSouthEast[from] |= 1 << se
+		}
+		for sw := from - 9; sw < 64 && File(sw) != fileH; sw -= 9 {
+			movesSouthWest[from] |= 1 << sw
+		}
+		for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
+			movesNorthWest[from] |= 1 << nw
+		}
+
+		// king
+		movesKing[from] |= 1 << (from + 8) // n
+		movesKing[from] |= 1 << (from - 8) // s
+		// can't move east if we're on file h
+		if file != fileH {
+			movesKing[from] |= 1 << (from + 1) // e
+			movesKing[from] |= 1 << (from + 9) // ne
+			movesKing[from] |= 1 << (from - 7) // se
+		}
+		// can't move west if we're on file a
+		if file != fileA {
+			movesKing[from] |= 1 << (from - 1) // w
+			movesKing[from] |= 1 << (from + 7) // nw
+			movesKing[from] |= 1 << (from - 9) // sw
+		}
+
+		// knights
+		if file > fileA {
+			movesKnights[from] |= 1 << (from + 15) // nnw (+2×8, -1)
+			movesKnights[from] |= 1 << (from - 17) // ssw (-2×8, -1)
+			if file > fileB {
+				movesKnights[from] |= 1 << (from + 6)  // wwn (+8, -2×1)
+				movesKnights[from] |= 1 << (from - 10) // wws (-8, -2×1)
+			}
+		}
+		if file < fileH {
+			movesKnights[from] |= 1 << (from + 17) // nne (+2×8, +1)
+			movesKnights[from] |= 1 << (from - 15) // sse (-2×8, +1)
+			if file < fileG {
+				movesKnights[from] |= 1 << (from + 10) // een (+8, +2×1)
+				movesKnights[from] |= 1 << (from - 6)  // ees (-8, +2×1)
+			}
+		}
+	}
+}
+
+// "One may not castle out of, through, or into check".
+//
+// The castle threat mask constants track the squares for the kings starting
+// position, the square the king will move through, and the kings final
+// position. If one of these squares is under threat then the relevant castling
+// is not legal.
+const (
+	maskWhiteKingsideCastleThreat  uint64 = 1<<E1 | 1<<F1 | 1<<G1
+	maskWhiteQueensideCastleThreat uint64 = 1<<C1 | 1<<D1 | 1<<E1
+	maskBlackKingsideCastleThreat  uint64 = 1<<E8 | 1<<F8 | 1<<G8
+	maskBlackQueensideCastleThreat uint64 = 1<<C8 | 1<<D8 | 1<<E8
+)
+
+// In order to castle there must be no spaces in between the king and the rook.
+// The castle block mask constants track the squares in between the king and the
+// rook. If one of these squares is occupied then the relevant castling is not
+// legal.
+const (
+	maskWhiteKingsideCastleBlocked  uint64 = 1<<F1 | 1<<G1
+	maskWhiteQueensideCastleBlocked uint64 = 1<<B1 | 1<<C1 | 1<<D1
+	maskBlackKingsideCastleBlocked  uint64 = 1<<F8 | 1<<G8
+	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
+)
+
+// GenerateMoves returns a slice of possible moves from the current board state.
+// It also returns whether or not the side to move is in check. An empty or nil
+// slice of moves combined with an an indication of check implies that the side
+// to move is in checkmate.
+//
+// This function will panic if run with certain invalid boards, e.g. if there
+// are more than two pieces giving check, or if one side doesn't have a king on
+// the board. You should wrap it in a recover, or ideally ensure that you're
+// only calling GenerateMoves() on valid boards by calling Validate() first.
+func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
+	moves = moves[:0] // empty passed in slice
+
+	// checkers is a mask for pieces giving check. if there is more than one bit
+	// set then we're in double check.
+	var checkers uint64
+
+	// pinned variables are for pieces that are absolutely pinned and must stay
+	// on the respective ray.
+	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
+
+	// threatened tracks squares we may not move our king to.
+	var threatened uint64
+
+	// threatRay tracks a ray of threat from a bishop, rook or queen to the
+	// king. moving a piece on to this ray will block single check.
+	var threatRay uint64
+
+	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnsdbl, pawnspromo uint64
+	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
 
 	occupied := b.white | b.black
 
 	tomove := b.ToMove()
-	var pawns uint64
-	// TODO: use pointers so we don't need to check tomove later
-	if tomove == White {
+	switch tomove {
+	case White:
 		colour = b.white
 		opposing = b.black
-		pawns = b.pawns & b.white
-		pawnsdbl = pawns & rank2mask &^ ((occupied & rank3mask) >> 8) &^ ((occupied & rank4mask) >> 16)
-		pawnspromo = pawns & rank7mask
-	} else {
+		pawns := b.pawns & b.white
+		pawnsPushSingle = pawns &^ (occupied >> 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
+		pawnsCanPromote = pawns & maskRank7
+		pawnsNotPromote = pawns &^ maskRank7
+
+		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
+		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
+	case Black:
 		colour = b.black
 		opposing = b.white
-		pawns = b.pawns & b.black
-		pawnsdbl = pawns & rank7mask &^ ((occupied & rank6mask) << 8) &^ ((occupied & rank5mask) << 16)
-		pawnspromo = pawns & rank2mask
+		pawns := b.pawns & b.black
+		pawnsPushSingle = pawns &^ (occupied << 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
+		pawnsCanPromote = pawns & maskRank2
+		pawnsNotPromote = pawns &^ maskRank2
+
+		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA // se
+		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
 	}
+
+	king := b.kings & colour
 
 	// Loop over opposing pieces to see if we're in check, and to mark both
 	// threatened squares and pinned pieces.
@@ -158,8 +205,7 @@ func (b Board) Moves() []Move {
 	//
 	// We must never move our king to a threatened square, through a threatened
 	// square (in the case of castling) or make a move that exposes a check on
-	// our king. This includes capturing opposing pieces that are blocking
-	// check.
+	// our king.
 	//
 	// If our king is in check, then we must either capture the checking piece,
 	// move our king to an unthreatened square, or (in the case of scanners)
@@ -170,291 +216,456 @@ func (b Board) Moves() []Move {
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
 
-	var threatened uint64 // threatened tracks squares we may not move our king to
-	opposingknights := b.knights & opposing
-	opposingking := b.kings & opposing
-	opposingrooks := b.rooks & opposing
-FIND_THREAT:
-	for from = 0; from < 64; from++ {
-		frombit = 1 << from // TODO: *=2 frombit each round and calc from only when needed?
+	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		blockFirst := uint8(bits.TrailingZeros64(intersection))
+		var blockFirstBit uint64 = 1 << blockFirst
+		blockSecond := uint8(bits.TrailingZeros64(intersection &^ blockFirstBit))
+		var blockSecondBit uint64 = 1 << blockSecond
 
-		if opposing&frombit == 0 {
-			continue FIND_THREAT
+		// occlude the ray based on whether it hits the king or not
+		switch {
+		case blockFirstBit&king == 0 && blockFirst != 64: // NOT the king
+			ray ^= moves[blockFirst]
+			// case blockFirstBit&king != 0 && blockSecond != 64:
+			// 	// pierce "through" the king
+			// 	ray ^= moves[blockSecond]
 		}
 
-		if opposingknights&frombit != 0 { // is there a knight on this square?
-			threatened |= knightMoves(from)
-			continue FIND_THREAT
+		threatened |= ray
+
+		// set check and pinned appropriately
+		switch {
+		case blockFirstBit&king != 0: // king is in check
+			checkers |= frombit
+			threatRay = ray &^ moves[blockFirst] // occlude threat by king
+		case blockSecondBit&king != 0: // piece is pinned
+			return blockFirstBit
 		}
 
-		if opposingking&frombit != 0 { // is there a king on this square?
-			threatened |= kingMoves(from)
-			continue FIND_THREAT
+		return 0
+	}
+
+	rayEvaluateCheckPinBackward := func(moves *[64]uint64) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
+		var blockFirstBit uint64 = 1 << blockFirst
+		blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
+		var blockSecondBit uint64 = 1 << blockSecond
+
+		// occlude the ray based on whether it hits the king or not
+		switch {
+		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8: // NOT the king
+			ray ^= moves[blockFirst]
+			// case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
+			// 	// pierce "through" the king
+			// 	ray ^= moves[blockSecond]
 		}
 
-		if opposingrooks&frombit != 0 { // is there a rook on this square?
-			rank := Rank(from)
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
+		threatened |= ray
+
+		// set check and pinned appropriately
+		switch {
+		case blockFirstBit&king != 0: // king is in check
+			checkers |= frombit
+			threatRay = ray &^ moves[blockFirst] // occlude threat by king
+		case blockSecondBit&king != 0: // piece is pinned
+			return blockFirstBit
+		}
+
+		return 0
+	}
+
+	{
+		opposingpawns := b.pawns & opposing
+		// the king can only be under threat from one pawn at a time; it's not
+		// possible to simultaneously move two pawns within capture range, nor
+		// is it legal for a king to move to where a pawn could capture it.
+
+		// TODO: does setting pawn threat in the switch above save any time?
+		switch tomove {
+		case White:
+			m := (opposingpawns&^maskFileA)>>9 | // sw
+				(opposingpawns&^maskFileH)>>7 // se
+			if m&king != 0 {
+				// flip the check to find out which pawn is checking us
+				kingNE := (king &^ maskFileH) << 9
+				kingNW := (king &^ maskFileA) << 7
+				checkers |= (kingNE | kingNW) & opposingpawns
 			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
+			threatened |= m
+		case Black:
+			m := (opposingpawns&^maskFileH)<<9 | // ne
+				(opposingpawns&^maskFileA)<<7 // nw
+			if m&king != 0 {
+				// flip the check to find out which pawn is checking us
+				kingSE := (king &^ maskFileH) >> 9
+				kingSW := (king &^ maskFileA) >> 7
+				checkers |= (kingSE | kingSW) & opposingpawns
 			}
-			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
-			for w := from - 1; w > (rank*8)-1; w-- {
-				tobit = 1 << w
-				threatened |= tobit
-				if occupied&tobit != 0 {
-					break
-				}
-			}
+			threatened |= m
 		}
 	}
 
-	// TODO: never loop over squares for destinations
+	for opposingknights := b.knights & opposing; opposingknights != 0; {
+		from = uint8(bits.TrailingZeros64(opposingknights))
+		frombit = 1 << from
+		opposingknights ^= frombit
 
-	// TODO: castling
+		knightMoves := movesKnights[from]
+		if knightMoves&king != 0 {
+			checkers |= frombit
+		}
+		threatened |= knightMoves
+	}
 
-	ep := b.EnPassant()
-	if ep != 0 {
-		// ep records the square behind, so we check the squares to the ne and
-		// nw (for black) or se and sw (for white) to find pawns adjacent.
-		if tomove == White {
-			if from = ep - 7; pawns&(1<<from) != 0 { // sw
-				moves = append(moves, NewEnPassant(from, from+7)) // ne
-			}
-			if from = ep - 9; pawns&(1<<from) != 0 { // se
-				moves = append(moves, NewEnPassant(from, from+9)) // nw
-			}
-		} else {
-			if from = ep + 7; pawns&(1<<from) != 0 {
-				moves = append(moves, NewEnPassant(from, from-7)) // se
-			}
-			if from = ep + 9; pawns&(1<<from) != 0 {
-				moves = append(moves, NewEnPassant(from, from-9)) // sw
-			}
+	{
+		opposingking := b.kings & opposing // always exactly one king
+		from = uint8(bits.TrailingZeros64(opposingking))
+		// there's a subtle bug here if we start using threatened for more than
+		// just a "can our king move to this square?" check - not all of these
+		// moves will be legal for the opposing king to make.
+		// kings can never check another king, so don't bother evaluating check.
+		threatened |= movesKing[from]
+	}
+
+	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
+		from = uint8(bits.TrailingZeros64(opposingrooks))
+		frombit = 1 << from
+		opposingrooks ^= frombit
+
+		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
+		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
+		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
+		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
+	}
+
+	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
+		from = uint8(bits.TrailingZeros64(opposingbishops))
+		frombit = 1 << from
+		opposingbishops ^= frombit
+
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
+	}
+
+	// Check for castling.
+	switch tomove {
+	case White:
+		if b.CanWhiteCastleKingside() &&
+			threatened&maskWhiteKingsideCastleThreat == 0 &&
+			occupied&maskWhiteKingsideCastleBlocked == 0 {
+			moves = append(moves, WhiteKingsideCastle)
+		}
+		if b.CanWhiteCastleQueenside() &&
+			threatened&maskWhiteQueensideCastleThreat == 0 &&
+			occupied&maskWhiteQueensideCastleBlocked == 0 {
+			moves = append(moves, WhiteQueensideCastle)
+		}
+	case Black:
+		if b.CanBlackCastleKingside() &&
+			threatened&maskBlackKingsideCastleThreat == 0 &&
+			occupied&maskBlackKingsideCastleBlocked == 0 {
+			moves = append(moves, BlackKingsideCastle)
+		}
+		if b.CanBlackCastleQueenside() &&
+			threatened&maskBlackQueensideCastleThreat == 0 &&
+			occupied&maskBlackQueensideCastleBlocked == 0 {
+			moves = append(moves, BlackQueensideCastle)
 		}
 	}
 
-	addpromos := func(from, to uint8, capture bool) {
+	addPromotions := func(from, to uint8, capture bool) {
 		moves = append(moves, NewQueenPromotion(from, to, capture))
 		moves = append(moves, NewKnightPromotion(from, to, capture))
 		moves = append(moves, NewRookPromotion(from, to, capture))
 		moves = append(moves, NewBishopPromotion(from, to, capture))
 	}
 
-	// - Find all pieces of the given colour.
-	// - For each square, check if we have a piece there.
-	// - If there is a piece there, find all the moves that piece can make.
-	// - AND NOT the moves with our colour (we can't move to a square we occupy).
-	//
-	// We evaluate pieces in descending frequency order (pawn, knight, king) to
-	// hopefully skip a loop iteration as early as possible.
-	knights := b.knights & colour
-	bishops := (b.bishops | b.queens) & colour
-	rooks := (b.rooks | b.queens) & colour
-	king := b.kings & colour
-FIND_MOVES:
-	for from = 0; from < 64; from++ {
-		frombit = 1 << from
-
-		if colour&frombit == 0 {
-			continue FIND_MOVES
+	addQuietMoves := func(from uint8, quiet uint64) {
+		for quiet != 0 {
+			to := uint8(bits.TrailingZeros64(quiet))
+			quiet ^= (1 << to)
+			moves = append(moves, NewMove(from, to))
 		}
-
-		if pawnspromo&frombit != 0 { // is there a pawn that can promote on this square?
-			if tomove == White {
-				if ne := from + 9; opposing&(1<<ne) != 0 {
-					addpromos(from, ne, true)
-				}
-				if nw := from + 7; opposing&(1<<nw) != 0 {
-					addpromos(from, nw, true)
-				}
-				if push := from + 8; occupied&(1<<push) == 0 {
-					addpromos(from, push, false)
-				}
-			} else {
-				if se := from - 7; opposing&(1<<se) != 0 {
-					addpromos(from, se, true)
-				}
-				if sw := from - 9; opposing&(1<<sw) != 0 {
-					addpromos(from, sw, true)
-				}
-				if push := from - 8; occupied&(1<<push) == 0 {
-					addpromos(from, push, false)
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if pawns&frombit != 0 { // is there a pawn on this square?
-			// TODO: set en passant target on double pawn moves
-			if tomove == White {
-				if pawnsdbl&frombit != 0 {
-					moves = append(moves, NewMove(from, from+16))
-				}
-				if push := from + 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewMove(from, push))
-				}
-				if ne := from + 9; opposing&(1<<ne) != 0 {
-					moves = append(moves, NewCapture(from, ne))
-				}
-				if nw := from + 7; opposing&(1<<nw) != 0 {
-					moves = append(moves, NewCapture(from, nw))
-				}
-			} else {
-				if pawnsdbl&frombit != 0 {
-					moves = append(moves, NewMove(from, from-16))
-				}
-				if push := from - 8; occupied&(1<<push) == 0 {
-					moves = append(moves, NewMove(from, push))
-				}
-				if se := from - 7; opposing&(1<<se) != 0 {
-					moves = append(moves, NewCapture(from, se))
-				}
-				if sw := from - 9; opposing&(1<<sw) != 0 {
-					moves = append(moves, NewCapture(from, sw))
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if knights&frombit != 0 { // is there a knight on this square?
-			knightMoves := knightMoves(from) &^ colour
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				if knightMoves&tobit != 0 { // is there a move to this square?
-					capture := b.black&tobit != 0 || b.white&tobit != 0
-					if capture {
-						moves = append(moves, NewCapture(from, to))
-					} else {
-						moves = append(moves, NewMove(from, to))
-					}
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if king&frombit != 0 { // is there a king on this square?
-			kingMoves := kingMoves(from) &^ colour &^ threatened // king cannot move into check
-			for to = 0; to < 64; to++ {
-				tobit = 1 << to
-				if kingMoves&tobit != 0 { // is there a move to this square?
-					capture := b.black&tobit != 0 || b.white&tobit != 0
-					if capture {
-						moves = append(moves, NewCapture(from, to))
-					} else {
-						moves = append(moves, NewMove(from, to))
-					}
-				}
-			}
-			continue FIND_MOVES
-		}
-
-		if rooks&frombit != 0 { // is there a rook on this square?
-			rank := Rank(from)
-			for n := from + 8; n < 64; n += 8 {
-				tobit = 1 << n
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, n))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, n))
-			}
-			for e := from + 1; e < (rank+1)*8; e++ {
-				tobit = 1 << e
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, e))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, e))
-			}
-			for s := from - 8; s > 0 && s < 64; s -= 8 { // uint wraps below 0
-				tobit = 1 << s
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, s))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, s))
-			}
-			for w := from - 1; w > (rank*8)-1; w-- {
-				tobit = 1 << w
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, w))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, w))
-			}
-		}
-
-		if bishops&frombit != 0 { // is there a bishop on this square?
-			for ne := from + 9; ne < 64 && File(ne) != fileA; ne += 9 {
-				tobit = 1 << ne
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, ne))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, ne))
-			}
-			for se := from - 7; 0 < se && se < 64 && File(se) != fileA; se -= 7 {
-				tobit = 1 << se
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, se))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, se))
-			}
-			for sw := from - 9; 0 < sw && sw < 64 && File(sw) != fileH; sw -= 9 {
-				tobit = 1 << sw
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, sw))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, sw))
-			}
-			for nw := from + 7; nw < 64 && File(nw) != fileH; nw += 7 {
-				tobit = 1 << nw
-				if occupied&tobit != 0 {
-					if opposing&tobit != 0 {
-						moves = append(moves, NewCapture(from, nw))
-					}
-					break
-				}
-				moves = append(moves, NewMove(from, nw))
-			}
-		}
-
 	}
 
-	// TODO: disallow moves placing the king in check
+	addCaptures := func(from uint8, captures uint64) {
+		for captures != 0 {
+			to := uint8(bits.TrailingZeros64(captures))
+			captures ^= (1 << to)
+			moves = append(moves, NewCapture(from, to))
+		}
+	}
 
-	return moves
+	rayForward := func(moves *[64]uint64, from uint8) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		if intersection != 0 {
+			ray ^= moves[uint8(bits.TrailingZeros64(intersection))]
+		}
+		return ray
+	}
+
+	rayBackward := func(moves *[64]uint64, from uint8) uint64 {
+		ray := moves[from]
+		intersection := ray & occupied
+		if intersection != 0 {
+			ray ^= moves[uint8(63-bits.LeadingZeros64(intersection))]
+		}
+		return ray
+	}
+
+	breakEnPassant := func(epCaptureSq uint8, maskEnPassantRank uint64) bool {
+		// draw a ray from our king on the en passant rank through the en
+		// passant-able pawn get the next 3 pieces on that ray into an array. if
+		// we pass through the en passant pawn and one of our pawns (in either
+		// that order or vice-versa) followed by a horizontal slider (rook or
+		// queen) then we may not en passant.
+		// TODO: check sliders on same rank here for speed?
+		// TODO: pass in epCaptureSq, remove pawn, then simplify test?
+		if king&maskEnPassantRank != 0 { // is king on this rank?
+			var kingSq uint8 = uint8(bits.TrailingZeros64(king))
+			var ray uint64
+			var pieces [3]uint64 // next 3 pieces along ray
+			var pieceidx uint8 = 0
+
+			// bitscan either east or west based on where king is
+			if kingSq > epCaptureSq {
+				ray = movesWest[kingSq] & occupied
+				for ray != 0 && pieceidx < 3 {
+					pieceSq := uint8(63 - bits.LeadingZeros64(ray))
+					var pieceMask uint64 = 1 << pieceSq
+					ray ^= pieceMask
+					pieces[pieceidx] = pieceMask
+					pieceidx++
+				}
+			} else {
+				ray = movesEast[kingSq] & occupied
+				for ray != 0 && pieceidx < 3 {
+					pieceSq := uint8(bits.TrailingZeros64(ray))
+					var pieceMask uint64 = 1 << pieceSq
+					ray ^= pieceMask
+					pieces[pieceidx] = pieceMask
+					pieceidx++
+				}
+			}
+
+			// if piece3 is a queen or rook
+			// if piece1 is our pawn and piece2 is ep pawn
+			// or piece2 is our pawn and piece1 is ep pawn
+			// then our pawn is pinned and may not en passant
+			sliders := (b.rooks | b.queens) & opposing
+			if pieces[2]&sliders != 0 &&
+				((pieces[0]&(1<<epCaptureSq) != 0 && pieces[1]&pawnsNotPromote != 0) ||
+					(pieces[1]&(1<<epCaptureSq) != 0 && pieces[0]&pawnsNotPromote != 0)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	var maskMayMoveTo uint64
+	switch bits.OnesCount64(checkers) {
+	case 0:
+		// no check:
+		// most pieces can move anywhere
+		// pinned pieces may only move on their pinned ray
+		// king can only move to unthreatened squares
+		maskMayMoveTo = maskAll // all squares
+	case 1:
+		// single check; we must either:
+		// capture the piece giving check
+		// move a piece on to the threat ray
+		// move our king out of threat
+		maskMayMoveTo = checkers | threatRay
+	case 2:
+		// double check: we must move our king
+		goto KING_MOVES
+	default:
+		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
+	}
+
+	// Check for en passant.
+	if epFile := uint8(b.meta & maskEnPassant); epFile != 0 {
+		// ep records the square behind, so we check the squares to the ne and
+		// nw (for black) or se and sw (for white) to find pawns adjacent.
+	EN_PASSANT:
+		switch tomove {
+		case White:
+			epSquare := 39 + epFile    // rank 6; 8×(6 - 1) + file - 1
+			epCaptureSq := 31 + epFile // rank 5; 8x(5 - 1) + file - 1
+
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+				break EN_PASSANT // invalid en passant
+			}
+			if breakEnPassant(epCaptureSq, maskRank5) {
+				break EN_PASSANT // would put king in check
+			}
+			if from = epSquare - 7; pawnsNotPromote&(1<<from) != 0 { // sw
+				moves = append(moves, NewEnPassant(from, from+7)) // ne
+			}
+			if from = epSquare - 9; pawnsNotPromote&(1<<from) != 0 { // se
+				moves = append(moves, NewEnPassant(from, from+9)) // nw
+			}
+		case Black:
+			epSquare := 15 + epFile    // rank 3; 8×(3 - 1) + file - 1
+			epCaptureSq := 23 + epFile // rank 4; 8x(4 - 1) + file - 1
+
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+				break EN_PASSANT // invalid en passant
+			}
+			if breakEnPassant(epCaptureSq, maskRank4) {
+				break EN_PASSANT // would put king in check
+			}
+			if from = epSquare + 7; pawnsNotPromote&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-7)) // se
+			}
+			if from = epSquare + 9; pawnsNotPromote&(1<<from) != 0 {
+				moves = append(moves, NewEnPassant(from, from-9)) // sw
+			}
+		}
+	}
+
+	for pawnsCanPromote != 0 {
+		from = uint8(bits.TrailingZeros64(pawnsCanPromote))
+		frombit = 1 << from
+		pawnsCanPromote ^= frombit
+
+		// we could calculate masks for the below checks (e.g. pawns that can
+		// promote by pushing are just pawns that can push bitwise AND'ed with
+		// pawns that can promote), but generating that mask every time we
+		// generate moves doesn't pay off when pawns being in position to
+		// promote is so rare.
+		// TODO: can mask pawn moves (single, double, capture) on maskMayMoveTo en masse
+		// TODO: need to add tests for pawn promos capturing a checker
+		// TODO: don't need to check maskFileH and maskFileA here, we do it en masse above
+		switch tomove {
+		case White:
+			ne := from + 9
+			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
+				addPromotions(from, ne, true)
+			}
+			nw := from + 7
+			if tobit = 1 << nw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
+				addPromotions(from, nw, true)
+			}
+			push := from + 8
+			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
+				addPromotions(from, push, false)
+			}
+		case Black:
+			se := from - 7
+			if tobit = 1 << se; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
+				addPromotions(from, se, true)
+			}
+			sw := from - 9
+			if tobit = 1 << sw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
+				addPromotions(from, sw, true)
+			}
+			push := from - 8
+			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
+				addPromotions(from, push, false)
+			}
+		}
+	}
+
+	for pawnsNotPromote != 0 {
+		from = uint8(bits.TrailingZeros64(pawnsNotPromote))
+		frombit = 1 << from
+		pawnsNotPromote ^= frombit
+
+		// TODO: set en passant target on double pawn moves
+		// TODO: can do these maskMayMoveTo checks en masse
+		switch tomove {
+		case White:
+			if pawnsPushDouble&(maskMayMoveTo>>16)&frombit != 0 {
+				moves = append(moves, NewMove(from, from+16))
+			}
+			if pawnsPushSingle&(maskMayMoveTo>>8)&frombit != 0 {
+				moves = append(moves, NewMove(from, from+8))
+			}
+			if pawnsCaptureEast&(maskMayMoveTo>>9)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+9))
+			}
+			if pawnsCaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from+7))
+			}
+		case Black:
+			if pawnsPushDouble&(maskMayMoveTo<<16)&frombit != 0 {
+				moves = append(moves, NewMove(from, from-16))
+			}
+			if pawnsPushSingle&(maskMayMoveTo<<8)&frombit != 0 {
+				moves = append(moves, NewMove(from, from-8))
+			}
+			if pawnsCaptureEast&(maskMayMoveTo<<9)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-9))
+			}
+			if pawnsCaptureWest&(maskMayMoveTo<<7)&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-7))
+			}
+		}
+	}
+
+	for knights := b.knights & colour; knights != 0; {
+		from = uint8(bits.TrailingZeros64(knights))
+		frombit = 1 << from
+		knights ^= frombit
+
+		m := movesKnights[from] &^ colour & maskMayMoveTo
+		addCaptures(from, m&opposing)
+		addQuietMoves(from, m&^occupied)
+	}
+
+	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
+		from = uint8(bits.TrailingZeros64(rooks))
+		frombit = 1 << from
+		rooks ^= frombit
+
+		var movesqs uint64
+		if pinnedHorizontal&frombit == 0 { // not pinned horizontally, can move vertically
+			movesqs |= rayForward(&movesNorth, from)
+			movesqs |= rayBackward(&movesSouth, from)
+		}
+		if pinnedVertical&frombit == 0 { // not pinned vertically, can move horizontally
+			movesqs |= rayForward(&movesEast, from)
+			movesqs |= rayBackward(&movesWest, from)
+		}
+		movesqs &= maskMayMoveTo
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
+	}
+
+	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
+		from = uint8(bits.TrailingZeros64(bishops))
+		frombit = 1 << from
+		bishops ^= frombit
+
+		var movesqs uint64
+		if pinnedDiagonalSWNE&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
+			movesqs |= rayForward(&movesNorthWest, from)
+			movesqs |= rayBackward(&movesSouthEast, from)
+		}
+		if pinnedDiagonalNWSE&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
+			movesqs |= rayForward(&movesNorthEast, from)
+			movesqs |= rayBackward(&movesSouthWest, from)
+		}
+		movesqs &= maskMayMoveTo
+		addCaptures(from, movesqs&opposing)
+		addQuietMoves(from, movesqs&^occupied)
+	}
+
+KING_MOVES:
+	{
+		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
+		m := movesKing[from] &^ colour &^ threatened
+		addCaptures(from, m&opposing)
+		addQuietMoves(from, m&^occupied)
+	}
+
+	return moves, checkers != 0
 }

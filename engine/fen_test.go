@@ -1,7 +1,9 @@
 package engine_test
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"strings"
 	"testing"
@@ -11,6 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type errorWriter struct{}
+
+func (*errorWriter) Write([]byte) (int, error) {
+	return 0, errors.New("error writing")
+}
 
 func TestNewBoardToFEN(t *testing.T) {
 	fen := engine.NewBoard().FEN()
@@ -178,6 +186,11 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"unexpected 'a', expecting [KQkq]",
 		},
 		{
+			"invalid castling dash",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq-KQ - 0 1",
+			"castling '-' must be solitary if present",
+		},
+		{
 			"invalid en passant file",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z1 0 1",
 			"unexpected 'z', expecting [a-hA-H]",
@@ -197,11 +210,41 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2",
 			"invalid board state: black moved last; en passant on rank 3",
 		},
-		// {
-		// 	"full moves too large",
-		// 	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 999999",
-		// 	"",
-		// },
+		{
+			"invalid en passant (eof after single valid char)",
+			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a",
+			"unexpected EOF",
+		},
+		{
+			"invalid piece",
+			"rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"unexpected 'X', expecting [PNBRQKpnbrqk1-8]",
+		},
+		{
+			"full moves too large",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 256",
+			"value out of range",
+		},
+		{
+			"multiple white kings",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
+			"invalid board: 2 white kings",
+		},
+		{
+			"zero black kings",
+			"rnbqqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"invalid board: 0 black kings",
+		},
+		{
+			"pawns on rank 8",
+			"pnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"invalid board: pawns on rank 8",
+		},
+		{
+			"pawns on rank 1",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/PNBQKBNR w KQkq - 0 1",
+			"invalid board: pawns on rank 1",
+		},
 	}
 	for _, tt := range invalid {
 		t.Run(tt.name, func(t *testing.T) {
@@ -214,7 +257,18 @@ func TestNewBoardFromInvalidFEN(t *testing.T) {
 
 func TestRoundTripFEN(t *testing.T) {
 	fen := []string{
-		"k7/8/8/8/8/p7/P6K/8 b - - 1 123",
+		// randomish FEN strings
+		// http://bernd.bplaced.net/fengenerator/fengenerator.html
+		"2Q5/8/NP2P1pP/r4BP1/2p2p2/4p3/1P2rk2/3K4 w - - 0 1",
+		"1nb3R1/3P2Q1/p5p1/1P5P/1P2K3/1kN4B/1p6/7R w - - 0 1",
+		"5k2/Q4p2/1P1Pp3/1p2pPNr/2n3p1/6p1/8/4K2b w - - 0 1",
+		"4QK2/R4R1p/6r1/3P1n1N/2P2p2/2P4P/n6k/2N5 w - - 0 1",
+		"1b6/1R1N4/1P4b1/p6P/3K1ppp/P3ppkp/8/8 w - - 0 1",
+		"1k2n3/4B1r1/3rN2P/8/3qpp2/1n1P1p2/3p1P2/7K b - - 0 1",
+		"3q4/1pb4p/8/P5pk/1pP4N/P4p2/2K3P1/1r3B2 b - - 0 1",
+		"2k1nq2/8/8/pP2N2Q/3K4/2pp1r1P/3P2p1/B3R3 b - - 0 1",
+		"6n1/1r6/k2b3p/P5pp/4PP2/5PKP/1PN1N3/8 b - - 0 1",
+		"5N2/8/1b1p2r1/8/2PP4/2kp1p1K/1p2n2B/q3r1N1 b - - 0 1",
 	}
 	for i, tt := range fen {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
@@ -226,9 +280,23 @@ func TestRoundTripFEN(t *testing.T) {
 	}
 }
 
+func TestWriteFENError(t *testing.T) {
+	b := engine.NewBoard()
+	w := &errorWriter{}
+	err := b.WriteFEN(w)
+	assert.EqualError(t, err, "error writing")
+}
+
 func BenchmarkNewBoardFromFEN(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 		engine.NewBoardFromFEN(fen)
+	}
+}
+
+func BenchmarkWriteFEN(b *testing.B) {
+	board := engine.NewBoard()
+	for i := 0; i < b.N; i++ {
+		board.WriteFEN(ioutil.Discard)
 	}
 }

@@ -1,18 +1,11 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"math/bits"
 	"strings"
-)
-
-// Colour is used to represent each colour.
-type Colour byte
-
-// White and Black are constants defined for the colours.
-const (
-	White Colour = 'w'
-	Black Colour = 'b'
 )
 
 // Board represents an 8×8 chess board.
@@ -61,61 +54,58 @@ type Board struct {
 }
 
 const (
-	wcks   = 0b10000000
-	wcqs   = 0b01000000
-	bcks   = 0b00100000
-	bcqs   = 0b00010000
-	epmask = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
+	maskWhiteCastleKingside  uint8 = 0b10000000
+	maskWhiteCastleQueenside uint8 = 0b01000000
+	maskBlackCastleKingside  uint8 = 0b00100000
+	maskBlackCastleQueenside uint8 = 0b00010000
+	maskEnPassant            uint8 = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
 func NewBoard() Board {
 	return Board{
-		white:   0b00000000_00000000_00000000_00000000_00000000_00000000_11111111_11111111,
-		black:   0b11111111_11111111_00000000_00000000_00000000_00000000_00000000_00000000,
-		pawns:   0b00000000_11111111_00000000_00000000_00000000_00000000_11111111_00000000,
-		knights: 0b01000010_00000000_00000000_00000000_00000000_00000000_00000000_01000010,
-		bishops: 0b00100100_00000000_00000000_00000000_00000000_00000000_00000000_00100100,
-		rooks:   0b10000001_00000000_00000000_00000000_00000000_00000000_00000000_10000001,
-		queens:  0b00001000_00000000_00000000_00000000_00000000_00000000_00000000_00001000,
-		kings:   0b00010000_00000000_00000000_00000000_00000000_00000000_00000000_00010000,
+		white:   maskRank1 | maskRank2,
+		black:   maskRank7 | maskRank8,
+		pawns:   maskRank2 | maskRank7,
+		knights: 1<<B1 | 1<<G1 | 1<<B8 | 1<<G8,
+		bishops: 1<<C1 | 1<<F1 | 1<<C8 | 1<<F8,
+		rooks:   1<<A1 | 1<<H1 | 1<<A8 | 1<<H8,
+		queens:  1<<D1 | 1<<D8,
+		kings:   1<<E1 | 1<<E8,
 		half:    0,
 		total:   0,
-		meta:    wcks | wcqs | bcks | bcqs,
+		meta:    maskWhiteCastleKingside | maskWhiteCastleQueenside | maskBlackCastleKingside | maskBlackCastleQueenside,
 	}
 }
 
-// IsWhiteAt returns true iff there is a piece at index i and it is white.
-func (b Board) IsWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
+// isWhiteAt returns true iff there is a piece at index i and it is white.
+func (b Board) isWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
 
-// IsBlackAt returns true iff there is a piece at index i and it is black.
-func (b Board) IsBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
+// isBlackAt returns true iff there is a piece at index i and it is black.
+func (b Board) isBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
 
-// IsEmptyAt returns true iff the square at index i is empty.
-func (b Board) IsEmptyAt(i uint8) bool { return !b.IsWhiteAt(i) && !b.IsBlackAt(i) }
+// isPawnAt returns true iff there is a piece at index i and it is a pawn.
+func (b Board) isPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
 
-// IsPawnAt returns true iff there is a piece at index i and it is a pawn.
-func (b Board) IsPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
+// isKnightAt returns true iff there is a piece at index i and it is a knight.
+func (b Board) isKnightAt(i uint8) bool { return b.knights&(1<<i) != 0 }
 
-// IsKnightAt returns true iff there is a piece at index i and it is a knight.
-func (b Board) IsKnightAt(i uint8) bool { return b.knights&(1<<i) != 0 }
+// isBishopAt returns true iff there is a piece at index i and it is a bishop.
+func (b Board) isBishopAt(i uint8) bool { return b.bishops&(1<<i) != 0 }
 
-// IsBishopAt returns true iff there is a piece at index i and it is a bishop.
-func (b Board) IsBishopAt(i uint8) bool { return b.bishops&(1<<i) != 0 }
+// isRookAt returns true iff there is a piece at index i and it is a rook.
+func (b Board) isRookAt(i uint8) bool { return b.rooks&(1<<i) != 0 }
 
-// IsRookAt returns true iff there is a piece at index i and it is a rook.
-func (b Board) IsRookAt(i uint8) bool { return b.rooks&(1<<i) != 0 }
+// isQueenAt returns true iff there is a piece at index i and it is a queen.
+func (b Board) isQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 
-// IsQueenAt returns true iff there is a piece at index i and it is a queen.
-func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
-
-// IsKingAt returns true iff there is a piece at index i and it is a king.
-func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
+// isKingAt returns true iff there is a piece at index i and it is a king.
+func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
 func (b Board) EnPassant() uint8 {
-	file := uint8(b.meta & epmask)
+	file := uint8(b.meta & maskEnPassant)
 	if file == 0 {
 		return math.MaxUint8
 	}
@@ -133,40 +123,40 @@ func (b Board) EnPassant() uint8 {
 
 // PieceAt returns the piece at index i.
 func (b Board) PieceAt(i uint8) Piece {
-	if b.IsWhiteAt(i) {
+	if b.isWhiteAt(i) {
 		switch {
-		case b.IsPawnAt(i):
+		case b.isPawnAt(i):
 			return PieceWhitePawn
-		case b.IsKnightAt(i):
+		case b.isKnightAt(i):
 			return PieceWhiteKnight
-		case b.IsBishopAt(i):
+		case b.isBishopAt(i):
 			return PieceWhiteBishop
-		case b.IsRookAt(i):
+		case b.isRookAt(i):
 			return PieceWhiteRook
-		case b.IsQueenAt(i):
+		case b.isQueenAt(i):
 			return PieceWhiteQueen
-		case b.IsKingAt(i):
+		case b.isKingAt(i):
 			return PieceWhiteKing
 		default:
-			panic(fmt.Sprintf("invalid board state: %+v", b))
+			panic(fmt.Sprintf("invalid white piece at index %d; %#v", i, b))
 		}
 	}
-	if b.IsBlackAt(i) {
+	if b.isBlackAt(i) {
 		switch {
-		case b.IsPawnAt(i):
+		case b.isPawnAt(i):
 			return PieceBlackPawn
-		case b.IsKnightAt(i):
+		case b.isKnightAt(i):
 			return PieceBlackKnight
-		case b.IsBishopAt(i):
+		case b.isBishopAt(i):
 			return PieceBlackBishop
-		case b.IsRookAt(i):
+		case b.isRookAt(i):
 			return PieceBlackRook
-		case b.IsQueenAt(i):
+		case b.isQueenAt(i):
 			return PieceBlackQueen
-		case b.IsKingAt(i):
+		case b.isKingAt(i):
 			return PieceBlackKing
 		default:
-			panic(fmt.Sprintf("invalid board state: %+v", b))
+			panic(fmt.Sprintf("invalid black piece at index %d; %#v", i, b))
 		}
 	}
 	return PieceNone
@@ -180,17 +170,17 @@ func (b Board) ToMove() Colour {
 	return Black
 }
 
-// CanWhiteCastleKingSide returns true iff white can castle king side.
-func (b Board) CanWhiteCastleKingSide() bool { return b.meta&wcks != 0 }
+// CanWhiteCastleKingside returns true iff white can castle kingside.
+func (b Board) CanWhiteCastleKingside() bool { return b.meta&maskWhiteCastleKingside != 0 }
 
-// CanWhiteCastleQueenSide returns true iff white can castle queen side.
-func (b Board) CanWhiteCastleQueenSide() bool { return b.meta&wcqs != 0 }
+// CanWhiteCastleQueenside returns true iff white can castle queenside.
+func (b Board) CanWhiteCastleQueenside() bool { return b.meta&maskWhiteCastleQueenside != 0 }
 
-// CanBlackCastleKingSide returns true iff black can castle king side.
-func (b Board) CanBlackCastleKingSide() bool { return b.meta&bcks != 0 }
+// CanBlackCastleKingside returns true iff black can castle kingside.
+func (b Board) CanBlackCastleKingside() bool { return b.meta&maskBlackCastleKingside != 0 }
 
-// CanBlackCastleQueenSide returns true iff black can castle queen side.
-func (b Board) CanBlackCastleQueenSide() bool { return b.meta&bcqs != 0 }
+// CanBlackCastleQueenside returns true iff black can castle queenside.
+func (b Board) CanBlackCastleQueenside() bool { return b.meta&maskBlackCastleQueenside != 0 }
 
 // HalfMoves returns the number of half moves (moves by one player) since the
 // last pawn moved or piece was captured. This is used for determining if a draw
@@ -213,4 +203,23 @@ func (b Board) String() string {
 		sb.WriteRune(r)
 	}
 	return sb.String()
+}
+
+// Validate returns an error on an inconsistent or invalid board.
+func (b Board) Validate() error {
+	numWhiteKings := bits.OnesCount64(b.kings & b.white)
+	if numWhiteKings != 1 {
+		return fmt.Errorf("invalid board: %d white kings", numWhiteKings)
+	}
+	numBlackKings := bits.OnesCount64(b.kings & b.black)
+	if numBlackKings != 1 {
+		return fmt.Errorf("invalid board: %d black kings", numBlackKings)
+	}
+	if b.pawns&maskRank1 != 0 {
+		return errors.New("invalid board: pawns on rank 1")
+	}
+	if b.pawns&maskRank8 != 0 {
+		return errors.New("invalid board: pawns on rank 8")
+	}
+	return nil
 }
