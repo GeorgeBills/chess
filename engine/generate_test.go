@@ -364,6 +364,14 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"clearing check: king may capture or move to clear check",
+			"4k3/8/8/8/8/8/3p4/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1xd2", "e1e2", "e1f1", "e1f2", // king
+			},
+		},
+		// TODO: tests for king pawn threat wrapping e.g. "4k3/8/8/8/8/8/1p5p/K7 w - - 0 1"
+		{
 			"clearing check: piece must block to clear check (bishop)",
 			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
 			[]string{
