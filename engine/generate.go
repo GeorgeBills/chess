@@ -443,30 +443,81 @@ func (b Board) GenerateMoves(moves []Move) []Move {
 	}
 
 	// Check for en passant.
-	if ep := b.EnPassant(); ep != math.MaxUint8 {
+	if epFile := uint8(b.meta & maskEnPassant); epFile != 0 {
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
+	EN_PASSANT:
 		switch tomove {
 		case White:
-			capture := ep - 8
-			if maskMayMoveTo&(1<<capture) == 0 && maskMayMoveTo&(1<<ep) == 0 { // either capture or block, two diff sqs
-				break // invalid en passant
+			epSquare := 39 + epFile // rank 6; 8×(6 - 1) + file - 1
+
+			// FIXME: below en passant check for white
+
+			capture := epSquare - 8
+			if maskMayMoveTo&(1<<capture) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+				break EN_PASSANT // invalid en passant
 			}
-			if from = ep - 7; pawnsNotPromote&(1<<from) != 0 { // sw
+			if from = epSquare - 7; pawnsNotPromote&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = ep - 9; pawnsNotPromote&(1<<from) != 0 { // se
+			if from = epSquare - 9; pawnsNotPromote&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
-			capture := ep + 8
-			if maskMayMoveTo&(1<<capture) == 0 && maskMayMoveTo&(1<<ep) == 0 { // either capture or block, two diff sqs
-				break // invalid en passant
+			epSquare := 15 + epFile    // rank 3; 8×(3 - 1) + file - 1
+			epCaptureSq := 23 + epFile // rank 4; 8x(4 - 1) + file - 1
+
+			// draw a ray from our king on the en passant rank through the en
+			// passant-able pawn get the next 3 pieces on that ray into an
+			// array. if we pass through the en passant pawn and one of our
+			// pawns (in either that order or vice-versa) followed by a
+			// horizontal slider (rook or queen) then we may not en passant.
+			if king&maskRank4 != 0 { // is king on this rank?
+				var kingSq uint8 = uint8(bits.TrailingZeros64(king))
+				var ray uint64
+				var pieces [3]uint64 // next 3 pieces along ray
+				var pieceidx uint8 = 0
+
+				// bitscan either east or west based on where king is
+				if kingSq > epCaptureSq {
+					ray = movesWest[kingSq] & occupied
+					for ray != 0 && pieceidx < 3 {
+						pieceSq := uint8(63 - bits.LeadingZeros64(ray))
+						var pieceMask uint64 = 1 << pieceSq
+						ray ^= pieceMask
+						pieces[pieceidx] = pieceMask
+						pieceidx++
+					}
+				} else {
+					ray = movesEast[kingSq] & occupied
+					for ray != 0 && pieceidx < 3 {
+						pieceSq := uint8(bits.TrailingZeros64(ray))
+						var pieceMask uint64 = 1 << pieceSq
+						ray ^= pieceMask
+						pieces[pieceidx] = pieceMask
+						pieceidx++
+					}
+				}
+
+				// if piece3 is a queen or rook
+				// if piece1 is our pawn and piece2 is ep pawn
+				// or piece2 is our pawn and piece1 is ep pawn
+				// then our pawn is pinned and may not en passant
+				sliders := (b.rooks | b.queens) & opposing
+				if pieces[2]&sliders != 0 &&
+					((pieces[0]&(1<<epCaptureSq) != 0 && pieces[1]&pawnsNotPromote != 0) ||
+						(pieces[1]&(1<<epCaptureSq) != 0 && pieces[0]&pawnsNotPromote != 0)) {
+					break EN_PASSANT
+				}
 			}
-			if from = ep + 7; pawnsNotPromote&(1<<from) != 0 {
+
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+				break EN_PASSANT // invalid en passant
+			}
+			if from = epSquare + 7; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = ep + 9; pawnsNotPromote&(1<<from) != 0 {
+			if from = epSquare + 9; pawnsNotPromote&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}

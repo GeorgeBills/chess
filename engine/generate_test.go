@@ -1,12 +1,13 @@
 package engine_test
 
 import (
-	"github.com/GeorgeBills/chess/m/v2/engine"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMoves(t *testing.T) {
@@ -476,7 +477,15 @@ func TestMoves(t *testing.T) {
 				"e8e7", "e8d7", "e8d8", "e8f7", "e8f8", // king
 			},
 		},
-		// TODO: may not en passant if that exposes king https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
+		{
+			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
+			"pinning: may not en passant if that exposes king",
+			"8/8/8/8/R3Pp1k/8/8/4K3 b - e3 0 123",
+			[]string{
+				"f4f3",                                 // pawn may NOT capture en passant
+				"h4g3", "h4g4", "h4g5", "h4h3", "h4h5", // king
+			},
+		},
 		// TODO: checkmate
 		{
 			"castling: white can ks castle only (qs blocked)",
