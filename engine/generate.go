@@ -291,11 +291,9 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				(opposingpawns&^maskFileH)>>7 // se
 			if m&king != 0 {
 				// flip the check to find out which pawn is checking us
-				if frombit = king << 9; frombit&opposingpawns&^maskFileH != 0 {
-					checkers |= frombit
-				} else {
-					checkers |= king << 7 // must be nw
-				}
+				kingNE := (king &^ maskFileH) << 9
+				kingNW := (king &^ maskFileA) << 7
+				checkers |= (kingNE | kingNW) & opposingpawns
 			}
 			threatened |= m
 		case Black:
@@ -303,11 +301,9 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				(opposingpawns&^maskFileA)<<7 // nw
 			if m&king != 0 {
 				// flip the check to find out which pawn is checking us
-				if frombit = king >> 9; frombit&opposingpawns&^maskFileA != 0 {
-					checkers |= frombit
-				} else {
-					checkers |= king >> 7 // must be sw
-				}
+				kingSE := (king &^ maskFileH) >> 9
+				kingSW := (king &^ maskFileA) >> 7
+				checkers |= (kingSE | kingSW) & opposingpawns
 			}
 			threatened |= m
 		}
