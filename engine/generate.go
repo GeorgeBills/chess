@@ -132,12 +132,15 @@ const (
 )
 
 // GenerateMoves returns a slice of possible moves from the current board state.
+// It also returns whether or not the side to move is in check. An empty or nil
+// slice of moves combined with an an indication of check implies that the side
+// to move is in checkmate.
 //
 // This function will panic if run with certain invalid boards, e.g. if there
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
 // only calling GenerateMoves() on valid boards by calling Validate() first.
-func (b Board) GenerateMoves(moves []Move) []Move {
+func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
 	// checkers is a mask for pieces giving check. if there is more than one bit
@@ -668,5 +671,5 @@ KING_MOVES:
 		addQuietMoves(from, m&^occupied)
 	}
 
-	return moves
+	return moves, checkers != 0
 }

@@ -291,11 +291,6 @@ func TestMoves(t *testing.T) {
 		},
 		// TODO: test for queen threat
 		{
-			"king must not move into check: stalemate (no moves possible)",
-			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
-			nil,
-		},
-		{
 			"king must not move into check: free to move, own piece blocks check",
 			"3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
 			[]string{
@@ -495,7 +490,6 @@ func TestMoves(t *testing.T) {
 				"a5a4", "a5a6", "a5b4", "a5b5", "a5b6", // king
 			},
 		},
-		// TODO: checkmate
 		{
 			"castling: white can ks castle only (qs blocked)",
 			"4k3/8/8/8/8/8/P6P/R3K1NR w KQ - 1 123",
@@ -559,6 +553,16 @@ func TestMoves(t *testing.T) {
 				"e8d8", "e8f8", // king
 			},
 		},
+		{
+			"checkmate",
+			"8/8/8/8/8/K1k5/8/r7 w - - 30 16",
+			nil,
+		},
+		{
+			"stalemate",
+			"4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
+			nil,
+		},
 	}
 
 	for _, tt := range moves {
@@ -566,14 +570,15 @@ func TestMoves(t *testing.T) {
 			b, err := engine.NewBoardFromFEN(strings.NewReader(tt.board))
 			require.NoError(t, err)
 			require.NotNil(t, b)
-			var moves []string
-			for _, move := range b.GenerateMoves(nil) {
-				moves = append(moves, move.SAN())
+			var san []string
+			moves, _ := b.GenerateMoves(nil)
+			for _, move := range moves {
+				san = append(san, move.SAN())
 			}
 			// sort so we don't need to fiddle with ordering in the test case
 			sort.Strings(tt.expected)
-			sort.Strings(moves)
-			assert.Equal(t, tt.expected, moves)
+			sort.Strings(san)
+			assert.Equal(t, tt.expected, san)
 		})
 	}
 }
@@ -583,7 +588,7 @@ func TestTooManyCheckersPanics(t *testing.T) {
 	b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
 	require.NoError(t, err)
 	require.NotNil(t, b)
-	assert.Panics(t, func() { _ = b.GenerateMoves(nil) })
+	assert.Panics(t, func() { b.GenerateMoves(nil) })
 }
 
 func BenchmarkGenerateMoves10(b *testing.B) {
