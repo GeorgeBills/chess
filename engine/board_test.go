@@ -77,7 +77,6 @@ func TestNewBoard(t *testing.T) {
 	for _, idx := range empty {
 		t.Run(fmt.Sprintf("Empty @ %d", idx), func(t *testing.T) {
 			assert.Equal(t, PieceNone, board.PieceAt(idx))
-			assert.True(t, board.IsEmptyAt(idx))
 		})
 	}
 

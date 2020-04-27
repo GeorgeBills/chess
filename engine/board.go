@@ -78,32 +78,29 @@ func NewBoard() Board {
 	}
 }
 
-// IsWhiteAt returns true iff there is a piece at index i and it is white.
-func (b Board) IsWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
+// isWhiteAt returns true iff there is a piece at index i and it is white.
+func (b Board) isWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
 
-// IsBlackAt returns true iff there is a piece at index i and it is black.
-func (b Board) IsBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
+// isBlackAt returns true iff there is a piece at index i and it is black.
+func (b Board) isBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
 
-// IsEmptyAt returns true iff the square at index i is empty.
-func (b Board) IsEmptyAt(i uint8) bool { return !b.IsWhiteAt(i) && !b.IsBlackAt(i) }
+// isPawnAt returns true iff there is a piece at index i and it is a pawn.
+func (b Board) isPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
 
-// IsPawnAt returns true iff there is a piece at index i and it is a pawn.
-func (b Board) IsPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
+// isKnightAt returns true iff there is a piece at index i and it is a knight.
+func (b Board) isKnightAt(i uint8) bool { return b.knights&(1<<i) != 0 }
 
-// IsKnightAt returns true iff there is a piece at index i and it is a knight.
-func (b Board) IsKnightAt(i uint8) bool { return b.knights&(1<<i) != 0 }
+// isBishopAt returns true iff there is a piece at index i and it is a bishop.
+func (b Board) isBishopAt(i uint8) bool { return b.bishops&(1<<i) != 0 }
 
-// IsBishopAt returns true iff there is a piece at index i and it is a bishop.
-func (b Board) IsBishopAt(i uint8) bool { return b.bishops&(1<<i) != 0 }
+// isRookAt returns true iff there is a piece at index i and it is a rook.
+func (b Board) isRookAt(i uint8) bool { return b.rooks&(1<<i) != 0 }
 
-// IsRookAt returns true iff there is a piece at index i and it is a rook.
-func (b Board) IsRookAt(i uint8) bool { return b.rooks&(1<<i) != 0 }
+// isQueenAt returns true iff there is a piece at index i and it is a queen.
+func (b Board) isQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 
-// IsQueenAt returns true iff there is a piece at index i and it is a queen.
-func (b Board) IsQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
-
-// IsKingAt returns true iff there is a piece at index i and it is a king.
-func (b Board) IsKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
+// isKingAt returns true iff there is a piece at index i and it is a king.
+func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
@@ -126,37 +123,37 @@ func (b Board) EnPassant() uint8 {
 
 // PieceAt returns the piece at index i.
 func (b Board) PieceAt(i uint8) Piece {
-	if b.IsWhiteAt(i) {
+	if b.isWhiteAt(i) {
 		switch {
-		case b.IsPawnAt(i):
+		case b.isPawnAt(i):
 			return PieceWhitePawn
-		case b.IsKnightAt(i):
+		case b.isKnightAt(i):
 			return PieceWhiteKnight
-		case b.IsBishopAt(i):
+		case b.isBishopAt(i):
 			return PieceWhiteBishop
-		case b.IsRookAt(i):
+		case b.isRookAt(i):
 			return PieceWhiteRook
-		case b.IsQueenAt(i):
+		case b.isQueenAt(i):
 			return PieceWhiteQueen
-		case b.IsKingAt(i):
+		case b.isKingAt(i):
 			return PieceWhiteKing
 		default:
 			panic(fmt.Sprintf("invalid white piece at index %d; %#v", i, b))
 		}
 	}
-	if b.IsBlackAt(i) {
+	if b.isBlackAt(i) {
 		switch {
-		case b.IsPawnAt(i):
+		case b.isPawnAt(i):
 			return PieceBlackPawn
-		case b.IsKnightAt(i):
+		case b.isKnightAt(i):
 			return PieceBlackKnight
-		case b.IsBishopAt(i):
+		case b.isBishopAt(i):
 			return PieceBlackBishop
-		case b.IsRookAt(i):
+		case b.isRookAt(i):
 			return PieceBlackRook
-		case b.IsQueenAt(i):
+		case b.isQueenAt(i):
 			return PieceBlackQueen
-		case b.IsKingAt(i):
+		case b.isKingAt(i):
 			return PieceBlackKing
 		default:
 			panic(fmt.Sprintf("invalid black piece at index %d; %#v", i, b))
