@@ -479,11 +479,20 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
-			"pinning: may not en passant if that exposes king",
+			"pinning: may not en passant if that exposes king (black to move)",
 			"8/8/8/8/R3Pp1k/8/8/4K3 b - e3 0 123",
 			[]string{
 				"f4f3",                                 // pawn may NOT capture en passant
 				"h4g3", "h4g4", "h4g5", "h4h3", "h4h5", // king
+			},
+		},
+		{
+			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
+			"pinning: may not en passant if that exposes king (white to move)",
+			"4k3/8/8/K4pPq/8/8/8/8 w - f6 0 123",
+			[]string{
+				"g5g6",                                 // pawn may NOT capture en passant
+				"a5a4", "a5a6", "a5b4", "a5b5", "a5b6", // king
 			},
 		},
 		// TODO: checkmate
