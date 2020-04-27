@@ -551,11 +551,11 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		switch tomove {
 		case White:
 			ne := from + 9
-			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
+			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
 				addPromotions(from, ne, true)
 			}
 			nw := from + 7
-			if tobit = 1 << nw; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
+			if tobit = 1 << nw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
 				addPromotions(from, nw, true)
 			}
 			push := from + 8

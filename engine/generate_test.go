@@ -89,7 +89,6 @@ func TestMoves(t *testing.T) {
 				"d5xe4", "e5xd4", "e5xf4", "g4xh3", // pawns
 			},
 		},
-		// TODO: update pawn promo tests to check for wrapping A => H or H => A file on captures
 		{
 			"pawn promotions (white)",
 			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
@@ -132,6 +131,34 @@ func TestMoves(t *testing.T) {
 				"e5xd6e.p.", "e5e6", // e5 pawn
 				"c5xd6e.p.", "c5c6", // c5 pawn
 				"e4xd5", // e4 pawn
+			},
+		},
+		{
+			"pawns shouldn't wrap east (white to move)",
+			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"pawns shouldn't wrap west (white to move)",
+			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"pawns shouldn't wrap east (black to move)",
+			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+			},
+		},
+		{
+			"pawns shouldn't wrap west (black to move)",
+			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 			},
 		},
 		{
