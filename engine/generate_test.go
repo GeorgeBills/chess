@@ -480,11 +480,18 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"clearing check: en passant not valid if it would not clear check",
+			"clearing check: en passant not valid if it would not clear check (white to move)",
 			"3qk3/8/8/4pP2/7K/8/8/8 w - e6 0 123",
 			[]string{
 				"f5f6",
 				"h4h5", "h4g4", "h4g3", "h4h3",
+			},
+		},
+		{
+			"clearing check: en passant not valid if it would not clear check  (black to move)",
+			"R3k3/8/8/8/3pP3/8/8/4K3 b - e3 0 123",
+			[]string{
+				"e8d7", "e8f7", "e8e7",
 			},
 		},
 		{
