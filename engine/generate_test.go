@@ -316,7 +316,11 @@ func TestMoves(t *testing.T) {
 			"4k3/8/8/8/8/3ppp2/8/4K3 w - - 0 123",
 			[]string{"e1d1", "e1f1"},
 		},
-		// TODO: test for queen threat
+		{
+			"king must not move into check (queen)",
+			"4k3/8/8/2q5/4K3/8/8/8 w - - 0 123",
+			[]string{"e4d3", "e4f3", "e4f4"},
+		},
 		{
 			"king must not move into check: free to move, own piece blocks check",
 			"3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
@@ -353,9 +357,27 @@ func TestMoves(t *testing.T) {
 				"a3xb4", // pawn must capture bishop
 			},
 		},
-		// TODO: pawn must capture nw to clear check
-		// TODO: pawn must capture se to clear check
-		// TODO: pawn must capture sw to clear check
+		{
+			"clearing check: pawn must capture nw to clear check",
+			"3rk3/4q3/5P2/8/8/6p1/8/4KR2 w - - 0 123",
+			[]string{
+				"f6xe7", // pawn must capture queen
+			},
+		},
+		{
+			"clearing check: pawn must capture se to clear check",
+			"8/8/7R/1p1k4/2PP4/1P2Q3/8/4K3 b - - 0 123",
+			[]string{
+				"b5xc4", // pawn must capture pawn
+			},
+		},
+		{
+			"clearing check: pawn must capture sw to clear check",
+			"3qkb2/3ppp2/3N4/8/8/8/8/4K3 b - - 0 123",
+			[]string{
+				"e7xd6", // pawn must capture knight
+			},
+		},
 		{
 			"clearing check: king must capture to clear check",
 			"3qkb2/3ppP2/2PP4/8/8/8/8/4K2R b K - 0 123",
@@ -413,28 +435,35 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn must push (single or double) to clear check (black)",
+			"clearing check: pawn must push (single or double) to clear check (black)",
 			"4k3/1pp5/8/8/Q6B/8/8/3RKR2 b - - 0 1",
 			[]string{
 				"b7b5", "c7c6", // either pawn must sacrifice itself
 			},
 		},
-		// TODO: pawn must push (single or double) to clear check (white)
 		{
-			"pawn must promote to clear check (black)",
-			"8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+			"clearing check: pawn must push (single or double) to clear check (white)",
+			"3rk3/8/8/b7/8/8/PPP1PP2/4KB2 w - - 0 123",
 			[]string{
-				"g2xh1=Q",
-				"g2xh1=N",
-				"g2xh1=R",
-				"g2xh1=B",
-				"g2g1=Q",
-				"g2g1=N",
-				"g2g1=R",
-				"g2g1=B",
+				"b2b4", "c2c3", // one of two pawns must sacrifice itself
 			},
 		},
-		// TODO: pawn must promote to clear check (white)
+		{
+			"clearing check: pawn must promote to clear check (black)",
+			"8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+			[]string{
+				"g2xh1=Q", "g2xh1=N", "g2xh1=R", "g2xh1=B",
+				"g2g1=Q", "g2g1=N", "g2g1=R", "g2g1=B",
+			},
+		},
+		{
+			"clearing check: pawn must promote to clear check (white)",
+			"4K1rk/q4P2/8/8/8/8/8/8 w - - 0 123",
+			[]string{
+				"f7xg8=B", "f7xg8=N", "f7xg8=Q", "f7xg8=R",
+				"f7f8=B", "f7f8=N", "f7f8=Q", "f7f8=R",
+			},
+		},
 		{
 			"clearing check: capturing or blocking piece doesn't work if double check; king must move",
 			"4k3/1pp5/2B5/1b3n2/8/3r1p2/4R2r/4K3 b - - 0 123",
