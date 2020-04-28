@@ -1,10 +1,13 @@
 package engine_test
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	. "github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
-	"testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMove_SAN(t *testing.T) {
@@ -30,6 +33,36 @@ func TestMove_SAN(t *testing.T) {
 			assert.Equal(t, tt.expected, tt.move.SAN())
 			assert.Equal(t, tt.isEnPassant, tt.move.IsEnPassant())
 			assert.Equal(t, tt.isPromotion, tt.move.IsPromotion())
+		})
+	}
+}
+
+func TestMakeUnmakeMove(t *testing.T) {
+	tests := []struct {
+		name          string
+		before, after string
+		move          engine.Move
+	}{
+		{
+			"pawn single push (white)",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+			NewMove(D2, D3),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b, err := NewBoardFromFEN(strings.NewReader(tt.before))
+			require.NoError(t, err)
+			require.NotNil(t, b)
+
+			// make the move and check the FEN is correct
+			b.MakeMove(tt.move)
+			assert.Equal(t, tt.after, b.FEN())
+
+			// TODO: reverse the move and check we're back to the original FEN
+			// b.UnmakeMove(tt.move)
+			// assert.Equal(t, tt.before, b.FEN())
 		})
 	}
 }

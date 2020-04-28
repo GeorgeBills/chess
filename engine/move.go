@@ -152,3 +152,65 @@ func (m Move) From() uint8 {
 func (m Move) To() uint8 {
 	return uint8((m & moveToMask) >> 0)
 }
+
+// MakeMove applies move to the board, updating its state.
+func (b *Board) MakeMove(move Move) {
+	// switch {
+	// case move.IsEnPassant():
+	// case move.IsKingsideCastling():
+	// case move.IsQueensideCastling():
+	// case move.IsPromotion():
+	// default:
+	// }
+
+	var frombit uint64 = 1 << move.From()
+	var tobit uint64 = 1 << move.To()
+
+	// remove any opposing piece on our destination square
+	b.pawns &^= tobit
+	b.knights &^= tobit
+	b.bishops &^= tobit
+	b.rooks &^= tobit
+	b.queens &^= tobit
+	b.kings &^= tobit
+
+	// update colour masks
+	switch {
+	case b.white&frombit != 0:
+		b.white &^= frombit
+		b.white |= tobit
+		b.black &^= tobit
+	case b.black&frombit != 0:
+		b.black &^= frombit
+		b.black |= tobit
+		b.white &^= tobit
+	}
+
+	// update relevant piece mask
+	switch {
+	case b.pawns&frombit != 0:
+		b.pawns &^= frombit
+		b.pawns |= tobit
+	case b.bishops&frombit != 0:
+		b.bishops &^= frombit
+		b.bishops |= tobit
+	case b.knights&frombit != 0:
+		b.knights &^= frombit
+		b.knights |= tobit
+	case b.rooks&frombit != 0:
+		b.rooks &^= frombit
+		b.rooks |= tobit
+	case b.queens&frombit != 0:
+		b.queens &^= frombit
+		b.queens |= tobit
+	case b.kings&frombit != 0:
+		b.kings &^= frombit
+		b.kings |= tobit
+	}
+
+	b.total++
+}
+
+// // UnmakeMove unapplies move to the board, undoing the state change.
+// func (b Board) UnmakeMove(move Move) {
+// }
