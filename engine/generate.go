@@ -227,10 +227,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		// occlude the ray based on whether it hits the king or not
 		switch {
 		case blockFirstBit&king == 0 && blockFirst != 64: // NOT the king
-			ray ^= moves[blockFirst]
+			ray &^= moves[blockFirst]
 			// case blockFirstBit&king != 0 && blockSecond != 64:
 			// 	// pierce "through" the king
-			// 	ray ^= moves[blockSecond]
+			// 	ray &^= moves[blockSecond]
 		}
 
 		threatened |= ray
@@ -258,10 +258,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		// occlude the ray based on whether it hits the king or not
 		switch {
 		case blockFirstBit&king == 0 && blockFirst != math.MaxUint8: // NOT the king
-			ray ^= moves[blockFirst]
+			ray &^= moves[blockFirst]
 			// case blockFirstBit&king != 0 && blockSecond != math.MaxUint8:
 			// 	// pierce "through" the king
-			// 	ray ^= moves[blockSecond]
+			// 	ray &^= moves[blockSecond]
 		}
 
 		threatened |= ray
@@ -312,7 +312,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for opposingknights := b.knights & opposing; opposingknights != 0; {
 		from = uint8(bits.TrailingZeros64(opposingknights))
 		frombit = 1 << from
-		opposingknights ^= frombit
+		opposingknights &^= frombit
 
 		knightMoves := movesKnights[from]
 		if knightMoves&king != 0 {
@@ -334,7 +334,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
 		from = uint8(bits.TrailingZeros64(opposingrooks))
 		frombit = 1 << from
-		opposingrooks ^= frombit
+		opposingrooks &^= frombit
 
 		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
 		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
@@ -345,7 +345,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
 		from = uint8(bits.TrailingZeros64(opposingbishops))
 		frombit = 1 << from
-		opposingbishops ^= frombit
+		opposingbishops &^= frombit
 
 		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
 		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
@@ -389,7 +389,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	addQuietMoves := func(from uint8, quiet uint64) {
 		for quiet != 0 {
 			to := uint8(bits.TrailingZeros64(quiet))
-			quiet ^= (1 << to)
+			quiet &^= (1 << to)
 			moves = append(moves, NewMove(from, to))
 		}
 	}
@@ -397,7 +397,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	addCaptures := func(from uint8, captures uint64) {
 		for captures != 0 {
 			to := uint8(bits.TrailingZeros64(captures))
-			captures ^= (1 << to)
+			captures &^= (1 << to)
 			moves = append(moves, NewCapture(from, to))
 		}
 	}
@@ -406,7 +406,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		ray := moves[from]
 		intersection := ray & occupied
 		if intersection != 0 {
-			ray ^= moves[uint8(bits.TrailingZeros64(intersection))]
+			ray &^= moves[uint8(bits.TrailingZeros64(intersection))]
 		}
 		return ray
 	}
@@ -415,7 +415,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		ray := moves[from]
 		intersection := ray & occupied
 		if intersection != 0 {
-			ray ^= moves[uint8(63-bits.LeadingZeros64(intersection))]
+			ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
 		}
 		return ray
 	}
@@ -440,7 +440,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				for ray != 0 && pieceidx < 3 {
 					pieceSq := uint8(63 - bits.LeadingZeros64(ray))
 					var pieceMask uint64 = 1 << pieceSq
-					ray ^= pieceMask
+					ray &^= pieceMask
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
@@ -449,7 +449,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				for ray != 0 && pieceidx < 3 {
 					pieceSq := uint8(bits.TrailingZeros64(ray))
 					var pieceMask uint64 = 1 << pieceSq
-					ray ^= pieceMask
+					ray &^= pieceMask
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
@@ -534,7 +534,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for pawnsCanPromote != 0 {
 		from = uint8(bits.TrailingZeros64(pawnsCanPromote))
 		frombit = 1 << from
-		pawnsCanPromote ^= frombit
+		pawnsCanPromote &^= frombit
 
 		// we could calculate masks for the below checks (e.g. pawns that can
 		// promote by pushing are just pawns that can push bitwise AND'ed with
@@ -577,7 +577,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for pawnsNotPromote != 0 {
 		from = uint8(bits.TrailingZeros64(pawnsNotPromote))
 		frombit = 1 << from
-		pawnsNotPromote ^= frombit
+		pawnsNotPromote &^= frombit
 
 		// TODO: set en passant target on double pawn moves
 		// TODO: can do these maskMayMoveTo checks en masse
@@ -614,7 +614,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for knights := b.knights & colour; knights != 0; {
 		from = uint8(bits.TrailingZeros64(knights))
 		frombit = 1 << from
-		knights ^= frombit
+		knights &^= frombit
 
 		m := movesKnights[from] &^ colour & maskMayMoveTo
 		addCaptures(from, m&opposing)
@@ -624,7 +624,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
 		from = uint8(bits.TrailingZeros64(rooks))
 		frombit = 1 << from
-		rooks ^= frombit
+		rooks &^= frombit
 
 		var movesqs uint64
 		if pinnedHorizontal&frombit == 0 { // not pinned horizontally, can move vertically
@@ -643,7 +643,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
 		from = uint8(bits.TrailingZeros64(bishops))
 		frombit = 1 << from
-		bishops ^= frombit
+		bishops &^= frombit
 
 		var movesqs uint64
 		if pinnedDiagonalSWNE&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
