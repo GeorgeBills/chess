@@ -312,11 +312,6 @@ func TestMoves(t *testing.T) {
 			[]string{"a8a7"},
 		},
 		{
-			"king must not move into check (pawns)",
-			"4k3/8/8/8/8/3ppp2/8/4K3 w - - 0 123",
-			[]string{"e1d1", "e1f1"},
-		},
-		{
 			"king must not move into check (queen)",
 			"4k3/8/8/2q5/4K3/8/8/8 w - - 0 123",
 			[]string{"e4d3", "e4f3", "e4f4"},
