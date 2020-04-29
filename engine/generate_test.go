@@ -344,6 +344,46 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"king must not move into check: pawn threat shouldn't wrap (white king a1)",
+			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king b1)",
+			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
+			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king h1)",
+			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
+			[]string{"h1g1", "h1xg2", "h1h2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king g1)",
+			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
+			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king a8)",
+			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"a8a7", "a8xb7", "a8b8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king b8)",
+			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king h8)",
+			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"h8h7", "h8xg7", "h8g8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king g8)",
+			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
+		},
+		{
 			"clearing check: must capture to clear check",
 			"r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
 			[]string{
@@ -392,7 +432,6 @@ func TestMoves(t *testing.T) {
 				"e1d1", "e1xd2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
-		// TODO: tests for king pawn threat wrapping e.g. "4k3/8/8/8/8/8/1p5p/K7 w - - 0 1"
 		{
 			"clearing check: piece must block to clear check (bishop)",
 			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
