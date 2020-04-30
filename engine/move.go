@@ -12,6 +12,11 @@ func NewMove(from, to uint8) Move {
 	return Move(uint16(from)<<6 | uint16(to))
 }
 
+// NewPawnDoublePush returns a new move which represents a pawn double push.
+func NewPawnDoublePush(from, to uint8) Move {
+	return NewMove(from, to) | moveIsPawnDoubleMove
+}
+
 // NewCapture returns a new move which represents a capture.
 func NewCapture(from, to uint8) Move {
 	return NewMove(from, to) | moveIsCapture
@@ -143,6 +148,11 @@ func (m Move) IsQueensideCastling() bool {
 	return m&moveMetaMask == moveIsQueensideCastle
 }
 
+// IsPawnDoublePush returns true iff the move represents a pawn double push.
+func (m Move) IsPawnDoublePush() bool {
+	return m&moveMetaMask == moveIsPawnDoubleMove
+}
+
 // From returns the from index for the move.
 func (m Move) From() uint8 {
 	return uint8((m & moveFromMask) >> 6)
@@ -155,16 +165,20 @@ func (m Move) To() uint8 {
 
 // MakeMove applies move to the board, updating its state.
 func (b *Board) MakeMove(move Move) {
-	// switch {
-	// case move.IsEnPassant():
-	// case move.IsKingsideCastling():
-	// case move.IsQueensideCastling():
-	// case move.IsPromotion():
-	// default:
-	// }
+	from, to := move.From(), move.To()
+	var frombit, tobit uint64 = 1 << from, 1 << to
 
-	var frombit uint64 = 1 << move.From()
-	var tobit uint64 = 1 << move.To()
+	b.meta &^= maskCanEnPassant | maskEnPassantFile
+	switch {
+	case move.IsPawnDoublePush():
+		b.meta |= maskCanEnPassant
+		b.meta |= File(from)
+		// case move.IsEnPassant():
+		// case move.IsKingsideCastling():
+		// case move.IsQueensideCastling():
+		// case move.IsPromotion():
+		// default:
+	}
 
 	// remove any opposing piece on our destination square
 	b.pawns &^= tobit

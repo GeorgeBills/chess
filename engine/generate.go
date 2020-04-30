@@ -581,12 +581,11 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsNotPromote ^= frombit
 
-		// TODO: set en passant target on double pawn moves
 		// TODO: can do these maskMayMoveTo checks en masse
 		switch tomove {
 		case White:
 			if pawnsPushDouble&(maskMayMoveTo>>16)&frombit != 0 {
-				moves = append(moves, NewMove(from, from+16))
+				moves = append(moves, NewPawnDoublePush(from, from+16))
 			}
 			if pawnsPushSingle&(maskMayMoveTo>>8)&frombit != 0 {
 				moves = append(moves, NewMove(from, from+8))
@@ -599,7 +598,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			}
 		case Black:
 			if pawnsPushDouble&(maskMayMoveTo<<16)&frombit != 0 {
-				moves = append(moves, NewMove(from, from-16))
+				moves = append(moves, NewPawnDoublePush(from, from-16))
 			}
 			if pawnsPushSingle&(maskMayMoveTo<<8)&frombit != 0 {
 				moves = append(moves, NewMove(from, from-8))
