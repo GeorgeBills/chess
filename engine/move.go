@@ -176,7 +176,7 @@ type moveCapture struct {
 func NewGame(b *Board) Game {
 	return Game{
 		board:   b,
-		history: make([]moveCapture, 128),
+		history: make([]moveCapture, 0, 128),
 	}
 }
 
