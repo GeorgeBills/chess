@@ -163,6 +163,30 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rN2k3/8/8/8/8/8/8/4K3 b - - 0 123",
 			NewKnightPromotion(B7, B8, false),
 		},
+		{
+			"promotion to queen with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"Q3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewQueenPromotion(B7, A8, true),
+		},
+		{
+			"promotion to bishop with capture  (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"B3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewBishopPromotion(B7, A8, true),
+		},
+		{
+			"promotion to rook with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"R3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewRookPromotion(B7, A8, true),
+		},
+		{
+			"promotion to knight with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"N3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewKnightPromotion(B7, A8, true),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

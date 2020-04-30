@@ -108,6 +108,8 @@ func (m Move) SAN() string {
 	return san.String()
 }
 
+// FIXME: en passant overlaps with promotion | capture, so ordering of evaluation matters...
+
 const (
 	moveMetaMask          = 0b11110000_00000000 // 4 bits: meta (promotion, capture, castle, ...?)
 	moveFromMask          = 0b00001111_11000000 // 6 bits: from square
@@ -214,21 +216,12 @@ func (g *Game) MakeMove(move Move) {
 	// clear en passant if any was present
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 
+	// TODO: we can short circuit out (via return) in a lot of these special cases
+	//       or just move lots of code into the switch default case?
 	switch {
 	case move.IsPawnDoublePush():
 		g.board.meta |= maskCanEnPassant
 		g.board.meta |= File(from)
-	case move.IsEnPassant():
-		switch tomove {
-		case White:
-			epCaptureSq := to - 8
-			g.board.black &^= 1 << epCaptureSq
-			g.board.pawns &^= 1 << epCaptureSq
-		case Black:
-			epCaptureSq := to + 8
-			g.board.white &^= 1 << epCaptureSq
-			g.board.pawns &^= 1 << epCaptureSq
-		}
 	case move.IsKingsideCastling():
 		switch tomove {
 		case White:
@@ -270,6 +263,17 @@ func (g *Game) MakeMove(move Move) {
 		default:
 			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
 		}
+	case move.IsEnPassant():
+		switch tomove {
+		case White:
+			epCaptureSq := to - 8
+			g.board.black &^= 1 << epCaptureSq
+			g.board.pawns &^= 1 << epCaptureSq
+		case Black:
+			epCaptureSq := to + 8
+			g.board.white &^= 1 << epCaptureSq
+			g.board.pawns &^= 1 << epCaptureSq
+		}
 	}
 
 	// remove any opposing piece on our destination square
@@ -279,6 +283,8 @@ func (g *Game) MakeMove(move Move) {
 	g.board.rooks &^= tobit
 	g.board.queens &^= tobit
 	g.board.kings &^= tobit
+
+	// TODO: use (and document) the from|to xor trick throughout
 
 	// update colour masks
 	switch tomove {
@@ -330,18 +336,6 @@ func (g Game) UnmakeMove() {
 	g.board.meta = move.previousMeta
 
 	switch {
-	case move.IsEnPassant():
-		var epCaptureSq uint8
-		switch tomove {
-		case Black:
-			epCaptureSq = from - 8
-			g.board.black |= 1 << epCaptureSq
-			g.board.pawns |= 1 << epCaptureSq
-		case White:
-			epCaptureSq = from + 8
-			g.board.white |= 1 << epCaptureSq
-			g.board.pawns |= 1 << epCaptureSq
-		}
 	case move.IsKingsideCastling():
 		switch tomove {
 		case Black:
@@ -378,6 +372,18 @@ func (g Game) UnmakeMove() {
 			g.board.bishops &^= frombit
 		default:
 			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+		}
+	case move.IsEnPassant():
+		var epCaptureSq uint8
+		switch tomove {
+		case Black:
+			epCaptureSq = from - 8
+			g.board.black |= 1 << epCaptureSq
+			g.board.pawns |= 1 << epCaptureSq
+		case White:
+			epCaptureSq = from + 8
+			g.board.white |= 1 << epCaptureSq
+			g.board.pawns |= 1 << epCaptureSq
 		}
 	}
 
