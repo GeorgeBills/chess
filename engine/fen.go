@@ -330,12 +330,14 @@ READ_CASTLING:
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
-		// should be a file; store the file as the last 4 bits in the board meta
+		b.meta |= maskCanEnPassant
+
+		// should be a file; store the file (zero indexed) as the last 4 bits in the board meta
 		switch ch {
 		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			b.meta |= uint8(ch-'a') + 1
+			b.meta |= uint8(ch - 'a')
 		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			b.meta |= uint8(ch-'A') + 1
+			b.meta |= uint8(ch - 'A')
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
 		}

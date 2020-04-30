@@ -491,14 +491,16 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	// Check for en passant.
-	if epFile := uint8(b.meta & maskEnPassant); epFile != 0 {
+	if b.meta&maskCanEnPassant != 0 {
+		epFile := uint8(b.meta & maskEnPassantFile)
+
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
 	EN_PASSANT:
 		switch tomove {
 		case White:
-			epSquare := 39 + epFile    // rank 6; 8×(6 - 1) + file - 1
-			epCaptureSq := 31 + epFile // rank 5; 8x(5 - 1) + file - 1
+			epSquare := 40 + epFile    // rank 6; 8×(6 - 1) + file
+			epCaptureSq := 32 + epFile // rank 5; 8x(5 - 1) + file
 
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
 				break EN_PASSANT // invalid en passant
@@ -513,8 +515,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
-			epSquare := 15 + epFile    // rank 3; 8×(3 - 1) + file - 1
-			epCaptureSq := 23 + epFile // rank 4; 8x(4 - 1) + file - 1
+			epSquare := 16 + epFile    // rank 3; 8×(3 - 1) + file
+			epCaptureSq := 24 + epFile // rank 4; 8x(4 - 1) + file
 
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
 				break EN_PASSANT // invalid en passant
