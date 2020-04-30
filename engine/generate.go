@@ -499,8 +499,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	EN_PASSANT:
 		switch tomove {
 		case White:
-			epSquare := 40 + epFile    // rank 6; 8×(6 - 1) + file
-			epCaptureSq := 32 + epFile // rank 5; 8x(5 - 1) + file
+			epSquare := Square(rank6, epFile)
+			epCaptureSq := Square(rank5, epFile)
 
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
 				break EN_PASSANT // invalid en passant
@@ -515,8 +515,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
-			epSquare := 16 + epFile    // rank 3; 8×(3 - 1) + file
-			epCaptureSq := 24 + epFile // rank 4; 8x(4 - 1) + file
+			epSquare := Square(rank3, epFile)
+			epCaptureSq := Square(rank4, epFile)
 
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
 				break EN_PASSANT // invalid en passant

@@ -111,12 +111,11 @@ func (b Board) EnPassant() uint8 {
 	}
 	file := uint8(b.meta & maskEnPassantFile)
 	tomove := b.ToMove()
-	// index = 8×(rank - 1) + file - 1
 	switch tomove {
 	case White:
-		return 40 + file // rank 6; 8×(6 - 1) + file
+		return Square(rank6, file)
 	case Black:
-		return 16 + file // rank 3; 8×(3 - 1) + file
+		return Square(rank3, file)
 	default:
 		panic(fmt.Sprintf("invalid to move: %b", tomove))
 	}

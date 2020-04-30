@@ -18,6 +18,11 @@ func File(i uint8) uint8 {
 	return i % 8
 }
 
+// Square returns the square index (0 for A1, 63 for H8) for a rank and file.
+func Square(rank, file uint8) uint8 {
+	return rank*8 + file
+}
+
 // PrintOrderedIndex takes an index i (which must be in the range 0...63), and
 // returns the index with its rank "reversed" such that PrintOrderedIndex(i)
 // loops through rank 8 first, then 7, 6, ..., 1.
