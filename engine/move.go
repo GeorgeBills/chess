@@ -165,13 +165,18 @@ func (m Move) To() uint8 {
 
 type Game struct {
 	board   *Board
-	history []Move
+	history []moveCapture
+}
+
+type moveCapture struct {
+	Move
+	capture Piece
 }
 
 func NewGame(b *Board) Game {
 	return Game{
 		board:   b,
-		history: make([]Move, 128),
+		history: make([]moveCapture, 128),
 	}
 }
 
@@ -179,6 +184,8 @@ func NewGame(b *Board) Game {
 func (g *Game) MakeMove(move Move) {
 	from, to := move.From(), move.To()
 	var frombit, tobit uint64 = 1 << from, 1 << to
+
+	g.history = append(g.history, moveCapture{move, g.board.PieceAt(to)})
 
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 	switch {
@@ -235,8 +242,6 @@ func (g *Game) MakeMove(move Move) {
 	}
 
 	g.board.total++
-
-	g.history = append(g.history, move)
 }
 
 // UnmakeMove unapplies the most recent move on the board.
@@ -284,7 +289,39 @@ func (g Game) UnmakeMove() {
 	// FIXME: we actually need to restore the previous en passant status
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 
-	// FIXME: need to resurrect any captured piece
+	// resurrect any captured piece
+	switch move.capture {
+	case PieceWhitePawn:
+		g.board.pawns |= frombit
+		g.board.white |= frombit
+	case PieceWhiteKnight:
+		g.board.knights |= frombit
+		g.board.white |= frombit
+	case PieceWhiteBishop:
+		g.board.bishops |= frombit
+		g.board.white |= frombit
+	case PieceWhiteRook:
+		g.board.rooks |= frombit
+		g.board.white |= frombit
+	case PieceWhiteQueen:
+		g.board.queens |= frombit
+		g.board.white |= frombit
+	case PieceBlackPawn:
+		g.board.pawns |= frombit
+		g.board.black |= frombit
+	case PieceBlackKnight:
+		g.board.knights |= frombit
+		g.board.black |= frombit
+	case PieceBlackBishop:
+		g.board.bishops |= frombit
+		g.board.black |= frombit
+	case PieceBlackRook:
+		g.board.rooks |= frombit
+		g.board.black |= frombit
+	case PieceBlackQueen:
+		g.board.queens |= frombit
+		g.board.black |= frombit
+	}
 
 	g.board.total--
 }

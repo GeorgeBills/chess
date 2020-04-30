@@ -61,7 +61,12 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
 			NewPawnDoublePush(E2, E4),
 		},
-		// TODO: test capture
+		{
+			"pawn capture (white)",
+			"rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+			"rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2",
+			NewCapture(D4, E5),
+		},
 		// TODO: test *previous* move being en passant - should restore en passant meta
 	}
 	for _, tt := range tests {
