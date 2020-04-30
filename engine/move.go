@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -254,8 +255,21 @@ func (g *Game) MakeMove(move Move) {
 			g.board.rooks ^= togglebits
 			g.board.meta &^= maskBlackCastleKingside | maskBlackCastleQueenside
 		}
-		// case move.IsPromotion():
-		// default:
+	case move.IsPromotion():
+		// swap our pawn out for the piece it's promoting to before it moves
+		g.board.pawns &^= frombit
+		switch {
+		case move&moveIsQueenPromotion == moveIsQueenPromotion:
+			g.board.queens |= frombit
+		case move&moveIsKnightPromotion == moveIsKnightPromotion:
+			g.board.knights |= frombit
+		case move&moveIsRookPromotion == moveIsRookPromotion:
+			g.board.rooks |= frombit
+		case move&moveIsBishopPromotion == moveIsBishopPromotion:
+			g.board.bishops |= frombit
+		default:
+			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+		}
 	}
 
 	// remove any opposing piece on our destination square
@@ -349,6 +363,21 @@ func (g Game) UnmakeMove() {
 			const togglebits uint64 = 1<<A8 | 1<<D8
 			g.board.black ^= togglebits
 			g.board.rooks ^= togglebits
+		}
+	case move.IsPromotion():
+		// "unpromote" our promoted piece
+		g.board.pawns |= frombit
+		switch {
+		case move.Move&moveIsQueenPromotion == moveIsQueenPromotion:
+			g.board.queens &^= frombit
+		case move.Move&moveIsKnightPromotion == moveIsKnightPromotion:
+			g.board.knights &^= frombit
+		case move.Move&moveIsRookPromotion == moveIsRookPromotion:
+			g.board.rooks &^= frombit
+		case move.Move&moveIsBishopPromotion == moveIsBishopPromotion:
+			g.board.bishops &^= frombit
+		default:
+			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
 		}
 	}
 

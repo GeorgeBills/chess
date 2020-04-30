@@ -139,6 +139,30 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqk1r1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQq - 0 5",
 			NewMove(H8, G8),
 		},
+		{
+			"promotion to queen (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rQ2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewQueenPromotion(B7, B8, false),
+		},
+		{
+			"promotion to bishop (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rB2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewBishopPromotion(B7, B8, false),
+		},
+		{
+			"promotion to rook (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rR2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewRookPromotion(B7, B8, false),
+		},
+		{
+			"promotion to knight (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rN2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			NewKnightPromotion(B7, B8, false),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
