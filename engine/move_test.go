@@ -79,6 +79,18 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3",
 			NewMove(G1, F3),
 		},
+		{
+			"castle queenside (white)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/2KR1BNR b kq - 0 5",
+			WhiteQueensideCastle,
+		},
+		{
+			"castle queenside (black)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+			"2kr1bnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQ - 0 6",
+			BlackQueensideCastle,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
