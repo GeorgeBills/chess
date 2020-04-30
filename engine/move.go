@@ -182,17 +182,30 @@ func NewGame(b *Board) Game {
 
 // MakeMove applies move to the board, updating its state.
 func (g *Game) MakeMove(move Move) {
+	tomove := g.board.ToMove()
 	from, to := move.From(), move.To()
 	var frombit, tobit uint64 = 1 << from, 1 << to
 
 	g.history = append(g.history, moveCapture{move, g.board.PieceAt(to)})
 
+	// clear en passant if any was present
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
+
 	switch {
 	case move.IsPawnDoublePush():
 		g.board.meta |= maskCanEnPassant
 		g.board.meta |= File(from)
-		// case move.IsEnPassant():
+	case move.IsEnPassant():
+		switch tomove {
+		case White:
+			epCaptureSq := to - 8
+			g.board.black &^= 1 << epCaptureSq
+			g.board.pawns &^= 1 << epCaptureSq
+		case Black:
+			epCaptureSq := to + 8
+			g.board.white &^= 1 << epCaptureSq
+			g.board.pawns &^= 1 << epCaptureSq
+		}
 		// case move.IsKingsideCastling():
 		// case move.IsQueensideCastling():
 		// case move.IsPromotion():
@@ -208,12 +221,12 @@ func (g *Game) MakeMove(move Move) {
 	g.board.kings &^= tobit
 
 	// update colour masks
-	switch {
-	case g.board.white&frombit != 0:
+	switch tomove {
+	case White:
 		g.board.white &^= frombit
 		g.board.white |= tobit
 		g.board.black &^= tobit
-	case g.board.black&frombit != 0:
+	case Black:
 		g.board.black &^= frombit
 		g.board.black |= tobit
 		g.board.white &^= tobit
@@ -246,11 +259,30 @@ func (g *Game) MakeMove(move Move) {
 
 // UnmakeMove unapplies the most recent move on the board.
 func (g Game) UnmakeMove() {
+	tomove := g.board.ToMove()
 	move := g.history[len(g.history)-1]
 	g.history = g.history[0 : len(g.history)-1]
 
 	from, to := move.To(), move.From() // flip from and to
 	var frombit, tobit uint64 = 1 << from, 1 << to
+
+	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
+
+	switch {
+	case move.IsEnPassant():
+		var epCaptureSq uint8
+		switch tomove {
+		case Black:
+			epCaptureSq = from - 8
+			g.board.black |= 1 << epCaptureSq
+			g.board.pawns |= 1 << epCaptureSq
+		case White:
+			epCaptureSq = from + 8
+			g.board.white |= 1 << epCaptureSq
+			g.board.pawns |= 1 << epCaptureSq
+		}
+		g.board.meta |= maskCanEnPassant | File(epCaptureSq)
+	}
 
 	// update colour masks
 	switch {
@@ -285,9 +317,6 @@ func (g Game) UnmakeMove() {
 		g.board.kings &^= frombit
 		g.board.kings |= tobit
 	}
-
-	// FIXME: we actually need to restore the previous en passant status
-	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 
 	// resurrect any captured piece
 	switch move.capture {

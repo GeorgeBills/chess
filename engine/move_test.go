@@ -67,7 +67,12 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2",
 			NewCapture(D4, E5),
 		},
-		// TODO: test *previous* move being en passant - should restore en passant meta
+		{
+			"en passant (white)",
+			"r1bqkbnr/pppp1ppp/2n5/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
+			"r1bqkbnr/pppp1ppp/2n1P3/8/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 3",
+			NewEnPassant(D5, E6),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
