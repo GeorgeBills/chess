@@ -163,16 +163,28 @@ func (m Move) To() uint8 {
 	return uint8((m & moveToMask) >> 0)
 }
 
+type Game struct {
+	board   *Board
+	history []Move
+}
+
+func NewGame(b *Board) Game {
+	return Game{
+		board:   b,
+		history: make([]Move, 128),
+	}
+}
+
 // MakeMove applies move to the board, updating its state.
-func (b *Board) MakeMove(move Move) {
+func (g *Game) MakeMove(move Move) {
 	from, to := move.From(), move.To()
 	var frombit, tobit uint64 = 1 << from, 1 << to
 
-	b.meta &^= maskCanEnPassant | maskEnPassantFile
+	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 	switch {
 	case move.IsPawnDoublePush():
-		b.meta |= maskCanEnPassant
-		b.meta |= File(from)
+		g.board.meta |= maskCanEnPassant
+		g.board.meta |= File(from)
 		// case move.IsEnPassant():
 		// case move.IsKingsideCastling():
 		// case move.IsQueensideCastling():
@@ -181,50 +193,98 @@ func (b *Board) MakeMove(move Move) {
 	}
 
 	// remove any opposing piece on our destination square
-	b.pawns &^= tobit
-	b.knights &^= tobit
-	b.bishops &^= tobit
-	b.rooks &^= tobit
-	b.queens &^= tobit
-	b.kings &^= tobit
+	g.board.pawns &^= tobit
+	g.board.knights &^= tobit
+	g.board.bishops &^= tobit
+	g.board.rooks &^= tobit
+	g.board.queens &^= tobit
+	g.board.kings &^= tobit
 
 	// update colour masks
 	switch {
-	case b.white&frombit != 0:
-		b.white &^= frombit
-		b.white |= tobit
-		b.black &^= tobit
-	case b.black&frombit != 0:
-		b.black &^= frombit
-		b.black |= tobit
-		b.white &^= tobit
+	case g.board.white&frombit != 0:
+		g.board.white &^= frombit
+		g.board.white |= tobit
+		g.board.black &^= tobit
+	case g.board.black&frombit != 0:
+		g.board.black &^= frombit
+		g.board.black |= tobit
+		g.board.white &^= tobit
 	}
 
 	// update relevant piece mask
 	switch {
-	case b.pawns&frombit != 0:
-		b.pawns &^= frombit
-		b.pawns |= tobit
-	case b.bishops&frombit != 0:
-		b.bishops &^= frombit
-		b.bishops |= tobit
-	case b.knights&frombit != 0:
-		b.knights &^= frombit
-		b.knights |= tobit
-	case b.rooks&frombit != 0:
-		b.rooks &^= frombit
-		b.rooks |= tobit
-	case b.queens&frombit != 0:
-		b.queens &^= frombit
-		b.queens |= tobit
-	case b.kings&frombit != 0:
-		b.kings &^= frombit
-		b.kings |= tobit
+	case g.board.pawns&frombit != 0:
+		g.board.pawns &^= frombit
+		g.board.pawns |= tobit
+	case g.board.bishops&frombit != 0:
+		g.board.bishops &^= frombit
+		g.board.bishops |= tobit
+	case g.board.knights&frombit != 0:
+		g.board.knights &^= frombit
+		g.board.knights |= tobit
+	case g.board.rooks&frombit != 0:
+		g.board.rooks &^= frombit
+		g.board.rooks |= tobit
+	case g.board.queens&frombit != 0:
+		g.board.queens &^= frombit
+		g.board.queens |= tobit
+	case g.board.kings&frombit != 0:
+		g.board.kings &^= frombit
+		g.board.kings |= tobit
 	}
 
-	b.total++
+	g.board.total++
+
+	g.history = append(g.history, move)
 }
 
-// // UnmakeMove unapplies move to the board, undoing the state change.
-// func (b Board) UnmakeMove(move Move) {
-// }
+// UnmakeMove unapplies the most recent move on the board.
+func (g Game) UnmakeMove() {
+	move := g.history[len(g.history)-1]
+	g.history = g.history[0 : len(g.history)-1]
+
+	from, to := move.To(), move.From() // flip from and to
+	var frombit, tobit uint64 = 1 << from, 1 << to
+
+	// update colour masks
+	switch {
+	case g.board.white&frombit != 0:
+		g.board.white &^= frombit
+		g.board.white |= tobit
+		g.board.black &^= tobit
+	case g.board.black&frombit != 0:
+		g.board.black &^= frombit
+		g.board.black |= tobit
+		g.board.white &^= tobit
+	}
+
+	// update relevant piece mask
+	switch {
+	case g.board.pawns&frombit != 0:
+		g.board.pawns &^= frombit
+		g.board.pawns |= tobit
+	case g.board.bishops&frombit != 0:
+		g.board.bishops &^= frombit
+		g.board.bishops |= tobit
+	case g.board.knights&frombit != 0:
+		g.board.knights &^= frombit
+		g.board.knights |= tobit
+	case g.board.rooks&frombit != 0:
+		g.board.rooks &^= frombit
+		g.board.rooks |= tobit
+	case g.board.queens&frombit != 0:
+		g.board.queens &^= frombit
+		g.board.queens |= tobit
+	case g.board.kings&frombit != 0:
+		g.board.kings &^= frombit
+		g.board.kings |= tobit
+	}
+
+	// FIXME: we actually need to restore the previous en passant status
+	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
+
+	// FIXME: need to resurrect any captured piece
+
+	g.board.total--
+}

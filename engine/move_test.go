@@ -55,6 +55,8 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
 			NewPawnDoublePush(E2, E4),
 		},
+		// TODO: test capture
+		// TODO: test *previous* move being en passant - should restore en passant meta
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -62,13 +64,15 @@ func TestMakeUnmakeMove(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, b)
 
+			g := NewGame(b)
+
 			// make the move and check the FEN is correct
-			b.MakeMove(tt.move)
+			g.MakeMove(tt.move)
 			assert.Equal(t, tt.after, b.FEN())
 
-			// TODO: reverse the move and check we're back to the original FEN
-			// b.UnmakeMove(tt.move)
-			// assert.Equal(t, tt.before, b.FEN())
+			// reverse the move and check we're back to the original FEN
+			g.UnmakeMove()
+			assert.Equal(t, tt.before, b.FEN())
 		})
 	}
 }
