@@ -194,6 +194,22 @@ func (g *Game) MakeMove(move Move) {
 	}
 	g.history = append(g.history, mc)
 
+	// remove castling rights if we need to
+	switch from {
+	case A1: // white queenside rook starting square
+		g.board.meta &^= maskWhiteCastleQueenside
+	case E1: // white king starting square
+		g.board.meta &^= maskWhiteCastleKingside | maskWhiteCastleQueenside
+	case H1: // white kingside rook starting square
+		g.board.meta &^= maskWhiteCastleKingside
+	case A8: // black queenside rook starting square
+		g.board.meta &^= maskBlackCastleQueenside
+	case E8: // black king starting square
+		g.board.meta &^= maskBlackCastleKingside | maskBlackCastleQueenside
+	case H8: // black kingside rook starting square
+		g.board.meta &^= maskBlackCastleKingside
+	}
+
 	// clear en passant if any was present
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
 

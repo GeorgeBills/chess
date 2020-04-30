@@ -50,7 +50,7 @@ func TestMakeUnmakeMove(t *testing.T) {
 			NewMove(D2, D3),
 		},
 		{
-			"pawn single push (black)", // bumps total moves
+			"pawn single push (black)",
 			"rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
 			"rnbqkbnr/ppp1pppp/3p4/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
 			NewMove(D7, D6),
@@ -102,6 +102,42 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqk2r/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R b KQkq - 0 4",
 			"rnbq1rk1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQ - 0 5",
 			BlackKingsideCastle,
+		},
+		{
+			"moving king - can no longer castle (white)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R2K1BNR b kq - 0 5",
+			NewMove(E1, D1),
+		},
+		{
+			"moving queenside rook - can no longer castle queenside (white)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/1R2KBNR b Kkq - 0 5",
+			NewMove(A1, B1),
+		},
+		{
+			"moving kingside rook - can no longer castle kingside (white)",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK1R1 b Qkq - 0 4",
+			NewMove(H1, G1),
+		},
+		{
+			"moving king - can no longer castle (black)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+			"r2k1bnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQ - 0 6",
+			NewMove(E8, D8),
+		},
+		{
+			"moving queenside rook - can no longer castle queenside (black)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+			"1r2kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQk - 0 6",
+			NewMove(A8, B8),
+		},
+		{
+			"moving kingside rook - can no longer castle kingside (black)",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R b KQkq - 0 4",
+			"rnbqk1r1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQq - 0 5",
+			NewMove(H8, G8),
 		},
 	}
 	for _, tt := range tests {
