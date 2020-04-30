@@ -79,11 +79,11 @@ func TestMakeUnmakeMove(t *testing.T) {
 
 			// make the move and check the FEN is correct
 			g.MakeMove(tt.move)
-			assert.Equal(t, tt.after, b.FEN())
+			assert.Equal(t, tt.after, b.FEN(), "FEN after MakeMove() should match 'after' FEN'")
 
 			// reverse the move and check we're back to the original FEN
 			g.UnmakeMove()
-			assert.Equal(t, tt.before, b.FEN())
+			assert.Equal(t, tt.before, b.FEN(), "FEN after UnmakeMove() should match 'before' FEN'")
 		})
 	}
 }
