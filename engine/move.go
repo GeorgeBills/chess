@@ -164,13 +164,14 @@ func (m Move) To() uint8 {
 }
 
 type Game struct {
-	board   *Board
+	board   *Board // TODO: embed, and rename to BoardWithHistory or similar
 	history []moveCapture
 }
 
 type moveCapture struct {
 	Move
-	capture Piece
+	capture      Piece
+	previousMeta byte
 }
 
 func NewGame(b *Board) Game {
@@ -186,7 +187,12 @@ func (g *Game) MakeMove(move Move) {
 	from, to := move.From(), move.To()
 	var frombit, tobit uint64 = 1 << from, 1 << to
 
-	g.history = append(g.history, moveCapture{move, g.board.PieceAt(to)})
+	mc := moveCapture{
+		Move:         move,
+		capture:      g.board.PieceAt(to),
+		previousMeta: g.board.meta,
+	}
+	g.history = append(g.history, mc)
 
 	// clear en passant if any was present
 	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
@@ -266,7 +272,8 @@ func (g Game) UnmakeMove() {
 	from, to := move.To(), move.From() // flip from and to
 	var frombit, tobit uint64 = 1 << from, 1 << to
 
-	g.board.meta &^= maskCanEnPassant | maskEnPassantFile
+	// restore previous meta
+	g.board.meta = move.previousMeta
 
 	switch {
 	case move.IsEnPassant():
@@ -281,7 +288,6 @@ func (g Game) UnmakeMove() {
 			g.board.white |= 1 << epCaptureSq
 			g.board.pawns |= 1 << epCaptureSq
 		}
-		g.board.meta |= maskCanEnPassant | File(epCaptureSq)
 	}
 
 	// update colour masks
