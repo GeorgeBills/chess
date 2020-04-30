@@ -25,7 +25,7 @@ func NewCapture(from, to uint8) Move {
 
 // NewEnPassant returns a new move which represents a capture en passant.
 func NewEnPassant(from, to uint8) Move {
-	return NewMove(from, to) | moveIsEnPassant | moveIsCapture
+	return NewMove(from, to) | moveIsEnPassant
 }
 
 // Castling moves are represented with constants.
