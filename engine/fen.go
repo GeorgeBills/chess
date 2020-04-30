@@ -109,8 +109,12 @@ func (b Board) WriteFEN(w io.Writer) error {
 
 	sb.WriteRune(' ')
 
-	// TODO: output correct en passant square
-	sb.WriteRune('-')
+	ep := b.EnPassant()
+	if ep != math.MaxUint8 {
+		sb.WriteString(ToAlgebraicNotation(ep))
+	} else {
+		sb.WriteRune('-')
+	}
 
 	sb.WriteRune(' ')
 
