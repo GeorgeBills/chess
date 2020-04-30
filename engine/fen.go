@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const maxFEN = 96 // actually less than this
+
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
 func (b Board) FEN() string {
 	sb := &strings.Builder{}
@@ -22,7 +24,7 @@ func (b Board) FEN() string {
 func (b Board) WriteFEN(w io.Writer) error {
 	// bufio.Writer helps us defer error handling till the final Flush()
 	// https://blog.golang.org/errors-are-values
-	sb := bufio.NewWriter(w)
+	sb := bufio.NewWriterSize(w, maxFEN)
 
 	var empty int
 	var i uint8
@@ -134,7 +136,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 // validation of resulting board state is performed.
 func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
-	r := bufio.NewReader(fen)
+	r := bufio.NewReaderSize(fen, maxFEN)
 
 	unexpectingEOF := func(err error) error {
 		if err == io.EOF {
