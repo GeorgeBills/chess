@@ -212,7 +212,19 @@ func (g *Game) MakeMove(move Move) {
 			g.board.white &^= 1 << epCaptureSq
 			g.board.pawns &^= 1 << epCaptureSq
 		}
-	// case move.IsKingsideCastling():
+	case move.IsKingsideCastling():
+		switch tomove {
+		case White:
+			const togglebits uint64 = 1<<F1 | 1<<H1
+			g.board.white ^= togglebits
+			g.board.rooks ^= togglebits
+			g.board.meta &^= maskWhiteCastleKingside | maskWhiteCastleQueenside
+		case Black:
+			const togglebits uint64 = 1<<F8 | 1<<H8
+			g.board.black ^= togglebits
+			g.board.rooks ^= togglebits
+			g.board.meta &^= maskBlackCastleKingside | maskBlackCastleQueenside
+		}
 	case move.IsQueensideCastling():
 		switch tomove {
 		case White:
@@ -299,6 +311,17 @@ func (g Game) UnmakeMove() {
 			epCaptureSq = from + 8
 			g.board.white |= 1 << epCaptureSq
 			g.board.pawns |= 1 << epCaptureSq
+		}
+	case move.IsKingsideCastling():
+		switch tomove {
+		case Black:
+			const togglebits uint64 = 1<<F1 | 1<<H1
+			g.board.white ^= togglebits
+			g.board.rooks ^= togglebits
+		case White:
+			const togglebits uint64 = 1<<F8 | 1<<H8
+			g.board.black ^= togglebits
+			g.board.rooks ^= togglebits
 		}
 	case move.IsQueensideCastling():
 		switch tomove {
