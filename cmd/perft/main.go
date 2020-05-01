@@ -39,12 +39,12 @@ func perft(g engine.Game, depth uint, divide bool) uint64 {
 	var ret uint64
 	moves := make([]engine.Move, 0, 32)
 	moves, _ = g.GenerateMoves(moves)
-	if depth <= 1 {
-		return uint64(len(moves))
-	}
 	for _, move := range moves {
 		g.MakeMove(move)
-		n := perft(g, depth-1, false)
+		var n uint64 = 1
+		if depth > 1 {
+			n = perft(g, depth-1, false)
+		}
 		if divide {
 			fmt.Printf("%s\t%d\t%s\n", move.SAN(), n, g.FEN())
 		}
