@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
@@ -11,8 +12,10 @@ const maxDepth = 5
 func main() {
 	b := engine.NewBoard()
 	g := engine.NewGame(&b)
+	start := time.Now()
 	n := perft(g, maxDepth)
-	fmt.Printf("%d\n", n)
+	elapsed := time.Since(start)
+	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
 }
 
 func perft(g engine.Game, depth uint8) uint64 {
