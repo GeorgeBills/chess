@@ -62,12 +62,6 @@ func TestMakeUnmakeMove(t *testing.T) {
 			NewPawnDoublePush(E2, E4),
 		},
 		{
-			"pawn capture (white)",
-			"rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
-			"rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2",
-			NewCapture(D4, E5),
-		},
-		{
 			"en passant (white)",
 			"r1bqkbnr/pppp1ppp/2n5/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
 			"r1bqkbnr/pppp1ppp/2n1P3/8/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 3",
@@ -84,6 +78,18 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3",
 			NewMove(G1, F3),
+		},
+		{
+			"white pawn capture black pawn",
+			"rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+			"rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2",
+			NewCapture(D4, E5),
+		},
+		{
+			"white bishop capture black knight",
+			"r1bqkb1r/pppppppp/2n2n2/1B6/8/4P3/PPPP1PPP/RNBQK1NR w KQkq - 0 3",
+			"r1bqkb1r/pppppppp/2B2n2/8/8/4P3/PPPP1PPP/RNBQK1NR b KQkq - 0 3",
+			NewCapture(B5, C6),
 		},
 		{
 			"castle queenside (white)",
