@@ -134,28 +134,28 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap east (white to move)",
+			"edge conditions: pawns shouldn't wrap east (white to move)",
 			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap west (white to move)",
+			"edge conditions: pawns shouldn't wrap west (white to move)",
 			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap east (black to move)",
+			"edge conditions: pawns shouldn't wrap east (black to move)",
 			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap west (black to move)",
+			"edge conditions: pawns shouldn't wrap west (black to move)",
 			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
@@ -199,7 +199,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: rook move edge conditions: rooks h1 and a8",
+			"edge conditions: rooks h1 and a8",
 			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
 			[]string{
 				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
@@ -210,7 +210,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: rook move edge conditions: rooks a1 and h8",
+			"edge conditions: rooks a1 and h8",
 			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
 			[]string{
 				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
@@ -248,7 +248,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: bishop move edge conditions: bishops moving to corners of the board",
+			"edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
 				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
@@ -339,42 +339,42 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king a1)",
+			"edge conditions: pawn threat shouldn't wrap (white king a1)",
 			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
 			[]string{"a1a2", "a1b1", "a1xb2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king b1)",
+			"edge conditions: pawn threat shouldn't wrap (white king b1)",
 			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
 			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king h1)",
+			"edge conditions: pawn threat shouldn't wrap (white king h1)",
 			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
 			[]string{"h1g1", "h1xg2", "h1h2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king g1)",
+			"edge conditions: pawn threat shouldn't wrap (white king g1)",
 			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
 			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king a8)",
+			"edge conditions: pawn threat shouldn't wrap (black king a8)",
 			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
 			[]string{"a8a7", "a8xb7", "a8b8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king b8)",
+			"edge conditions: pawn threat shouldn't wrap (black king b8)",
 			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
 			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king h8)",
+			"edge conditions: pawn threat shouldn't wrap (black king h8)",
 			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
 			[]string{"h8h7", "h8xg7", "h8g8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king g8)",
+			"edge conditions: pawn threat shouldn't wrap (black king g8)",
 			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
 			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
 		},
