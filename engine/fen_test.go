@@ -256,6 +256,8 @@ func TestRoundTripFEN(t *testing.T) {
 		"2k1nq2/8/8/pP2N2Q/3K4/2pp1r1P/3P2p1/B3R3 b - - 0 1",
 		"6n1/1r6/k2b3p/P5pp/4PP2/5PKP/1PN1N3/8 b - - 0 1",
 		"5N2/8/1b1p2r1/8/2PP4/2kp1p1K/1p2n2B/q3r1N1 b - - 0 1",
+		// FEN with En Passant indicated
+		"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
 	}
 	for i, tt := range fen {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {

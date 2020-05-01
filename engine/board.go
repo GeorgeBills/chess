@@ -58,7 +58,8 @@ const (
 	maskWhiteCastleQueenside uint8 = 0b01000000
 	maskBlackCastleKingside  uint8 = 0b00100000
 	maskBlackCastleQueenside uint8 = 0b00010000
-	maskEnPassant            uint8 = 0b00001111 // the last 4 bits of meta indicate the file for a valid en passant
+	maskCanEnPassant         uint8 = 0b00001000
+	maskEnPassantFile        uint8 = 0b00000111 // the last 3 bits of meta indicate the file (zero indexed) for a valid en passant
 )
 
 // NewBoard returns a board in the initial state.
@@ -105,17 +106,16 @@ func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
 func (b Board) EnPassant() uint8 {
-	file := uint8(b.meta & maskEnPassant)
-	if file == 0 {
+	if b.meta&maskCanEnPassant == 0 {
 		return math.MaxUint8
 	}
+	file := uint8(b.meta & maskEnPassantFile)
 	tomove := b.ToMove()
-	// index = 8×(rank - 1) + file - 1
 	switch tomove {
 	case White:
-		return 39 + file // rank 6; 8×(6 - 1) + file - 1
+		return Square(rank6, file)
 	case Black:
-		return 15 + file // rank 3; 8×(3 - 1) + file - 1
+		return Square(rank3, file)
 	default:
 		panic(fmt.Sprintf("invalid to move: %b", tomove))
 	}

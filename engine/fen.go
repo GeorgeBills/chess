@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const maxFEN = 96 // actually less than this
+
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
 func (b Board) FEN() string {
 	sb := &strings.Builder{}
@@ -22,7 +24,7 @@ func (b Board) FEN() string {
 func (b Board) WriteFEN(w io.Writer) error {
 	// bufio.Writer helps us defer error handling till the final Flush()
 	// https://blog.golang.org/errors-are-values
-	sb := bufio.NewWriter(w)
+	sb := bufio.NewWriterSize(w, maxFEN)
 
 	var empty int
 	var i uint8
@@ -109,8 +111,12 @@ func (b Board) WriteFEN(w io.Writer) error {
 
 	sb.WriteRune(' ')
 
-	// TODO: output correct en passant square
-	sb.WriteRune('-')
+	ep := b.EnPassant()
+	if ep != math.MaxUint8 {
+		sb.WriteString(ToAlgebraicNotation(ep))
+	} else {
+		sb.WriteRune('-')
+	}
 
 	sb.WriteRune(' ')
 
@@ -130,7 +136,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 // validation of resulting board state is performed.
 func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
-	r := bufio.NewReader(fen)
+	r := bufio.NewReaderSize(fen, maxFEN)
 
 	unexpectingEOF := func(err error) error {
 		if err == io.EOF {
@@ -326,12 +332,14 @@ READ_CASTLING:
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
-		// should be a file; store the file as the last 4 bits in the board meta
+		b.meta |= maskCanEnPassant
+
+		// should be a file; store the file (zero indexed) as the last 4 bits in the board meta
 		switch ch {
 		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			b.meta |= uint8(ch-'a') + 1
+			b.meta |= uint8(ch - 'a')
 		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			b.meta |= uint8(ch-'A') + 1
+			b.meta |= uint8(ch - 'A')
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
 		}
