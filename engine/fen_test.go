@@ -34,19 +34,6 @@ func TestNewBoardFromFEN(t *testing.T) {
 	assert.Equal(t, &expected, b)
 }
 
-func TestValidFEN(t *testing.T) {
-	fen := []string{
-		"rnbq1rk1/pp2bppp/2p1pn2/3p4/2PP4/5NP1/PPQBPPBP/RN3RK1 b - - 1 8",
-	}
-	for i, tt := range fen {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			b, err := engine.NewBoardFromFEN(strings.NewReader(tt))
-			require.NoError(t, err)
-			require.NotNil(t, b)
-		})
-	}
-}
-
 func TestEnPassant(t *testing.T) {
 	fen := []struct {
 		fen      string

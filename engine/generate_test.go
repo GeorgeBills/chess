@@ -17,7 +17,7 @@ func TestMoves(t *testing.T) {
 		expected []string
 	}{
 		{
-			"pawn pushes (white)",
+			"basic moves: pawn pushes (white to move)",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 			[]string{
 				// knights
@@ -35,7 +35,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn pushes (black)",
+			"basic moves: pawn pushes (black to move)",
 			"rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
 			[]string{
 				// knights
@@ -53,7 +53,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawns can't move if blocked by opposing piece",
+			"basic moves: pawns can't move if blocked by opposing piece",
 			"k7/8/8/8/3p4/p5P1/P2Pp3/7K w - - 0 123",
 			[]string{
 				"h1g1", "h1h2", "h1g2", // king
@@ -61,7 +61,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawns can't move if blocked by friendly piece",
+			"basic moves: pawns can't move if blocked by friendly piece",
 			"k7/5pp1/p5n1/1p3p2/8/2pp4/8/7K b - - 0 123",
 			[]string{
 				"a8a7", "a8b8", "a8b7", // king
@@ -70,7 +70,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn captures (white)",
+			"basic moves: pawn captures (white to move)",
 			"4k3/8/8/p1bpp2p/P2PPPpP/r5PP/1P6/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
@@ -82,7 +82,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn captures (black)",
+			"basic moves: pawn captures (black to move)",
 			"4k3/8/8/p2pp2p/P2PPPpP/R5PR/1P6/4K3 b - - 0 123",
 			[]string{
 				"e8e7", "e8f7", "e8f8", "e8d7", "e8d8", // king
@@ -90,7 +90,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn promotions (white)",
+			"basic moves: pawn promotions (white to move)",
 			"rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
@@ -105,7 +105,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn promotions (black)",
+			"basic moves: pawn promotions (black to move)",
 			"4k3/8/8/8/8/3P4/1pp4p/bN1QK2R b - - 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
@@ -115,7 +115,7 @@ func TestMoves(t *testing.T) {
 				"c2xd1=B", "c2xd1=N", "c2xd1=Q", "c2xd1=R"},
 		},
 		{
-			"pawn en passant (black to move)",
+			"basic moves: pawn en passant (black to move)",
 			"4k3/8/8/8/3pPp2/3P2P1/8/4K3 b - e3 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
@@ -124,7 +124,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn en passant (white to move)",
+			"basic moves: pawn en passant (white to move)",
 			"4k3/8/8/2PpP3/4P3/8/8/K7 w - d6 0 123",
 			[]string{
 				"a1b1", "a1a2", "a1b2", // king
@@ -134,35 +134,35 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawns shouldn't wrap east (white to move)",
+			"basic moves: pawns shouldn't wrap east (white to move)",
 			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"pawns shouldn't wrap west (white to move)",
+			"basic moves: pawns shouldn't wrap west (white to move)",
 			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"pawns shouldn't wrap east (black to move)",
+			"basic moves: pawns shouldn't wrap east (black to move)",
 			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 			},
 		},
 		{
-			"pawns shouldn't wrap west (black to move)",
+			"basic moves: pawns shouldn't wrap west (black to move)",
 			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 			},
 		},
 		{
-			"knight moves",
+			"basic moves: knight moves",
 			"4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
 			[]string{
 				"c3b1", "c3b5", "c3d1", "c3e4", "c3xa4", "c3xd5", // knight
@@ -171,7 +171,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"rook moves",
+			"basic moves: rook moves",
 			"k7/8/8/8/8/8/8/1R5K w - - 1 123",
 			[]string{
 				"h1h2", "h1g1", "h1g2", // king
@@ -180,7 +180,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"rook captures",
+			"basic moves: rook captures",
 			"k7/8/8/8/1q6/8/rR2P3/1N5K w - - 1 123",
 			[]string{
 				"b1d2", "b1c3", "b1a3", // knight
@@ -190,7 +190,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"rook moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
+			"basic moves: rook moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
 			"2bqk3/1pppp3/8/P1pr1P1p/8/3P4/8/3QK3 b - - 0 123",
 			[]string{
 				"d5xd3", "d5d4", "d5d6", "d5e5", "d5xf5", // rook
@@ -199,7 +199,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"rook move edge conditions: rooks h1 and a8",
+			"basic moves: rook move edge conditions: rooks h1 and a8",
 			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
 			[]string{
 				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
@@ -210,7 +210,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"rook move edge conditions: rooks a1 and h8",
+			"basic moves: rook move edge conditions: rooks a1 and h8",
 			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
 			[]string{
 				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
@@ -221,7 +221,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"bishop moves",
+			"basic moves: bishop moves",
 			"4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
 			[]string{
 				"e8e7", "e8f7", "e8f8", "e8d8", // king
@@ -229,7 +229,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"bishop captures",
+			"basic moves: bishop captures",
 			"4k3/3p4/p7/1B6/8/3K4/8/8 w - - 1 123",
 			[]string{
 				"d3c2", "d3c3", "d3c4", "d3d2", "d3d4", "d3e2", "d3e3", "d3e4", // king
@@ -237,7 +237,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"bishop moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
+			"basic moves: bishop moves blocked", // two blockers in every direction; this test makes sure we get the block masks correct
 			"rn2k1n1/pP2p3/p3R3/3b4/8/1P3p2/P7/4K2R b - - 0 123",
 			[]string{
 				"g8f6", "g8h6", // kingside knight
@@ -248,7 +248,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"bishop move edge conditions: bishops moving to corners of the board",
+			"basic moves: bishop move edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
 				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
@@ -259,7 +259,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"queen moves",
+			"basic moves: queen moves",
 			"3k4/2p3P1/P2q3B/8/8/P7/7P/3BK3 b - - 1 123",
 			[]string{
 				"c7c5", "c7c6", // pawn
@@ -274,21 +274,21 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king must not move into check (pawns; black to move)",
+			"king must not move into check: pawns (black to move)",
 			"4k3/6P1/2P1P3/8/8/8/8/4K3 b - - 0 123",
 			[]string{
 				"e8e7", "e8d8",
 			},
 		},
 		{
-			"king must not move into check (pawns; white to move)",
+			"king must not move into check: pawns (white to move)",
 			"4k3/8/8/8/8/2p3p1/8/4K3 w - - 0 123",
 			[]string{
 				"e1e2", "e1d1", "e1f1",
 			},
 		},
 		{
-			"king must not move into check (bishop)",
+			"king must not move into check: bishop",
 			"4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
 			[]string{
 				"e4xd5", "e4f5",
@@ -297,26 +297,25 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king must not move into check (rook)",
+			"king must not move into check: rook",
 			"4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
 			[]string{"g1g2", "g1f1", "g1f2"},
 		},
 		{
-			"king must not move into check (knights)",
+			"king must not move into check: knights",
 			"4k3/8/6N1/3N4/8/8/8/4K3 b - - 1 123",
 			[]string{"e8d7", "e8d8", "e8f7"},
 		},
 		{
-			"king must not move into check (opposing king)",
+			"king must not move into check: opposing king",
 			"k7/2K5/7R/8/8/8/8/8 b - - 1 123",
 			[]string{"a8a7"},
 		},
 		{
-			"king must not move into check (pawns)",
-			"4k3/8/8/8/8/3ppp2/8/4K3 w - - 0 123",
-			[]string{"e1d1", "e1f1"},
+			"king must not move into check: queen",
+			"4k3/8/8/2q5/4K3/8/8/8 w - - 0 123",
+			[]string{"e4d3", "e4f3", "e4f4"},
 		},
-		// TODO: test for queen threat
 		{
 			"king must not move into check: free to move, own piece blocks check",
 			"3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
@@ -340,6 +339,46 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"king must not move into check: pawn threat shouldn't wrap (white king a1)",
+			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king b1)",
+			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
+			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king h1)",
+			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
+			[]string{"h1g1", "h1xg2", "h1h2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (white king g1)",
+			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
+			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king a8)",
+			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"a8a7", "a8xb7", "a8b8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king b8)",
+			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king h8)",
+			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"h8h7", "h8xg7", "h8g8"},
+		},
+		{
+			"king must not move into check: pawn threat shouldn't wrap (black king g8)",
+			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
+		},
+		{
 			"clearing check: must capture to clear check",
 			"r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
 			[]string{
@@ -353,9 +392,27 @@ func TestMoves(t *testing.T) {
 				"a3xb4", // pawn must capture bishop
 			},
 		},
-		// TODO: pawn must capture nw to clear check
-		// TODO: pawn must capture se to clear check
-		// TODO: pawn must capture sw to clear check
+		{
+			"clearing check: pawn must capture nw to clear check",
+			"3rk3/4q3/5P2/8/8/6p1/8/4KR2 w - - 0 123",
+			[]string{
+				"f6xe7", // pawn must capture queen
+			},
+		},
+		{
+			"clearing check: pawn must capture se to clear check",
+			"8/8/7R/1p1k4/2PP4/1P2Q3/8/4K3 b - - 0 123",
+			[]string{
+				"b5xc4", // pawn must capture pawn
+			},
+		},
+		{
+			"clearing check: pawn must capture sw to clear check",
+			"3qkb2/3ppp2/3N4/8/8/8/8/4K3 b - - 0 123",
+			[]string{
+				"e7xd6", // pawn must capture knight
+			},
+		},
 		{
 			"clearing check: king must capture to clear check",
 			"3qkb2/3ppP2/2PP4/8/8/8/8/4K2R b K - 0 123",
@@ -370,7 +427,6 @@ func TestMoves(t *testing.T) {
 				"e1d1", "e1xd2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
-		// TODO: tests for king pawn threat wrapping e.g. "4k3/8/8/8/8/8/1p5p/K7 w - - 0 1"
 		{
 			"clearing check: piece must block to clear check (bishop)",
 			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
@@ -413,30 +469,37 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"pawn must push (single or double) to clear check (black)",
+			"clearing check: pawn must push (single or double) to clear check (black to move)",
 			"4k3/1pp5/8/8/Q6B/8/8/3RKR2 b - - 0 1",
 			[]string{
 				"b7b5", "c7c6", // either pawn must sacrifice itself
 			},
 		},
-		// TODO: pawn must push (single or double) to clear check (white)
 		{
-			"pawn must promote to clear check (black)",
-			"8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+			"clearing check: pawn must push (single or double) to clear check (white to move)",
+			"3rk3/8/8/b7/8/8/PPP1PP2/4KB2 w - - 0 123",
 			[]string{
-				"g2xh1=Q",
-				"g2xh1=N",
-				"g2xh1=R",
-				"g2xh1=B",
-				"g2g1=Q",
-				"g2g1=N",
-				"g2g1=R",
-				"g2g1=B",
+				"b2b4", "c2c3", // one of two pawns must sacrifice itself
 			},
 		},
-		// TODO: pawn must promote to clear check (white)
 		{
-			"clearing check: capturing or blocking piece doesn't work if double check; king must move",
+			"clearing check: pawn must promote to clear check (black to move)",
+			"8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+			[]string{
+				"g2xh1=Q", "g2xh1=N", "g2xh1=R", "g2xh1=B",
+				"g2g1=Q", "g2g1=N", "g2g1=R", "g2g1=B",
+			},
+		},
+		{
+			"clearing check: pawn must promote to clear check (white to move)",
+			"4K1rk/q4P2/8/8/8/8/8/8 w - - 0 123",
+			[]string{
+				"f7xg8=B", "f7xg8=N", "f7xg8=Q", "f7xg8=R",
+				"f7f8=B", "f7f8=N", "f7f8=Q", "f7f8=R",
+			},
+		},
+		{
+			"clearing check: king must move if double check",
 			"4k3/1pp5/2B5/1b3n2/8/3r1p2/4R2r/4K3 b - - 0 123",
 			[]string{
 				"e8d8", "e8f7", "e8f8", // only valid moves are king moves
@@ -451,11 +514,18 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"clearing check: en passant not valid if it would not clear check",
+			"clearing check: en passant not valid if it would not clear check (white to move)",
 			"3qk3/8/8/4pP2/7K/8/8/8 w - e6 0 123",
 			[]string{
 				"f5f6",
 				"h4h5", "h4g4", "h4g3", "h4h3",
+			},
+		},
+		{
+			"clearing check: en passant not valid if it would not clear check (black to move)",
+			"R3k3/8/8/8/3pP3/8/8/4K3 b - e3 0 123",
+			[]string{
+				"e8d7", "e8f7", "e8e7",
 			},
 		},
 		{
