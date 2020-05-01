@@ -74,6 +74,12 @@ func TestMakeUnmakeMove(t *testing.T) {
 			NewEnPassant(D5, E6),
 		},
 		{
+			"en passant (black)",
+			"rnbqkbnr/pppp1ppp/8/8/3PpP2/2N5/PPP1P1PP/R1BQKBNR b KQkq f3 0 3",
+			"rnbqkbnr/pppp1ppp/8/8/3P4/2N2p2/PPP1P1PP/R1BQKBNR w KQkq - 0 4",
+			NewEnPassant(E4, F3),
+		},
+		{
 			"en passant declined (white)",
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3",
