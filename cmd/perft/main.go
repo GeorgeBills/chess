@@ -8,18 +8,19 @@ import (
 )
 
 const maxDepth = 5
+const divide = true
 
 func main() {
 	b := engine.NewBoard()
 	g := engine.NewGame(&b)
 	start := time.Now()
-	n := perft(g, maxDepth)
+	n := perft(g, maxDepth, divide)
 	elapsed := time.Since(start)
 	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
 }
 
-func perft(g engine.Game, depth uint8) uint64 {
-	var n uint64
+func perft(g engine.Game, depth uint8, divide bool) uint64 {
+	var ret uint64
 	moves := make([]engine.Move, 0, 32)
 	moves, _ = g.GenerateMoves(moves)
 	if depth == 1 {
@@ -27,8 +28,12 @@ func perft(g engine.Game, depth uint8) uint64 {
 	}
 	for _, move := range moves {
 		g.MakeMove(move)
-		n += perft(g, depth-1)
+		n := perft(g, depth-1, false)
+		if divide {
+			fmt.Printf("%s %d\n", move.SAN(), n)
+		}
+		ret += n
 		g.UnmakeMove()
 	}
-	return n
+	return ret
 }
