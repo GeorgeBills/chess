@@ -46,7 +46,7 @@ func perft(g engine.Game, depth uint, divide bool) uint64 {
 		g.MakeMove(move)
 		n := perft(g, depth-1, false)
 		if divide {
-			fmt.Printf("%s %d\n", move.SAN(), n)
+			fmt.Printf("%s\t%d\t%s\n", move.SAN(), n, g.FEN())
 		}
 		ret += n
 		g.UnmakeMove()
