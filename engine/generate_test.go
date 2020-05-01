@@ -133,6 +133,40 @@ func TestMoves(t *testing.T) {
 				"e4xd5", // e4 pawn
 			},
 		},
+		// TODO: test all en passant a / h and direction combinations here
+		// TODO: include valid en passants in all of these
+		{
+			"edge conditions: en passant a6 shouldn't wrap north-east",
+			"4k3/8/8/p7/7P/8/8/4K3 w - a6 0 2",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"h4h5", // pawn; should NOT include h4xa6e.p.
+			},
+		},
+		{
+			"edge conditions: en passant a6 shouldn't wrap north-west",
+			"4k3/8/8/6p1/7P/8/8/4K3 w - a6 0 2",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"h4h5", // pawn; should NOT include h4xa6e.p.
+			},
+		},
+		{
+			"edge conditions: en passant a3 shouldn't wrap south-east",
+			"4k3/8/8/8/P7/7p/8/4K3 b - a3 0 2",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"h3h2", // pawn; should NOT include h3xa3e.p.
+			},
+		},
+		{
+			"edge conditions: en passant h3 shouldn't wrap south-west",
+			"4k3/8/8/p7/7P/8/8/4K3 b - h3 0 2",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"a5a4", // pawn; should NOT include a5xh3e.p.
+			},
+		},
 		{
 			"edge conditions: pawns shouldn't wrap east (white to move)",
 			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
