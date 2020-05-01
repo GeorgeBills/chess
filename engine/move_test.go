@@ -92,6 +92,12 @@ func TestMakeUnmakeMove(t *testing.T) {
 			NewCapture(B5, C6),
 		},
 		{
+			"black queen capture white rook",
+			"4k3/8/5q2/8/8/8/8/R3K3 b - - 0 123",
+			"4k3/8/8/8/8/8/8/q3K3 w - - 0 124",
+			NewCapture(F6, A1),
+		},
+		{
 			"castle queenside (white)",
 			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
 			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/2KR1BNR b kq - 0 5",
