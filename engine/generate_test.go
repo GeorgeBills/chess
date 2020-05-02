@@ -602,6 +602,14 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: queen pinned to NW/SE diagonal",
+			"5k2/8/8/q7/8/8/3Q4/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1e2", "e1f1", "e1f2", // king
+				"d2xa5", "d2b4", "d2c3", // queen
+			},
+		},
+		{
 			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
