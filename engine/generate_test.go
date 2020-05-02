@@ -580,6 +580,13 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: pinned pawn may not move",
+			"4k3/3p4/8/8/Q7/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8",
+			},
+		},
+		{
 			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
