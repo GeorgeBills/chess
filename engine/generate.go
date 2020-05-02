@@ -620,7 +620,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 	}
 
-	for knights := b.knights & colour; knights != 0; {
+	for knights := b.knights & colour &^ pinnedAny; knights != 0; {
 		from = uint8(bits.TrailingZeros64(knights))
 		frombit = 1 << from
 		knights &^= frombit
