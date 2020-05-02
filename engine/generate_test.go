@@ -133,38 +133,40 @@ func TestMoves(t *testing.T) {
 				"e4xd5", // e4 pawn
 			},
 		},
-		// TODO: test all en passant a / h and direction combinations here
-		// TODO: include valid en passants in all of these
 		{
 			"edge conditions: en passant a6 shouldn't wrap north-east",
-			"4k3/8/8/p7/7P/8/8/4K3 w - a6 0 2",
+			"4k3/8/8/pP6/7P/8/8/4K3 w - a6 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-				"h4h5", // pawn; should NOT include h4xa6e.p.
+				"h4h5",              // h4 pawn; should NOT include h4xa6e.p.
+				"b5b6", "b5xa6e.p.", // b5 pawn may en passant
 			},
 		},
 		{
-			"edge conditions: en passant a6 shouldn't wrap north-west",
-			"4k3/8/8/6p1/7P/8/8/4K3 w - a6 0 2",
+			"edge conditions: en passant h6 shouldn't wrap north-west",
+			"4k3/8/P7/6Pp/8/8/8/4K3 w - h6 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-				"h4h5", // pawn; should NOT include h4xa6e.p.
+				"a6a7",              // a6 pawn; should NOT include a6xh6e.p.
+				"g5g6", "g5xh6e.p.", // g5 pawn may en passant
 			},
 		},
 		{
 			"edge conditions: en passant a3 shouldn't wrap south-east",
-			"4k3/8/8/8/P7/7p/8/4K3 b - a3 0 2",
+			"4k3/8/8/8/Pp6/7p/8/4K3 b - a3 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-				"h3h2", // pawn; should NOT include h3xa3e.p.
+				"h3h2",              // h3 pawn; should NOT include h3xa3e.p.
+				"b4b3", "b4xa3e.p.", // b4 pawn may en passant
 			},
 		},
 		{
 			"edge conditions: en passant h3 shouldn't wrap south-west",
-			"4k3/8/8/p7/7P/8/8/4K3 b - h3 0 2",
+			"4k3/8/8/p7/6pP/8/8/4K3 b - h3 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-				"a5a4", // pawn; should NOT include a5xh3e.p.
+				"a5a4",              // a5 pawn; should NOT include a5xh3e.p.
+				"g4g3", "g4xh3e.p.", // g4 pawn may en passant
 			},
 		},
 		{
