@@ -587,6 +587,21 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: pawn may move forwards on pinned ray",
+			"4k3/8/4p3/5P2/8/8/4Q3/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8", "e8d7", // king
+				"e6e5", // pawn; may NOT capture f5
+			},
+		},
+		{
+			"pinning: knight",
+			"4k3/8/8/4n3/8/8/4Q3/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8", "e8d7", // king
+			},
+		},
+		{
 			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
@@ -619,8 +634,16 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: may not en passant if that exposes king vertically",
+			"4k3/8/8/8/4pP2/8/4Q3/4K3 b - f3 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"e4e3", // pawn; may NOT capture en passant
+			},
+		},
+		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
-			"pinning: may not en passant if that exposes king (black to move)",
+			"pinning: may not en passant if that exposes king horizontally (black to move)",
 			"8/8/8/8/R3Pp1k/8/8/4K3 b - e3 0 123",
 			[]string{
 				"f4f3",                                 // pawn may NOT capture en passant
@@ -629,7 +652,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
-			"pinning: may not en passant if that exposes king (white to move)",
+			"pinning: may not en passant if that exposes king horizontally (white to move)",
 			"4k3/8/8/K4pPq/8/8/8/8 w - f6 0 123",
 			[]string{
 				"g5g6",                                 // pawn may NOT capture en passant
