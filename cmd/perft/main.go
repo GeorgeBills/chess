@@ -16,6 +16,7 @@ func main() {
 	depth := flag.Uint("depth", 1, "depth to generate moves to")
 	fen := flag.String("fen", defaultFEN, "FEN to start with")
 	divide := flag.Bool("divide", false, "whether or not to output node count divided by initial moves")
+	validate := flag.Bool("validate", false, "whether or not to validate each board state")
 
 	flag.Parse()
 
@@ -25,7 +26,7 @@ func main() {
 	}
 	g := engine.NewGame(b)
 	start := time.Now()
-	n := perft(g, *depth, *divide)
+	n := perft(g, *depth, *validate, *divide)
 	elapsed := time.Since(start)
 	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
 }
@@ -35,15 +36,25 @@ func fatal(v interface{}) {
 	os.Exit(1)
 }
 
-func perft(g engine.Game, depth uint, divide bool) uint64 {
+func perft(g engine.Game, depth uint, validate, divide bool) uint64 {
 	var ret uint64
 	moves := make([]engine.Move, 0, 32)
 	moves, _ = g.GenerateMoves(moves)
 	for _, move := range moves {
+		fen := ""
+		if validate {
+			fen = g.FEN()
+		}
 		g.MakeMove(move)
+		if validate {
+			err := g.Validate()
+			if err != nil {
+				fatal(fmt.Sprintf("move %s on board '%v' results in an invalid board: %v", move.SAN(), fen, err))
+			}
+		}
 		var n uint64 = 1
 		if depth > 1 {
-			n = perft(g, depth-1, false)
+			n = perft(g, depth-1, validate, false)
 		}
 		if divide {
 			fmt.Printf("%s\t%d\t%s\n", move.SAN(), n, g.FEN())
