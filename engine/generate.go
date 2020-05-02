@@ -457,6 +457,9 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
 
+	pinnedAny := pinnedHorizontal | pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+	pinnedExceptVertical := pinnedHorizontal | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+
 	var maskMayMoveTo uint64
 	switch bits.OnesCount64(checkers) {
 	case 0:
@@ -480,19 +483,19 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 	switch tomove {
 	case White:
-		pawnsPushSingle = pawns &^ (occupied >> 8)
+		pawnsPushSingle = pawns &^ (occupied >> 8) &^ pinnedExceptVertical
 		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
-		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
-		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
+		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH &^ pinnedAny // ne
+		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA &^ pinnedAny // nw
 	case Black:
-		pawnsPushSingle = pawns &^ (occupied << 8)
+		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical
 		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
-		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA // se
-		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
+		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA &^ pinnedAny // se
+		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH &^ pinnedAny // sw
 	}
 
 	// Check for en passant.
