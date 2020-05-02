@@ -209,17 +209,17 @@ func (b Board) String() string {
 func (b Board) Validate() error {
 	numWhiteKings := bits.OnesCount64(b.kings & b.white)
 	if numWhiteKings != 1 {
-		return fmt.Errorf("invalid board: %d white kings", numWhiteKings)
+		return fmt.Errorf("%d white kings", numWhiteKings)
 	}
 	numBlackKings := bits.OnesCount64(b.kings & b.black)
 	if numBlackKings != 1 {
-		return fmt.Errorf("invalid board: %d black kings", numBlackKings)
+		return fmt.Errorf("%d black kings", numBlackKings)
 	}
 	if b.pawns&maskRank1 != 0 {
-		return errors.New("invalid board: pawns on rank 1")
+		return errors.New("pawns on rank 1")
 	}
 	if b.pawns&maskRank8 != 0 {
-		return errors.New("invalid board: pawns on rank 8")
+		return errors.New("pawns on rank 8")
 	}
 	return nil
 }
