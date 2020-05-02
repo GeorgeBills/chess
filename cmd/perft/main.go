@@ -26,7 +26,10 @@ func main() {
 	}
 	g := engine.NewGame(b)
 	start := time.Now()
-	n := perft(g, *depth, *validate, *divide)
+	var n uint64 = 0
+	if *depth > 0 {
+		n = perft(g, *depth, *validate, *divide)
+	}
 	elapsed := time.Since(start)
 	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
 }
