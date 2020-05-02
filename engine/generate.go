@@ -508,10 +508,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank5) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare - 7; pawnsNotPromote&(1<<from) != 0 { // sw
+			if from = epSquare - 7; pawnsNotPromote&^maskFileA&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = epSquare - 9; pawnsNotPromote&(1<<from) != 0 { // se
+			if from = epSquare - 9; pawnsNotPromote&^maskFileH&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
@@ -524,10 +524,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank4) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare + 7; pawnsNotPromote&(1<<from) != 0 {
+			if from = epSquare + 7; pawnsNotPromote&^maskFileH&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = epSquare + 9; pawnsNotPromote&(1<<from) != 0 {
+			if from = epSquare + 9; pawnsNotPromote&^maskFileA&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}
