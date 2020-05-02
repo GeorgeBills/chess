@@ -161,7 +161,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	var from uint8
 	var frombit, tobit uint64
 	var colour, opposing uint64
-	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
+	var pawns uint64
 
 	occupied := b.white | b.black
 
@@ -170,25 +170,11 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	case White:
 		colour = b.white
 		opposing = b.black
-		pawns := b.pawns & b.white
-		pawnsPushSingle = pawns &^ (occupied >> 8)
-		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
-		pawnsCanPromote = pawns & maskRank7
-		pawnsNotPromote = pawns &^ maskRank7
-
-		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
-		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
+		pawns = b.pawns & b.white
 	case Black:
 		colour = b.black
 		opposing = b.white
-		pawns := b.pawns & b.black
-		pawnsPushSingle = pawns &^ (occupied << 8)
-		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
-		pawnsCanPromote = pawns & maskRank2
-		pawnsNotPromote = pawns &^ maskRank2
-
-		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA // se
-		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
+		pawns = b.pawns & b.black
 	}
 
 	king := b.kings & colour
@@ -461,13 +447,15 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			// then our pawn is pinned and may not en passant
 			sliders := (b.rooks | b.queens) & opposing
 			if pieces[2]&sliders != 0 &&
-				((pieces[0]&(1<<epCaptureSq) != 0 && pieces[1]&pawnsNotPromote != 0) ||
-					(pieces[1]&(1<<epCaptureSq) != 0 && pieces[0]&pawnsNotPromote != 0)) {
+				((pieces[0]&(1<<epCaptureSq) != 0 && pieces[1]&pawns != 0) ||
+					(pieces[1]&(1<<epCaptureSq) != 0 && pieces[0]&pawns != 0)) {
 				return true
 			}
 		}
 		return false
 	}
+
+	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
 
 	var maskMayMoveTo uint64
 	switch bits.OnesCount64(checkers) {
@@ -490,6 +478,23 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
+	switch tomove {
+	case White:
+		pawnsPushSingle = pawns &^ (occupied >> 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
+		pawnsCanPromote = pawns & maskRank7
+		pawnsNotPromote = pawns &^ maskRank7
+		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH // ne
+		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA // nw
+	case Black:
+		pawnsPushSingle = pawns &^ (occupied << 8)
+		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
+		pawnsCanPromote = pawns & maskRank2
+		pawnsNotPromote = pawns &^ maskRank2
+		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA // se
+		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH // sw
+	}
+
 	// Check for en passant.
 	if b.meta&maskCanEnPassant != 0 {
 		epFile := uint8(b.meta & maskEnPassantFile)
@@ -508,10 +513,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank5) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare - 7; pawnsNotPromote&^maskFileA&(1<<from) != 0 { // sw
+			if from = epSquare - 7; pawns&^maskFileA&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = epSquare - 9; pawnsNotPromote&^maskFileH&(1<<from) != 0 { // se
+			if from = epSquare - 9; pawns&^maskFileH&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
@@ -524,10 +529,10 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank4) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare + 7; pawnsNotPromote&^maskFileH&(1<<from) != 0 {
+			if from = epSquare + 7; pawns&^maskFileH&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = epSquare + 9; pawnsNotPromote&^maskFileA&(1<<from) != 0 {
+			if from = epSquare + 9; pawns&^maskFileA&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}
