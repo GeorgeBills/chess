@@ -634,6 +634,16 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: may not promote if that exposes king horizontally (black to move)",
+			"8/8/8/8/8/8/k5pQ/4KB1R b - - 0 3",
+			[]string{"a2a1", "a2a3", "a2b1", "a2b2", "a2b3"},
+		},
+		{
+			"pinning: may not promote if that exposes king vertically (black to move)",
+			"2Q5/8/8/8/8/8/2p5/1Nk1K3 b - - 0 3",
+			[]string{"c1b2", "c1xb1"},
+		},
+		{
 			"pinning: may not en passant if that exposes king vertically",
 			"4k3/8/8/8/4pP2/8/4Q3/4K3 b - f3 0 3",
 			[]string{
