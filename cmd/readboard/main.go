@@ -7,7 +7,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fatal(fmt.Sprintf("%s <sq1> [sq2] [sq3] ... [sqn]", os.Args[0]))
+		fatal(fmt.Errorf("%s <sq1> [sq2] [sq3] ... [sqn]", os.Args[0]))
 	}
 
 	var board uint64
@@ -51,11 +51,11 @@ func main() {
 	)
 }
 
-func fatal(v interface{}) {
+func fatal(v error) {
 	fmt.Println(v)
 	os.Exit(1)
 }
 
 func fatalsq(sq string) {
-	fatal(fmt.Sprintf("invalid square: %s; must match ^[a-hA-H][1-8]$", sq))
+	fatal(fmt.Errorf("invalid square: %s; must match ^[a-hA-H][1-8]$", sq))
 }

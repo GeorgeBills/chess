@@ -34,7 +34,7 @@ func main() {
 	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
 }
 
-func fatal(v interface{}) {
+func fatal(v error) {
 	fmt.Println(v)
 	os.Exit(1)
 }
@@ -52,7 +52,7 @@ func perft(g engine.Game, depth uint, validate, divide bool) uint64 {
 		if validate {
 			err := g.Validate()
 			if err != nil {
-				fatal(fmt.Sprintf("move %s on board '%v' results in an invalid board: %v", move.SAN(), fen, err))
+				fatal(fmt.Errorf("move %s on board '%v' results in an invalid board: %v", move.SAN(), fen, err))
 			}
 		}
 		var n uint64 = 1
