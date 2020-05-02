@@ -28,6 +28,6 @@ func main() {
 }
 
 func fatal(v error) {
-	fmt.Println(v)
+	fmt.Fprintln(os.Stderr, v)
 	os.Exit(1)
 }
