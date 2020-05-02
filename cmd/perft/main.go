@@ -22,7 +22,7 @@ func main() {
 
 	b, err := engine.NewBoardFromFEN(strings.NewReader(*fen))
 	if err != nil {
-		fatal(err)
+		fatal(fmt.Errorf("error parsing FEN: %w", err))
 	}
 	g := engine.NewGame(b)
 	start := time.Now()
