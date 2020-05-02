@@ -402,7 +402,7 @@ READ_CASTLING:
 
 	err = b.Validate()
 	if err != nil {
-		return nil, fmt.Errorf("invalid board: %v", err)
+		return nil, fmt.Errorf("invalid board: %w", err)
 	}
 
 	return b, nil
