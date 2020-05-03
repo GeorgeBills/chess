@@ -159,7 +159,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	var threatRay uint64
 
 	var from uint8
-	var frombit, tobit uint64
+	var frombit uint64
 	var colour, opposing uint64
 	var pawns uint64
 
@@ -455,6 +455,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		return false
 	}
 
+	// TODO: simpler to set maskPromotionRank and not pawnsCanPromote, pawnsNotPromote?
 	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
 
 	pinnedAny := pinnedHorizontal | pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
@@ -481,21 +482,22 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
+	// TODO: pull out common subvariables in the below pawn en masse bitmasking
 	switch tomove {
 	case White:
-		pawnsPushSingle = pawns &^ (occupied >> 8) &^ pinnedExceptVertical
-		pawnsPushDouble = pawnsPushSingle & maskRank2 &^ ((occupied & maskRank4) >> 16)
+		pawnsPushSingle = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & (maskMayMoveTo >> 8)
+		pawnsPushDouble = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
-		pawnsCaptureEast = pawns & (opposing >> 9) &^ maskFileH &^ pinnedAny // ne
-		pawnsCaptureWest = pawns & (opposing >> 7) &^ maskFileA &^ pinnedAny // nw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ pinnedAny // ne
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ pinnedAny // nw
 	case Black:
-		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical
-		pawnsPushDouble = pawnsPushSingle & maskRank7 &^ ((occupied & maskRank5) << 16)
+		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical & (maskMayMoveTo << 8)
+		pawnsPushDouble = pawns &^ (occupied << 8) &^ pinnedExceptVertical & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
-		pawnsCaptureEast = pawns & (opposing << 9) &^ maskFileA &^ pinnedAny // se
-		pawnsCaptureWest = pawns & (opposing << 7) &^ maskFileH &^ pinnedAny // sw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ pinnedAny // se
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ pinnedAny // sw
 	}
 
 	// Check for en passant.
@@ -546,40 +548,28 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsCanPromote &^= frombit
 
-		// we could calculate masks for the below checks (e.g. pawns that can
-		// promote by pushing are just pawns that can push bitwise AND'ed with
-		// pawns that can promote), but generating that mask every time we
-		// generate moves doesn't pay off when pawns being in position to
-		// promote is so rare.
-		// TODO: can mask pawn moves (single, double, capture) on maskMayMoveTo en masse
 		// TODO: need to add tests for pawn promos capturing a checker
-		// TODO: don't need to check maskFileH and maskFileA here, we do it en masse above
+		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
 		case White:
-			ne := from + 9
-			if tobit = 1 << ne; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
-				addPromotions(from, ne, true)
+			if pawnsCaptureEast&frombit != 0 {
+				addPromotions(from, from+9, true)
 			}
-			nw := from + 7
-			if tobit = 1 << nw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
-				addPromotions(from, nw, true)
+			if pawnsCaptureWest&frombit != 0 {
+				addPromotions(from, from+7, true)
 			}
-			push := from + 8
-			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
-				addPromotions(from, push, false)
+			if pawnsPushSingle&frombit != 0 {
+				addPromotions(from, from+8, false)
 			}
 		case Black:
-			se := from - 7
-			if tobit = 1 << se; opposing&maskMayMoveTo&tobit&^maskFileA != 0 {
-				addPromotions(from, se, true)
+			if pawnsCaptureEast&frombit != 0 {
+				addPromotions(from, from-7, true)
 			}
-			sw := from - 9
-			if tobit = 1 << sw; opposing&maskMayMoveTo&tobit&^maskFileH != 0 {
-				addPromotions(from, sw, true)
+			if pawnsCaptureWest&frombit != 0 {
+				addPromotions(from, from-9, true)
 			}
-			push := from - 8
-			if tobit = 1 << push; maskMayMoveTo&tobit&^occupied != 0 {
-				addPromotions(from, push, false)
+			if pawnsPushSingle&frombit != 0 {
+				addPromotions(from, from-8, false)
 			}
 		}
 	}
@@ -590,32 +580,34 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		pawnsNotPromote &^= frombit
 
 		// TODO: can do these maskMayMoveTo checks en masse
+		// TODO: break these out into individual loops?
+		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
 		case White:
-			if pawnsPushDouble&(maskMayMoveTo>>16)&frombit != 0 {
+			if pawnsPushDouble&frombit != 0 {
 				moves = append(moves, NewPawnDoublePush(from, from+16))
 			}
-			if pawnsPushSingle&(maskMayMoveTo>>8)&frombit != 0 {
+			if pawnsPushSingle&frombit != 0 {
 				moves = append(moves, NewMove(from, from+8))
 			}
-			if pawnsCaptureEast&(maskMayMoveTo>>9)&frombit != 0 {
+			if pawnsCaptureEast&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+9))
 			}
-			if pawnsCaptureWest&(maskMayMoveTo>>7)&frombit != 0 {
+			if pawnsCaptureWest&frombit != 0 {
 				moves = append(moves, NewCapture(from, from+7))
 			}
 		case Black:
-			if pawnsPushDouble&(maskMayMoveTo<<16)&frombit != 0 {
+			if pawnsPushDouble&frombit != 0 {
 				moves = append(moves, NewPawnDoublePush(from, from-16))
 			}
-			if pawnsPushSingle&(maskMayMoveTo<<8)&frombit != 0 {
+			if pawnsPushSingle&frombit != 0 {
 				moves = append(moves, NewMove(from, from-8))
 			}
-			if pawnsCaptureEast&(maskMayMoveTo<<9)&frombit != 0 {
-				moves = append(moves, NewCapture(from, from-9))
-			}
-			if pawnsCaptureWest&(maskMayMoveTo<<7)&frombit != 0 {
+			if pawnsCaptureEast&frombit != 0 {
 				moves = append(moves, NewCapture(from, from-7))
+			}
+			if pawnsCaptureWest&frombit != 0 {
+				moves = append(moves, NewCapture(from, from-9))
 			}
 		}
 	}
