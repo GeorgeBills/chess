@@ -612,6 +612,30 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: queen pinned to vertical",
+			"4k3/8/8/8/8/4q3/4Q3/4K3 b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"e3e4", "e3e5", "e3e6", "e3e7", "e3xe2", // queen
+			},
+		},
+		{
+			"pinning: queen pinned to horizontal",
+			"4k3/8/8/8/8/8/8/r1Q1K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"c1b1", "c1d1", "c1xa1", // queen
+			},
+		},
+		{
+			"pinning: queen pinned to SW/NE diagonal",
+			"4k3/8/2q5/1B6/B7/8/8/4K3 b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"c6d7", "c6xb5", // queen
+			},
+		},
+		{
 			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
