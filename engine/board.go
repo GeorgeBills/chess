@@ -228,7 +228,7 @@ func (b Board) Validate() error {
 		return errors.New("invalid black castling: queenside implies king at E8 and rook at A8")
 	}
 	if b.CanWhiteCastleKingside() && (b.PieceAt(E1) != PieceWhiteKing || b.PieceAt(H1) != PieceWhiteRook) {
-		return errors.New("invalid white castling: kingside implies king at E1 and rook at E1")
+		return errors.New("invalid white castling: kingside implies king at E1 and rook at H1")
 	}
 	if b.CanWhiteCastleQueenside() && (b.PieceAt(E1) != PieceWhiteKing || b.PieceAt(A1) != PieceWhiteRook) {
 		return errors.New("invalid white castling: queenside implies king at E1 and rook at A1")
