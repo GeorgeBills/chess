@@ -31,7 +31,7 @@ func main() {
 		n = perft(g, *depth, *validate, *divide)
 	}
 	elapsed := time.Since(start)
-	fmt.Printf("%d nodes, %dms\n", n, elapsed.Milliseconds())
+	fmt.Printf("%d nodes, took %s\n", n, elapsed)
 }
 
 func fatal(v error) {
