@@ -273,25 +273,17 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		// TODO: does setting pawn threat in the switch above save any time?
 		switch tomove {
 		case White:
-			m := (opposingpawns&^maskFileA)>>9 | // sw
+			threatened |= (opposingpawns&^maskFileA)>>9 | // sw
 				(opposingpawns&^maskFileH)>>7 // se
-			if m&king != 0 {
-				// flip the check to find out which pawn is checking us
-				kingNE := (king &^ maskFileH) << 9
-				kingNW := (king &^ maskFileA) << 7
-				checkers |= (kingNE | kingNW) & opposingpawns
-			}
-			threatened |= m
+			kingNE := (king &^ maskFileH) << 9
+			kingNW := (king &^ maskFileA) << 7
+			checkers |= (kingNE | kingNW) & opposingpawns
 		case Black:
-			m := (opposingpawns&^maskFileH)<<9 | // ne
+			threatened |= (opposingpawns&^maskFileH)<<9 | // ne
 				(opposingpawns&^maskFileA)<<7 // nw
-			if m&king != 0 {
-				// flip the check to find out which pawn is checking us
-				kingSE := (king &^ maskFileH) >> 9
-				kingSW := (king &^ maskFileA) >> 7
-				checkers |= (kingSE | kingSW) & opposingpawns
-			}
-			threatened |= m
+			kingSE := (king &^ maskFileH) >> 9
+			kingSW := (king &^ maskFileA) >> 7
+			checkers |= (kingSE | kingSW) & opposingpawns
 		}
 	}
 
@@ -506,6 +498,7 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 		// ep records the square behind, so we check the squares to the ne and
 		// nw (for black) or se and sw (for white) to find pawns adjacent.
+		// TODO: can we slide a 101 bitmask around the en passant square to get the pawns that can ep?
 	EN_PASSANT:
 		switch tomove {
 		case White:
