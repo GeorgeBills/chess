@@ -481,15 +481,15 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		pawnsPushDouble = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ pinnedAny // ne
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ pinnedAny // nw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // ne
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // nw
 	case Black:
 		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical & (maskMayMoveTo << 8)
 		pawnsPushDouble = pawns &^ (occupied << 8) &^ pinnedExceptVertical & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ pinnedAny // se
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ pinnedAny // sw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // se
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // sw
 	}
 
 	// Check for en passant.
