@@ -212,6 +212,16 @@ func (g *Game) MakeMove(move Move) {
 	case H8: // black kingside rook starting square
 		g.meta &^= maskBlackCastleKingside
 	}
+	switch to {
+	case A1: // white queenside rook starting square
+		g.meta &^= maskWhiteCastleQueenside
+	case H1: // white kingside rook starting square
+		g.meta &^= maskWhiteCastleKingside
+	case A8: // black queenside rook starting square
+		g.meta &^= maskBlackCastleQueenside
+	case H8: // black kingside rook starting square
+		g.meta &^= maskBlackCastleKingside
+	}
 
 	// clear en passant if any was present
 	g.meta &^= maskCanEnPassant | maskEnPassantFile

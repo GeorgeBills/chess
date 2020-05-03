@@ -332,6 +332,12 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	// Check for castling.
+	//
+	// We completely rely on the castling flags set in the board state for
+	// these, and don't check if there is a king and rook pair in the required
+	// squares. Validate() will save us from loading in bad FEN with castling
+	// rights set incorrectly, and given that we just need to make sure we
+	// always unset the castling right flags when we need to in MakeMove().
 	switch tomove {
 	case White:
 		if b.CanWhiteCastleKingside() &&

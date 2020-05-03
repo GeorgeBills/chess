@@ -43,6 +43,7 @@ func TestMakeUnmakeMove(t *testing.T) {
 		before, after string
 		move          engine.Move
 	}{
+		// FIXME: capturing rook starting position should unset castling flag
 		{
 			"pawn single push (white)",
 			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
@@ -157,6 +158,13 @@ func TestMakeUnmakeMove(t *testing.T) {
 			"rnbqk1r1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQq - 0 5",
 			NewMove(H8, G8),
 		},
+		{
+			"capturing kingside rook - can no longer castle kingside (white to move)",
+			"4k2r/8/6N1/8/8/8/8/2KR4 w k - 1 125",
+			"4k2N/8/8/8/8/8/8/2KR4 b - - 1 125",
+			NewMove(G6, H8),
+		},
+		// TODO: test capturing A8, A1, H1 for completeness
 		{
 			"promotion to queen (white)",
 			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
