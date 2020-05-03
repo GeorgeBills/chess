@@ -464,6 +464,26 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"edge conditions: king on h8 checked by south-west pawn",
+			"7k/6P1/8/8/1qprnb2/8/8/4K3 b - - 1 124",
+			[]string{"h8g8", "h8h7", "h8xg7"},
+		},
+		{
+			"edge conditions: king on a8 checked by south-east pawn",
+			"k7/1P6/8/8/2prnbq1/8/8/4K3 b - - 1 124",
+			[]string{"a8a7", "a8b8", "a8xb7"},
+		},
+		{
+			"edge conditions: king on a1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/1p6/K7 w - - 1 124",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"edge conditions: king on h1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
+			[]string{"h1g1", "h1h2", "h1xg2"},
+		},
+		{
 			"clearing check: piece must block to clear check (bishop)",
 			"4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
 			[]string{

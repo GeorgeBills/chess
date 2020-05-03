@@ -281,8 +281,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		case Black:
 			threatened |= (opposingpawns&^maskFileH)<<9 | // ne
 				(opposingpawns&^maskFileA)<<7 // nw
-			kingSE := (king &^ maskFileH) >> 9
-			kingSW := (king &^ maskFileA) >> 7
+			kingSE := (king &^ maskFileA) >> 9
+			kingSW := (king &^ maskFileH) >> 7
 			checkers |= (kingSE | kingSW) & opposingpawns
 		}
 	}
