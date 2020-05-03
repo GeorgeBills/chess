@@ -597,6 +597,38 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: pinned pawn may capture south-east pinner",
+			"4k3/5p2/6Q1/8/8/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f8", // king
+				"f7xg6", // pawn may capture pinning queen
+			},
+		},
+		{
+			"pinning: pinned pawn may capture south-west pinner",
+			"4k3/8/2p5/1B6/B7/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"c6xb5", // pawn may capture pinning bishop
+			},
+		},
+		{
+			"pinning: pinned pawn may capture north-east pinner",
+			"4k3/8/8/8/7b/6P1/8/4K3 w - - 0 3",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"g3xh4", // pawn may capture pinning bishop
+			},
+		},
+		{
+			"pinning: pinned pawn may capture north-west pinner",
+			"4k3/8/8/8/8/2q5/3P4/4K3 w - - 0 3",
+			[]string{
+				"e1d1", "e1e2", "e1f1", "e1f2", // king
+				"d2xc3", // pawn may capture pinning queen
+			},
+		},
+		{
 			"pinning: knight",
 			"4k3/8/8/4n3/8/8/4Q3/4K3 b - - 0 3",
 			[]string{
