@@ -26,7 +26,7 @@ func perft(g engine.Game, depth uint8) uint64 {
 
 func TestPerft(t *testing.T) {
 	if testing.Short() {
-		t.Skip("Skipping perft tests due to -short")
+		t.Skip("Skipping TestPerft() due to -short flag")
 	}
 
 	tests := []struct {
@@ -86,5 +86,23 @@ func TestPerft(t *testing.T) {
 
 			assert.Equal(t, expected, n)
 		})
+	}
+}
+
+func BenchmarkPerft(b *testing.B) {
+	if testing.Short() {
+		b.Skip("Skipping BenchmarkPerft() due to -short flag")
+	}
+
+	// https://www.chessprogramming.org/Perft_Results#Position_4
+	// good mix of material, good mix of move types (including castling, en
+	// passant, promotions, checks and mates), plausible looking board state,
+	// not too many moves so the perft will be reasonably quick.
+	const fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
+	const depth = 6
+	for i := 0; i < b.N; i++ {
+		b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+		g := engine.NewGame(b)
+		_ = perft(g, depth)
 	}
 }
