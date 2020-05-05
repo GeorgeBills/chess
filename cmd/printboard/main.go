@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fatal(fmt.Sprintf("%s <board>", os.Args[0]))
+		fatal(fmt.Errorf("%s <board>", os.Args[0]))
 	}
 
 	bitstring := os.Args[1]
@@ -36,7 +36,7 @@ func main() {
 			fatal(err)
 		}
 	default:
-		fatal(fmt.Sprintf("invalid board: %s; should be a 64 bit decimal (0d...), hex (0x...), or binary (0b...) variable", bitstring))
+		fatal(fmt.Errorf("invalid board: %s; should be a 64 bit decimal (0d...), hex (0x...), or binary (0b...) variable", bitstring))
 	}
 
 	f := bufio.NewWriter(os.Stdout)
@@ -54,7 +54,7 @@ func main() {
 	}
 }
 
-func fatal(v interface{}) {
-	fmt.Println(v)
+func fatal(v error) {
+	fmt.Fprintln(os.Stderr, v)
 	os.Exit(1)
 }

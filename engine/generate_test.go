@@ -134,28 +134,64 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap east (white to move)",
+			"edge conditions: en passant a6 shouldn't wrap north-east",
+			"4k3/8/8/pP6/7P/8/8/4K3 w - a6 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"h4h5",              // h4 pawn; should NOT include h4xa6e.p.
+				"b5b6", "b5xa6e.p.", // b5 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant h6 shouldn't wrap north-west",
+			"4k3/8/P7/6Pp/8/8/8/4K3 w - h6 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"a6a7",              // a6 pawn; should NOT include a6xh6e.p.
+				"g5g6", "g5xh6e.p.", // g5 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant a3 shouldn't wrap south-east",
+			"4k3/8/8/8/Pp6/7p/8/4K3 b - a3 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"h3h2",              // h3 pawn; should NOT include h3xa3e.p.
+				"b4b3", "b4xa3e.p.", // b4 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant h3 shouldn't wrap south-west",
+			"4k3/8/8/p7/6pP/8/8/4K3 b - h3 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"a5a4",              // a5 pawn; should NOT include a5xh3e.p.
+				"g4g3", "g4xh3e.p.", // g4 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: pawns shouldn't wrap east (white to move)",
 			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap west (white to move)",
+			"edge conditions: pawns shouldn't wrap west (white to move)",
 			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
 			[]string{
 				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap east (black to move)",
+			"edge conditions: pawns shouldn't wrap east (black to move)",
 			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
 			},
 		},
 		{
-			"basic moves: pawns shouldn't wrap west (black to move)",
+			"edge conditions: pawns shouldn't wrap west (black to move)",
 			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
 			[]string{
 				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
@@ -199,7 +235,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: rook move edge conditions: rooks h1 and a8",
+			"edge conditions: rooks h1 and a8",
 			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
 			[]string{
 				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
@@ -210,7 +246,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: rook move edge conditions: rooks a1 and h8",
+			"edge conditions: rooks a1 and h8",
 			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
 			[]string{
 				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
@@ -248,7 +284,7 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"basic moves: bishop move edge conditions: bishops moving to corners of the board",
+			"edge conditions: bishops moving to corners of the board",
 			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
 			[]string{
 				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
@@ -339,42 +375,42 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king a1)",
+			"edge conditions: pawn threat shouldn't wrap (white king a1)",
 			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
 			[]string{"a1a2", "a1b1", "a1xb2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king b1)",
+			"edge conditions: pawn threat shouldn't wrap (white king b1)",
 			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
 			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king h1)",
+			"edge conditions: pawn threat shouldn't wrap (white king h1)",
 			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
 			[]string{"h1g1", "h1xg2", "h1h2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (white king g1)",
+			"edge conditions: pawn threat shouldn't wrap (white king g1)",
 			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
 			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king a8)",
+			"edge conditions: pawn threat shouldn't wrap (black king a8)",
 			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
 			[]string{"a8a7", "a8xb7", "a8b8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king b8)",
+			"edge conditions: pawn threat shouldn't wrap (black king b8)",
 			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
 			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king h8)",
+			"edge conditions: pawn threat shouldn't wrap (black king h8)",
 			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
 			[]string{"h8h7", "h8xg7", "h8g8"},
 		},
 		{
-			"king must not move into check: pawn threat shouldn't wrap (black king g8)",
+			"edge conditions: pawn threat shouldn't wrap (black king g8)",
 			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
 			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
 		},
@@ -426,6 +462,26 @@ func TestMoves(t *testing.T) {
 			[]string{
 				"e1d1", "e1xd2", "e1e2", "e1f1", "e1f2", // king
 			},
+		},
+		{
+			"edge conditions: king on h8 checked by south-west pawn",
+			"7k/6P1/8/8/1qprnb2/8/8/4K3 b - - 1 124",
+			[]string{"h8g8", "h8h7", "h8xg7"},
+		},
+		{
+			"edge conditions: king on a8 checked by south-east pawn",
+			"k7/1P6/8/8/2prnbq1/8/8/4K3 b - - 1 124",
+			[]string{"a8a7", "a8b8", "a8xb7"},
+		},
+		{
+			"edge conditions: king on a1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/1p6/K7 w - - 1 124",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"edge conditions: king on h1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
+			[]string{"h1g1", "h1h2", "h1xg2"},
 		},
 		{
 			"clearing check: piece must block to clear check (bishop)",
@@ -546,6 +602,92 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: pinned pawn may not move",
+			"4k3/3p4/8/8/Q7/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8",
+			},
+		},
+		{
+			"pinning: pawn may move forwards on pinned ray",
+			"4k3/8/4p3/5P2/8/8/4Q3/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8", "e8d7", // king
+				"e6e5", // pawn; may NOT capture f5
+			},
+		},
+		{
+			"pinning: pinned pawn may capture south-east pinner",
+			"4k3/5p2/6Q1/8/8/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f8", // king
+				"f7xg6", // pawn may capture pinning queen
+			},
+		},
+		{
+			"pinning: pinned pawn may capture south-west pinner",
+			"4k3/8/2p5/1B6/B7/8/8/4K3 b - - 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"c6xb5", // pawn may capture pinning bishop
+			},
+		},
+		{
+			"pinning: pinned pawn may capture north-east pinner",
+			"4k3/8/8/8/7b/6P1/8/4K3 w - - 0 3",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"g3xh4", // pawn may capture pinning bishop
+			},
+		},
+		{
+			"pinning: pinned pawn may capture north-west pinner",
+			"4k3/8/8/8/8/2q5/3P4/4K3 w - - 0 3",
+			[]string{
+				"e1d1", "e1e2", "e1f1", "e1f2", // king
+				"d2xc3", // pawn may capture pinning queen
+			},
+		},
+		{
+			"pinning: knight",
+			"4k3/8/8/4n3/8/8/4Q3/4K3 b - - 0 3",
+			[]string{
+				"e8d8", "e8e7", "e8f7", "e8f8", "e8d7", // king
+			},
+		},
+		{
+			"pinning: queen pinned to NW/SE diagonal",
+			"5k2/8/8/q7/8/8/3Q4/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1e2", "e1f1", "e1f2", // king
+				"d2xa5", "d2b4", "d2c3", // queen
+			},
+		},
+		{
+			"pinning: queen pinned to vertical",
+			"4k3/8/8/8/8/4q3/4Q3/4K3 b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"e3e4", "e3e5", "e3e6", "e3e7", "e3xe2", // queen
+			},
+		},
+		{
+			"pinning: queen pinned to horizontal",
+			"4k3/8/8/8/8/8/8/r1Q1K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"c1b1", "c1d1", "c1xa1", // queen
+			},
+		},
+		{
+			"pinning: queen pinned to SW/NE diagonal",
+			"4k3/8/2q5/1B6/B7/8/8/4K3 b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"c6d7", "c6xb5", // queen
+			},
+		},
+		{
 			"pinning: absolutely pinned piece must stay on ray (bishop SW/NE diagonal)",
 			"4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
 			[]string{
@@ -578,8 +720,36 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
+			"pinning: may not promote if that exposes king diagonally (white to move)",
+			"K1n1k3/1P6/8/8/4b3/8/8/8 w - - 0 1",
+			[]string{"a8b8"},
+		},
+		{
+			"pinning: may not promote if that exposes king horizontally (black to move)",
+			"8/8/8/8/8/8/k5pQ/4KB1R b - - 0 3",
+			[]string{"a2a1", "a2a3", "a2b1", "a2b2", "a2b3"},
+		},
+		{
+			"pinning: may not promote if that exposes king horizontally (white to move)",
+			"b3k3/KP5r/8/8/8/8/8/8 w - - 0 1",
+			[]string{"a7xa8", "a7b8", "a7a6", "a7b6"},
+		},
+		{
+			"pinning: may not promote if that exposes king vertically (black to move)",
+			"2Q5/8/8/8/8/8/2p5/1Nk1K3 b - - 0 3",
+			[]string{"c1b2", "c1xb1"},
+		},
+		{
+			"pinning: may not en passant if that exposes king vertically (black to move)",
+			"4k3/8/8/8/4pP2/8/4Q3/4K3 b - f3 0 3",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"e4e3", // pawn; may NOT capture en passant
+			},
+		},
+		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
-			"pinning: may not en passant if that exposes king (black to move)",
+			"pinning: may not en passant if that exposes king horizontally (black to move)",
 			"8/8/8/8/R3Pp1k/8/8/4K3 b - e3 0 123",
 			[]string{
 				"f4f3",                                 // pawn may NOT capture en passant
@@ -588,7 +758,7 @@ func TestMoves(t *testing.T) {
 		},
 		{
 			// https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check
-			"pinning: may not en passant if that exposes king (white to move)",
+			"pinning: may not en passant if that exposes king horizontally (white to move)",
 			"4k3/8/8/K4pPq/8/8/8/8 w - f6 0 123",
 			[]string{
 				"g5g6",                                 // pawn may NOT capture en passant

@@ -3,14 +3,15 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/GeorgeBills/chess/m/v2/engine"
 	"os"
 	"strings"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fatal(fmt.Sprintf("%s <fen>", os.Args[0]))
+		fatal(fmt.Errorf("%s <fen>", os.Args[0]))
 	}
 
 	board, err := engine.NewBoardFromFEN(strings.NewReader(os.Args[1]))
@@ -26,7 +27,7 @@ func main() {
 	}
 }
 
-func fatal(v interface{}) {
-	fmt.Println(v)
+func fatal(v error) {
+	fmt.Fprintln(os.Stderr, v)
 	os.Exit(1)
 }

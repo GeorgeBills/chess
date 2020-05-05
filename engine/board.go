@@ -209,17 +209,29 @@ func (b Board) String() string {
 func (b Board) Validate() error {
 	numWhiteKings := bits.OnesCount64(b.kings & b.white)
 	if numWhiteKings != 1 {
-		return fmt.Errorf("invalid board: %d white kings", numWhiteKings)
+		return fmt.Errorf("%d white kings", numWhiteKings)
 	}
 	numBlackKings := bits.OnesCount64(b.kings & b.black)
 	if numBlackKings != 1 {
-		return fmt.Errorf("invalid board: %d black kings", numBlackKings)
+		return fmt.Errorf("%d black kings", numBlackKings)
 	}
 	if b.pawns&maskRank1 != 0 {
-		return errors.New("invalid board: pawns on rank 1")
+		return errors.New("pawns on rank 1")
 	}
 	if b.pawns&maskRank8 != 0 {
-		return errors.New("invalid board: pawns on rank 8")
+		return errors.New("pawns on rank 8")
+	}
+	if b.CanBlackCastleKingside() && (b.PieceAt(E8) != PieceBlackKing || b.PieceAt(H8) != PieceBlackRook) {
+		return errors.New("invalid black castling: kingside implies king at E8 and rook at H8")
+	}
+	if b.CanBlackCastleQueenside() && (b.PieceAt(E8) != PieceBlackKing || b.PieceAt(A8) != PieceBlackRook) {
+		return errors.New("invalid black castling: queenside implies king at E8 and rook at A8")
+	}
+	if b.CanWhiteCastleKingside() && (b.PieceAt(E1) != PieceWhiteKing || b.PieceAt(H1) != PieceWhiteRook) {
+		return errors.New("invalid white castling: kingside implies king at E1 and rook at H1")
+	}
+	if b.CanWhiteCastleQueenside() && (b.PieceAt(E1) != PieceWhiteKing || b.PieceAt(A1) != PieceWhiteRook) {
+		return errors.New("invalid white castling: queenside implies king at E1 and rook at A1")
 	}
 	return nil
 }
