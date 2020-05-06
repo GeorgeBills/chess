@@ -140,7 +140,7 @@ const (
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
 // only calling GenerateMoves() on valid boards by calling Validate() first.
-func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
+func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
 	// checkers is a mask for pieces giving check. if there is more than one bit
