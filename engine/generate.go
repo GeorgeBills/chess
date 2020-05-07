@@ -386,24 +386,6 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 	}
 
-	rayForward := func(moves *[64]uint64, from uint8) uint64 {
-		ray := moves[from]
-		intersection := ray & occupied
-		if intersection != 0 {
-			ray &^= moves[uint8(bits.TrailingZeros64(intersection))]
-		}
-		return ray
-	}
-
-	rayBackward := func(moves *[64]uint64, from uint8) uint64 {
-		ray := moves[from]
-		intersection := ray & occupied
-		if intersection != 0 {
-			ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
-		}
-		return ray
-	}
-
 	breakEnPassant := func(epCaptureSq uint8, maskEnPassantRank uint64) bool {
 		// draw a ray from our king on the en passant rank through the en
 		// passant-able pawn get the next 3 pieces on that ray into an array. if
@@ -628,12 +610,12 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 		var movesqs uint64
 		if (pinnedHorizontal|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned horizontally, can move vertically
-			movesqs |= rayForward(&movesNorth, from)
-			movesqs |= rayBackward(&movesSouth, from)
+			movesqs |= rayForward(&movesNorth, from, occupied)
+			movesqs |= rayBackward(&movesSouth, from, occupied)
 		}
 		if (pinnedVertical|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned vertically, can move horizontally
-			movesqs |= rayForward(&movesEast, from)
-			movesqs |= rayBackward(&movesWest, from)
+			movesqs |= rayForward(&movesEast, from, occupied)
+			movesqs |= rayBackward(&movesWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
 		addCaptures(from, movesqs&opposing)
@@ -647,12 +629,12 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 		var movesqs uint64
 		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalSWNE)&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
-			movesqs |= rayForward(&movesNorthWest, from)
-			movesqs |= rayBackward(&movesSouthEast, from)
+			movesqs |= rayForward(&movesNorthWest, from, occupied)
+			movesqs |= rayBackward(&movesSouthEast, from, occupied)
 		}
 		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalNWSE)&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
-			movesqs |= rayForward(&movesNorthEast, from)
-			movesqs |= rayBackward(&movesSouthWest, from)
+			movesqs |= rayForward(&movesNorthEast, from, occupied)
+			movesqs |= rayBackward(&movesSouthWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
 		addCaptures(from, movesqs&opposing)
@@ -668,4 +650,22 @@ KING_MOVES:
 	}
 
 	return moves, checkers != 0
+}
+
+func rayForward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
+	ray := moves[from]
+	intersection := ray & occupied
+	if intersection != 0 {
+		ray &^= moves[uint8(bits.TrailingZeros64(intersection))]
+	}
+	return ray
+}
+
+func rayBackward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
+	ray := moves[from]
+	intersection := ray & occupied
+	if intersection != 0 {
+		ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
+	}
+	return ray
 }
