@@ -426,6 +426,9 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 	pinnedAny := pinnedHorizontal | pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
 	pinnedExceptVertical := pinnedHorizontal | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+	pinnedExceptHorizontal := pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+	pinnedExceptDiagonalNWSE := pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE
+	pinnedExceptDiagonalSWNE := pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE
 
 	var maskMayMoveTo uint64
 	switch bits.OnesCount64(checkers) {
@@ -455,15 +458,15 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		pawnsPushDouble = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // ne
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // nw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ pinnedExceptDiagonalSWNE // ne
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ pinnedExceptDiagonalNWSE // nw
 	case Black:
 		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical & (maskMayMoveTo << 8)
 		pawnsPushDouble = pawns &^ (occupied << 8) &^ pinnedExceptVertical & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // se
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // sw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ pinnedExceptDiagonalNWSE // se
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ pinnedExceptDiagonalSWNE // sw
 	}
 
 	// Check for en passant.
@@ -596,12 +599,12 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		rooks &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 {
+		if pinnedExceptVertical&frombit == 0 {
 			// not pinned horizontally or diagonally, can move vertically
 			movesqs |= rayForward(&movesNorth, from, occupied)
 			movesqs |= rayBackward(&movesSouth, from, occupied)
 		}
-		if (pinnedVertical|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 {
+		if pinnedExceptHorizontal&frombit == 0 {
 			// not pinned vertically or diagonally, can move horizontally
 			movesqs |= rayForward(&movesEast, from, occupied)
 			movesqs |= rayBackward(&movesWest, from, occupied)
@@ -617,13 +620,13 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		bishops &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalSWNE)&frombit == 0 {
+		if pinnedExceptDiagonalNWSE&frombit == 0 {
 			// not pinned horizontally, vertically, or to the SW/NE diagonal
 			// can move on the NW/SE diagonal
 			movesqs |= rayForward(&movesNorthWest, from, occupied)
 			movesqs |= rayBackward(&movesSouthEast, from, occupied)
 		}
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalNWSE)&frombit == 0 {
+		if pinnedExceptDiagonalSWNE&frombit == 0 {
 			// not pinned horizontally, vertically, or to the NW/SE diagonal
 			// can move on the SW/NE diagonal
 			movesqs |= rayForward(&movesNorthEast, from, occupied)
