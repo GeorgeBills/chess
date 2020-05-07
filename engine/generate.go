@@ -363,29 +363,6 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 	}
 
-	addPromotions := func(from, to uint8, capture bool) {
-		moves = append(moves, NewQueenPromotion(from, to, capture))
-		moves = append(moves, NewKnightPromotion(from, to, capture))
-		moves = append(moves, NewRookPromotion(from, to, capture))
-		moves = append(moves, NewBishopPromotion(from, to, capture))
-	}
-
-	addQuietMoves := func(from uint8, quiet uint64) {
-		for quiet != 0 {
-			to := uint8(bits.TrailingZeros64(quiet))
-			quiet &^= (1 << to)
-			moves = append(moves, NewMove(from, to))
-		}
-	}
-
-	addCaptures := func(from uint8, captures uint64) {
-		for captures != 0 {
-			to := uint8(bits.TrailingZeros64(captures))
-			captures &^= (1 << to)
-			moves = append(moves, NewCapture(from, to))
-		}
-	}
-
 	breakEnPassant := func(epCaptureSq uint8, maskEnPassantRank uint64) bool {
 		// draw a ray from our king on the en passant rank through the en
 		// passant-able pawn get the next 3 pieces on that ray into an array. if
@@ -534,23 +511,23 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		switch tomove {
 		case White:
 			if pawnsCaptureEast&frombit != 0 {
-				addPromotions(from, from+9, true)
+				moves = addPromotions(moves, from, from+9, true)
 			}
 			if pawnsCaptureWest&frombit != 0 {
-				addPromotions(from, from+7, true)
+				moves = addPromotions(moves, from, from+7, true)
 			}
 			if pawnsPushSingle&frombit != 0 {
-				addPromotions(from, from+8, false)
+				moves = addPromotions(moves, from, from+8, false)
 			}
 		case Black:
 			if pawnsCaptureEast&frombit != 0 {
-				addPromotions(from, from-7, true)
+				moves = addPromotions(moves, from, from-7, true)
 			}
 			if pawnsCaptureWest&frombit != 0 {
-				addPromotions(from, from-9, true)
+				moves = addPromotions(moves, from, from-9, true)
 			}
 			if pawnsPushSingle&frombit != 0 {
-				addPromotions(from, from-8, false)
+				moves = addPromotions(moves, from, from-8, false)
 			}
 		}
 	}
@@ -599,8 +576,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		knights &^= frombit
 
 		m := movesKnights[from] &^ colour & maskMayMoveTo
-		addCaptures(from, m&opposing)
-		addQuietMoves(from, m&^occupied)
+		moves = addCaptures(moves, from, m&opposing)
+		moves = addMoves(moves, from, m&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
@@ -618,8 +595,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			movesqs |= rayBackward(&movesWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
@@ -637,16 +614,16 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			movesqs |= rayBackward(&movesSouthWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 KING_MOVES:
 	{
 		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
 		m := movesKing[from] &^ colour &^ threatened
-		addCaptures(from, m&opposing)
-		addQuietMoves(from, m&^occupied)
+		moves = addCaptures(moves, from, m&opposing)
+		moves = addMoves(moves, from, m&^occupied)
 	}
 
 	return moves, checkers != 0
@@ -668,4 +645,32 @@ func rayBackward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
 		ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
 	}
 	return ray
+}
+
+func addPromotions(moves []Move, from, to uint8, capture bool) []Move {
+	return append(
+		moves,
+		NewQueenPromotion(from, to, capture),
+		NewKnightPromotion(from, to, capture),
+		NewRookPromotion(from, to, capture),
+		NewBishopPromotion(from, to, capture),
+	)
+}
+
+func addMoves(moves []Move, from uint8, add uint64) []Move {
+	for add != 0 {
+		to := uint8(bits.TrailingZeros64(add))
+		add &^= 1 << to
+		moves = append(moves, NewMove(from, to))
+	}
+	return moves
+}
+
+func addCaptures(moves []Move, from uint8, add uint64) []Move {
+	for add != 0 {
+		to := uint8(bits.TrailingZeros64(add))
+		add &^= 1 << to
+		moves = append(moves, NewCapture(from, to))
+	}
+	return moves
 }
