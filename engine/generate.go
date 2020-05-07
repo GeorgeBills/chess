@@ -292,11 +292,11 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		opposingknights &^= frombit
 
-		knightMoves := movesKnights[from]
-		if knightMoves&king != 0 {
+		movesqs := movesKnights[from]
+		if movesqs&king != 0 {
 			checkers |= frombit
 		}
-		threatened |= knightMoves
+		threatened |= movesqs
 	}
 
 	{
@@ -576,9 +576,9 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		knights &^= frombit
 
-		m := movesKnights[from] &^ colour & maskMayMoveTo
-		moves = addCaptures(moves, from, m&opposing)
-		moves = addMoves(moves, from, m&^occupied)
+		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
@@ -622,9 +622,9 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 KING_MOVES:
 	{
 		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
-		m := movesKing[from] &^ colour &^ threatened
-		moves = addCaptures(moves, from, m&opposing)
-		moves = addMoves(moves, from, m&^occupied)
+		movesqs := movesKing[from] &^ colour &^ threatened
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	return moves, checkers != 0
@@ -658,19 +658,19 @@ func addPromotions(moves []Move, from, to uint8, capture bool) []Move {
 	)
 }
 
-func addMoves(moves []Move, from uint8, add uint64) []Move {
-	for add != 0 {
-		to := uint8(bits.TrailingZeros64(add))
-		add &^= 1 << to
+func addMoves(moves []Move, from uint8, movesqs uint64) []Move {
+	for movesqs != 0 {
+		to := uint8(bits.TrailingZeros64(movesqs))
+		movesqs &^= 1 << to
 		moves = append(moves, NewMove(from, to))
 	}
 	return moves
 }
 
-func addCaptures(moves []Move, from uint8, add uint64) []Move {
-	for add != 0 {
-		to := uint8(bits.TrailingZeros64(add))
-		add &^= 1 << to
+func addCaptures(moves []Move, from uint8, movesqs uint64) []Move {
+	for movesqs != 0 {
+		to := uint8(bits.TrailingZeros64(movesqs))
+		movesqs &^= 1 << to
 		moves = append(moves, NewCapture(from, to))
 	}
 	return moves
