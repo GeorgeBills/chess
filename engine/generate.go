@@ -451,18 +451,19 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
-	// TODO: pull out common subvariables in the below pawn en masse bitmasking
 	switch tomove {
 	case White:
-		pawnsPushSingle = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & (maskMayMoveTo >> 8)
-		pawnsPushDouble = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
+		pawnsMayForward := pawns &^ pinnedExceptVertical &^ (occupied >> 8)
+		pawnsPushSingle = pawnsMayForward & (maskMayMoveTo >> 8)
+		pawnsPushDouble = pawnsMayForward & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
 		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ pinnedExceptDiagonalSWNE // ne
 		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ pinnedExceptDiagonalNWSE // nw
 	case Black:
-		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical & (maskMayMoveTo << 8)
-		pawnsPushDouble = pawns &^ (occupied << 8) &^ pinnedExceptVertical & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
+		pawnsMayForward := pawns &^ pinnedExceptVertical &^ (occupied << 8)
+		pawnsPushSingle = pawnsMayForward & (maskMayMoveTo << 8)
+		pawnsPushDouble = pawnsMayForward & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
 		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ pinnedExceptDiagonalNWSE // se
