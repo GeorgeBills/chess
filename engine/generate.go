@@ -634,7 +634,8 @@ func rayForward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
 	ray := moves[from]
 	intersection := ray & occupied
 	if intersection != 0 {
-		ray &^= moves[uint8(bits.TrailingZeros64(intersection))]
+		blocker := uint8(bits.TrailingZeros64(intersection))
+		ray &^= moves[blocker]
 	}
 	return ray
 }
@@ -643,7 +644,8 @@ func rayBackward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
 	ray := moves[from]
 	intersection := ray & occupied
 	if intersection != 0 {
-		ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
+		blocker := uint8(63 - bits.LeadingZeros64(intersection))
+		ray &^= moves[blocker]
 	}
 	return ray
 }
