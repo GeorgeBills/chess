@@ -7,6 +7,7 @@
  * https://godbolt.org/
  * https://play.golang.org/
  * https://about.sourcegraph.com/go/gophercon-2019-optimizing-go-code-without-a-blindfold
+ * https://segment.com/blog/allocation-efficiency-in-high-performance-go-services/
 
 ## Useful commands
 
