@@ -38,7 +38,6 @@ func init() {
 	// H1 (7).
 
 	var from uint8
-
 	for from = 0; from < 64; from++ {
 		rank := Rank(from)
 		file := File(from)
@@ -143,25 +142,28 @@ const (
 func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
-	// checkers is a mask for pieces giving check. if there is more than one bit
-	// set then we're in double check.
-	var checkers uint64
+	var (
+		// checkers is a mask for pieces giving check. if there is more than one
+		// bit set then we're in double check.
+		checkers uint64
 
-	// pinned variables are for pieces that are absolutely pinned and must stay
-	// on the respective ray.
-	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
+		// pinned variables are for pieces that are absolutely pinned and must
+		// stay on the respective ray.
+		pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
 
-	// threatened tracks squares we may not move our king to.
-	var threatened uint64
+		// threatened tracks squares we may not move our king to.
+		threatened uint64
 
-	// threatRay tracks a ray of threat from a bishop, rook or queen to the
-	// king. moving a piece on to this ray will block single check.
-	var threatRay uint64
+		// threatRay tracks a ray of threat from a bishop, rook or queen to the
+		// king. moving a piece on to this ray will block single check.
+		threatRay uint64
 
-	var from uint8
-	var frombit uint64
-	var colour, opposing uint64
-	var pawns uint64
+		from    uint8
+		frombit uint64
+
+		colour, opposing uint64
+		pawns            uint64
+	)
 
 	occupied := b.white | b.black
 
@@ -413,7 +415,14 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	// TODO: simpler to set maskPromotionRank and not pawnsCanPromote, pawnsNotPromote?
-	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
+	var (
+		pawnsPushSingle  uint64
+		pawnsPushDouble  uint64
+		pawnsNotPromote  uint64
+		pawnsCanPromote  uint64
+		pawnsCaptureEast uint64
+		pawnsCaptureWest uint64
+	)
 
 	pinnedAny := pinnedHorizontal | pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
 	pinnedExceptVertical := pinnedHorizontal | pinnedDiagonalNWSE | pinnedDiagonalSWNE
