@@ -470,7 +470,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			epSquare := Square(rank6, epFile)
 			epCaptureSq := Square(rank5, epFile)
 
-			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+			// either capture or block, two diff sqs
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {
 				break EN_PASSANT // invalid en passant
 			}
 			if breakEnPassant(epCaptureSq, maskRank5) {
@@ -486,7 +487,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			epSquare := Square(rank3, epFile)
 			epCaptureSq := Square(rank4, epFile)
 
-			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+			// either capture or block, two diff sqs
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {
 				break EN_PASSANT // invalid en passant
 			}
 			if breakEnPassant(epCaptureSq, maskRank4) {
@@ -506,7 +508,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsCanPromote &^= frombit
 
-		// TODO: need to add tests for pawn promos capturing a checker
+		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
 		case White:
@@ -537,7 +539,6 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsNotPromote &^= frombit
 
-		// TODO: can do these maskMayMoveTo checks en masse
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
