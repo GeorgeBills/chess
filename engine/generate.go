@@ -587,11 +587,13 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		rooks &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned horizontally, can move vertically
+		if (pinnedHorizontal|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 {
+			// not pinned horizontally or diagonally, can move vertically
 			movesqs |= rayForward(&movesNorth, from, occupied)
 			movesqs |= rayBackward(&movesSouth, from, occupied)
 		}
-		if (pinnedVertical|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned vertically, can move horizontally
+		if (pinnedVertical|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 {
+			// not pinned vertically or diagonally, can move horizontally
 			movesqs |= rayForward(&movesEast, from, occupied)
 			movesqs |= rayBackward(&movesWest, from, occupied)
 		}
@@ -606,11 +608,15 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		bishops &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalSWNE)&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
+		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalSWNE)&frombit == 0 {
+			// not pinned horizontally, vertically, or to the SW/NE diagonal
+			// can move on the NW/SE diagonal
 			movesqs |= rayForward(&movesNorthWest, from, occupied)
 			movesqs |= rayBackward(&movesSouthEast, from, occupied)
 		}
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalNWSE)&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
+		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalNWSE)&frombit == 0 {
+			// not pinned horizontally, vertically, or to the NW/SE diagonal
+			// can move on the SW/NE diagonal
 			movesqs |= rayForward(&movesNorthEast, from, occupied)
 			movesqs |= rayBackward(&movesSouthWest, from, occupied)
 		}
