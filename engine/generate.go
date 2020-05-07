@@ -38,7 +38,6 @@ func init() {
 	// H1 (7).
 
 	var from uint8
-
 	for from = 0; from < 64; from++ {
 		rank := Rank(from)
 		file := File(from)
@@ -140,28 +139,31 @@ const (
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
 // only calling GenerateMoves() on valid boards by calling Validate() first.
-func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
+func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
-	// checkers is a mask for pieces giving check. if there is more than one bit
-	// set then we're in double check.
-	var checkers uint64
+	var (
+		// checkers is a mask for pieces giving check. if there is more than one
+		// bit set then we're in double check.
+		checkers uint64
 
-	// pinned variables are for pieces that are absolutely pinned and must stay
-	// on the respective ray.
-	var pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
+		// pinned variables are for pieces that are absolutely pinned and must
+		// stay on the respective ray.
+		pinnedDiagonalSWNE, pinnedDiagonalNWSE, pinnedVertical, pinnedHorizontal uint64
 
-	// threatened tracks squares we may not move our king to.
-	var threatened uint64
+		// threatened tracks squares we may not move our king to.
+		threatened uint64
 
-	// threatRay tracks a ray of threat from a bishop, rook or queen to the
-	// king. moving a piece on to this ray will block single check.
-	var threatRay uint64
+		// threatRay tracks a ray of threat from a bishop, rook or queen to the
+		// king. moving a piece on to this ray will block single check.
+		threatRay uint64
 
-	var from uint8
-	var frombit uint64
-	var colour, opposing uint64
-	var pawns uint64
+		from    uint8
+		frombit uint64
+
+		colour, opposing uint64
+		pawns            uint64
+	)
 
 	occupied := b.white | b.black
 
@@ -292,11 +294,11 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		opposingknights &^= frombit
 
-		knightMoves := movesKnights[from]
-		if knightMoves&king != 0 {
+		movesqs := movesKnights[from]
+		if movesqs&king != 0 {
 			checkers |= frombit
 		}
-		threatened |= knightMoves
+		threatened |= movesqs
 	}
 
 	{
@@ -363,47 +365,6 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 	}
 
-	addPromotions := func(from, to uint8, capture bool) {
-		moves = append(moves, NewQueenPromotion(from, to, capture))
-		moves = append(moves, NewKnightPromotion(from, to, capture))
-		moves = append(moves, NewRookPromotion(from, to, capture))
-		moves = append(moves, NewBishopPromotion(from, to, capture))
-	}
-
-	addQuietMoves := func(from uint8, quiet uint64) {
-		for quiet != 0 {
-			to := uint8(bits.TrailingZeros64(quiet))
-			quiet &^= (1 << to)
-			moves = append(moves, NewMove(from, to))
-		}
-	}
-
-	addCaptures := func(from uint8, captures uint64) {
-		for captures != 0 {
-			to := uint8(bits.TrailingZeros64(captures))
-			captures &^= (1 << to)
-			moves = append(moves, NewCapture(from, to))
-		}
-	}
-
-	rayForward := func(moves *[64]uint64, from uint8) uint64 {
-		ray := moves[from]
-		intersection := ray & occupied
-		if intersection != 0 {
-			ray &^= moves[uint8(bits.TrailingZeros64(intersection))]
-		}
-		return ray
-	}
-
-	rayBackward := func(moves *[64]uint64, from uint8) uint64 {
-		ray := moves[from]
-		intersection := ray & occupied
-		if intersection != 0 {
-			ray &^= moves[uint8(63-bits.LeadingZeros64(intersection))]
-		}
-		return ray
-	}
-
 	breakEnPassant := func(epCaptureSq uint8, maskEnPassantRank uint64) bool {
 		// draw a ray from our king on the en passant rank through the en
 		// passant-able pawn get the next 3 pieces on that ray into an array. if
@@ -454,10 +415,20 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	// TODO: simpler to set maskPromotionRank and not pawnsCanPromote, pawnsNotPromote?
-	var pawnsPushSingle, pawnsPushDouble, pawnsNotPromote, pawnsCanPromote, pawnsCaptureEast, pawnsCaptureWest uint64
+	var (
+		pawnsPushSingle  uint64
+		pawnsPushDouble  uint64
+		pawnsNotPromote  uint64
+		pawnsCanPromote  uint64
+		pawnsCaptureEast uint64
+		pawnsCaptureWest uint64
+	)
 
 	pinnedAny := pinnedHorizontal | pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
 	pinnedExceptVertical := pinnedHorizontal | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+	pinnedExceptHorizontal := pinnedVertical | pinnedDiagonalNWSE | pinnedDiagonalSWNE
+	pinnedExceptDiagonalNWSE := pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE
+	pinnedExceptDiagonalSWNE := pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE
 
 	var maskMayMoveTo uint64
 	switch bits.OnesCount64(checkers) {
@@ -480,22 +451,23 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
-	// TODO: pull out common subvariables in the below pawn en masse bitmasking
 	switch tomove {
 	case White:
-		pawnsPushSingle = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & (maskMayMoveTo >> 8)
-		pawnsPushDouble = pawns &^ (occupied >> 8) &^ pinnedExceptVertical & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
+		pawnsMayForward := pawns &^ pinnedExceptVertical &^ (occupied >> 8)
+		pawnsPushSingle = pawnsMayForward & (maskMayMoveTo >> 8)
+		pawnsPushDouble = pawnsMayForward & maskRank2 &^ ((occupied & maskRank4) >> 16) & (maskMayMoveTo >> 16)
 		pawnsCanPromote = pawns & maskRank7
 		pawnsNotPromote = pawns &^ maskRank7
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // ne
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // nw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) >> 9) &^ maskFileH &^ pinnedExceptDiagonalSWNE // ne
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) >> 7) &^ maskFileA &^ pinnedExceptDiagonalNWSE // nw
 	case Black:
-		pawnsPushSingle = pawns &^ (occupied << 8) &^ pinnedExceptVertical & (maskMayMoveTo << 8)
-		pawnsPushDouble = pawns &^ (occupied << 8) &^ pinnedExceptVertical & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
+		pawnsMayForward := pawns &^ pinnedExceptVertical &^ (occupied << 8)
+		pawnsPushSingle = pawnsMayForward & (maskMayMoveTo << 8)
+		pawnsPushDouble = pawnsMayForward & maskRank7 &^ ((occupied & maskRank5) << 16) & (maskMayMoveTo << 16)
 		pawnsCanPromote = pawns & maskRank2
 		pawnsNotPromote = pawns &^ maskRank2
-		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalSWNE) // se
-		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ (pinnedVertical | pinnedHorizontal | pinnedDiagonalNWSE) // sw
+		pawnsCaptureEast = pawns & ((opposing & maskMayMoveTo) << 7) &^ maskFileH &^ pinnedExceptDiagonalNWSE // se
+		pawnsCaptureWest = pawns & ((opposing & maskMayMoveTo) << 9) &^ maskFileA &^ pinnedExceptDiagonalSWNE // sw
 	}
 
 	// Check for en passant.
@@ -511,7 +483,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			epSquare := Square(rank6, epFile)
 			epCaptureSq := Square(rank5, epFile)
 
-			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+			// either capture or block, two diff sqs
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {
 				break EN_PASSANT // invalid en passant
 			}
 			if breakEnPassant(epCaptureSq, maskRank5) {
@@ -527,7 +500,8 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			epSquare := Square(rank3, epFile)
 			epCaptureSq := Square(rank4, epFile)
 
-			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 { // either capture or block, two diff sqs
+			// either capture or block, two diff sqs
+			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {
 				break EN_PASSANT // invalid en passant
 			}
 			if breakEnPassant(epCaptureSq, maskRank4) {
@@ -547,28 +521,28 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsCanPromote &^= frombit
 
-		// TODO: need to add tests for pawn promos capturing a checker
+		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
 		case White:
 			if pawnsCaptureEast&frombit != 0 {
-				addPromotions(from, from+9, true)
+				moves = addPromotions(moves, from, from+9, true)
 			}
 			if pawnsCaptureWest&frombit != 0 {
-				addPromotions(from, from+7, true)
+				moves = addPromotions(moves, from, from+7, true)
 			}
 			if pawnsPushSingle&frombit != 0 {
-				addPromotions(from, from+8, false)
+				moves = addPromotions(moves, from, from+8, false)
 			}
 		case Black:
 			if pawnsCaptureEast&frombit != 0 {
-				addPromotions(from, from-7, true)
+				moves = addPromotions(moves, from, from-7, true)
 			}
 			if pawnsCaptureWest&frombit != 0 {
-				addPromotions(from, from-9, true)
+				moves = addPromotions(moves, from, from-9, true)
 			}
 			if pawnsPushSingle&frombit != 0 {
-				addPromotions(from, from-8, false)
+				moves = addPromotions(moves, from, from-8, false)
 			}
 		}
 	}
@@ -578,7 +552,6 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		pawnsNotPromote &^= frombit
 
-		// TODO: can do these maskMayMoveTo checks en masse
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -616,9 +589,9 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		frombit = 1 << from
 		knights &^= frombit
 
-		m := movesKnights[from] &^ colour & maskMayMoveTo
-		addCaptures(from, m&opposing)
-		addQuietMoves(from, m&^occupied)
+		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
@@ -627,17 +600,19 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		rooks &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned horizontally, can move vertically
-			movesqs |= rayForward(&movesNorth, from)
-			movesqs |= rayBackward(&movesSouth, from)
+		if pinnedExceptVertical&frombit == 0 {
+			// not pinned horizontally or diagonally, can move vertically
+			movesqs |= rayForward(&movesNorth, from, occupied)
+			movesqs |= rayBackward(&movesSouth, from, occupied)
 		}
-		if (pinnedVertical|pinnedDiagonalNWSE|pinnedDiagonalSWNE)&frombit == 0 { // not pinned vertically, can move horizontally
-			movesqs |= rayForward(&movesEast, from)
-			movesqs |= rayBackward(&movesWest, from)
+		if pinnedExceptHorizontal&frombit == 0 {
+			// not pinned vertically or diagonally, can move horizontally
+			movesqs |= rayForward(&movesEast, from, occupied)
+			movesqs |= rayBackward(&movesWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
@@ -646,26 +621,78 @@ func (b Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		bishops &^= frombit
 
 		var movesqs uint64
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalSWNE)&frombit == 0 { // not pinned to the SW/NE diagonal, can move on the NW/SE diagonal
-			movesqs |= rayForward(&movesNorthWest, from)
-			movesqs |= rayBackward(&movesSouthEast, from)
+		if pinnedExceptDiagonalNWSE&frombit == 0 {
+			// not pinned horizontally, vertically, or to the SW/NE diagonal
+			// can move on the NW/SE diagonal
+			movesqs |= rayForward(&movesNorthWest, from, occupied)
+			movesqs |= rayBackward(&movesSouthEast, from, occupied)
 		}
-		if (pinnedHorizontal|pinnedVertical|pinnedDiagonalNWSE)&frombit == 0 { // not pinned to the NW/SE diagonal, can move on the SW/NE diagonal
-			movesqs |= rayForward(&movesNorthEast, from)
-			movesqs |= rayBackward(&movesSouthWest, from)
+		if pinnedExceptDiagonalSWNE&frombit == 0 {
+			// not pinned horizontally, vertically, or to the NW/SE diagonal
+			// can move on the SW/NE diagonal
+			movesqs |= rayForward(&movesNorthEast, from, occupied)
+			movesqs |= rayBackward(&movesSouthWest, from, occupied)
 		}
 		movesqs &= maskMayMoveTo
-		addCaptures(from, movesqs&opposing)
-		addQuietMoves(from, movesqs&^occupied)
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 KING_MOVES:
 	{
 		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
-		m := movesKing[from] &^ colour &^ threatened
-		addCaptures(from, m&opposing)
-		addQuietMoves(from, m&^occupied)
+		movesqs := movesKing[from] &^ colour &^ threatened
+		moves = addCaptures(moves, from, movesqs&opposing)
+		moves = addMoves(moves, from, movesqs&^occupied)
 	}
 
 	return moves, checkers != 0
+}
+
+func rayForward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
+	ray := moves[from]
+	intersection := ray & occupied
+	if intersection != 0 {
+		blocker := uint8(bits.TrailingZeros64(intersection))
+		ray &^= moves[blocker]
+	}
+	return ray
+}
+
+func rayBackward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
+	ray := moves[from]
+	intersection := ray & occupied
+	if intersection != 0 {
+		blocker := uint8(63 - bits.LeadingZeros64(intersection))
+		ray &^= moves[blocker]
+	}
+	return ray
+}
+
+func addPromotions(moves []Move, from, to uint8, capture bool) []Move {
+	return append(
+		moves,
+		NewQueenPromotion(from, to, capture),
+		NewKnightPromotion(from, to, capture),
+		NewRookPromotion(from, to, capture),
+		NewBishopPromotion(from, to, capture),
+	)
+}
+
+func addMoves(moves []Move, from uint8, movesqs uint64) []Move {
+	for movesqs != 0 {
+		to := uint8(bits.TrailingZeros64(movesqs))
+		movesqs &^= 1 << to
+		moves = append(moves, NewMove(from, to))
+	}
+	return moves
+}
+
+func addCaptures(moves []Move, from uint8, movesqs uint64) []Move {
+	for movesqs != 0 {
+		to := uint8(bits.TrailingZeros64(movesqs))
+		movesqs &^= 1 << to
+		moves = append(moves, NewCapture(from, to))
+	}
+	return moves
 }
