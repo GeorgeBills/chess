@@ -35,10 +35,12 @@ func TestGenerateLegalMoves(t *testing.T) {
 				san = append(san, move.SAN())
 			}
 
-			// sort so we don't need to fiddle with ordering in the test case
-			sort.Strings(tt.Moves)
-			sort.Strings(san)
-			assert.Equal(t, tt.Moves, san)
+			if !(len(tt.Moves) == 0 && len(san) == 0) {
+				// sort so we don't need to fiddle with ordering
+				sort.Strings(tt.Moves)
+				sort.Strings(san)
+				assert.Equal(t, tt.Moves, san)
+			}
 		})
 	}
 }

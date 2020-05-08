@@ -1282,10 +1282,10 @@
     },
     "checkmate": {
         "fen": "8/8/8/8/8/K1k5/8/r7 w - - 30 16",
-        "moves": null
+        "moves": []
     },
     "stalemate": {
         "fen": "4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
-        "moves": null
+        "moves": []
     }
 }
