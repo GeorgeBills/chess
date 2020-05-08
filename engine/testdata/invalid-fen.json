@@ -1,0 +1,130 @@
+{
+    "empty": {
+        "fen": "",
+        "error": "unexpected EOF"
+    },
+    "eof during pieces": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ",
+        "error": "unexpected EOF"
+    },
+    "eof after pieces": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+        "error": "unexpected EOF"
+    },
+    "eof before to move": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ",
+        "error": "unexpected EOF"
+    },
+    "eof after to move": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
+        "error": "unexpected EOF"
+    },
+    "eof before castling": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w ",
+        "error": "unexpected EOF"
+    },
+    "eof after castling": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq",
+        "error": "unexpected EOF"
+    },
+    "eof before en passant": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq ",
+        "error": "unexpected EOF"
+    },
+    "eof after en passant": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+        "error": "unexpected EOF"
+    },
+    "eof before half moves": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - ",
+        "error": "unexpected EOF"
+    },
+    "eof after half moves": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0",
+        "error": "unexpected EOF"
+    },
+    "eof before full moves": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 ",
+        "error": "unexpected EOF"
+    },
+    "no whitespace": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNRwKQkq-01",
+        "error": "unexpected 'w', expecting ' '"
+    },
+    "invalid full moves char": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1n",
+        "error": "unexpected 'n', expecting [0-9]"
+    },
+    "n too low": {
+        "fen": "rnbqkbnr/pppppppp/7/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "unexpected '/', expecting [PNBRQKpnbrqk1-8]"
+    },
+    "rank pieces too short": {
+        "fen": "rnbqkbnr/pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "unexpected '/', expecting [PNBRQKpnbrqk1-8]"
+    },
+    "missing rank": {
+        "fen": "pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "unexpected ' ', expecting '/'"
+    },
+    "invalid piece char": {
+        "fen": "rnbqkbnx/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "unexpected 'x', expecting [PNBRQKpnbrqk1-8]"
+    },
+    "invalid to move char": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ? KQkq - 0 1",
+        "error": "unexpected '?', expecting [wb]"
+    },
+    "invalid castling chars": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w abcd - 0 1",
+        "error": "unexpected 'a', expecting [KQkq]"
+    },
+    "invalid castling dash": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq-KQ - 0 1",
+        "error": "castling '-' must be solitary if present"
+    },
+    "invalid en passant file": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z1 0 1",
+        "error": "unexpected 'z', expecting [a-hA-H]"
+    },
+    "invalid en passant rank": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1",
+        "error": "unexpected '1', expecting [36]"
+    },
+    "invalid en passant (b2m)": {
+        "fen": "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a6 0 1",
+        "error": "invalid board state: white moved last; en passant on rank 6"
+    },
+    "invalid en passant (w2m)": {
+        "fen": "rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2",
+        "error": "invalid board state: black moved last; en passant on rank 3"
+    },
+    "invalid en passant (eof after single valid char)": {
+        "fen": "rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a",
+        "error": "unexpected EOF"
+    },
+    "invalid piece": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "unexpected 'X', expecting [PNBRQKpnbrqk1-8]"
+    },
+    "full moves too large": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 256",
+        "error": "value out of range"
+    },
+    "multiple white kings": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
+        "error": "invalid board: 2 white kings"
+    },
+    "zero black kings": {
+        "fen": "rnbqqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "invalid board: 0 black kings"
+    },
+    "pawns on rank 8": {
+        "fen": "pnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "error": "invalid board: pawns on rank 8"
+    },
+    "pawns on rank 1": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/PNBQKBNR w KQkq - 0 1",
+        "error": "invalid board: pawns on rank 1"
+    }
+}

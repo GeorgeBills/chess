@@ -1,10 +1,12 @@
 package engine_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"strings"
 	"testing"
 
@@ -70,172 +72,20 @@ func TestEnPassant(t *testing.T) {
 }
 
 func TestNewBoardFromInvalidFEN(t *testing.T) {
-	invalid := []struct{ name, fen, expected string }{
-		{
-			"empty",
-			"",
-			"unexpected EOF",
-		},
-		{
-			"eof during pieces",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ",
-			"unexpected EOF",
-		},
-		{
-			"eof after pieces",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-			"unexpected EOF",
-		},
-		{
-			"eof before to move",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ",
-			"unexpected EOF",
-		},
-		{
-			"eof after to move",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w",
-			"unexpected EOF",
-		},
-		{
-			"eof before castling",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w ",
-			"unexpected EOF",
-		},
-		{
-			"eof after castling",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq",
-			"unexpected EOF",
-		},
-		{
-			"eof before en passant",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq ",
-			"unexpected EOF",
-		},
-		{
-			"eof after en passant",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
-			"unexpected EOF",
-		},
-		{
-			"eof before half moves",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - ",
-			"unexpected EOF",
-		},
-		{
-			"eof after half moves",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0",
-			"unexpected EOF",
-		},
-		{
-			"eof before full moves",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 ",
-			"unexpected EOF",
-		},
-		{
-			"no whitespace",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNRwKQkq-01",
-			"unexpected 'w', expecting ' '",
-		},
-		{
-			"invalid full moves char",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1n",
-			"unexpected 'n', expecting [0-9]",
-		},
-		{
-			"n too low",
-			"rnbqkbnr/pppppppp/7/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"unexpected '/', expecting [PNBRQKpnbrqk1-8]",
-		},
-		{
-			"rank pieces too short",
-			"rnbqkbnr/pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"unexpected '/', expecting [PNBRQKpnbrqk1-8]",
-		},
-		{
-			"missing rank",
-			"pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"unexpected ' ', expecting '/'",
-		},
-		{
-			"invalid piece char",
-			"rnbqkbnx/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"unexpected 'x', expecting [PNBRQKpnbrqk1-8]",
-		},
-		{
-			"invalid to move char",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ? KQkq - 0 1",
-			"unexpected '?', expecting [wb]",
-		},
-		{
-			"invalid castling chars",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w abcd - 0 1",
-			"unexpected 'a', expecting [KQkq]",
-		},
-		{
-			"invalid castling dash",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w kq-KQ - 0 1",
-			"castling '-' must be solitary if present",
-		},
-		{
-			"invalid en passant file",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq z1 0 1",
-			"unexpected 'z', expecting [a-hA-H]",
-		},
-		{
-			"invalid en passant rank",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1",
-			"unexpected '1', expecting [36]",
-		},
-		{
-			"invalid en passant (b2m)",
-			"rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a6 0 1",
-			"invalid board state: white moved last; en passant on rank 6",
-		},
-		{
-			"invalid en passant (w2m)",
-			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2",
-			"invalid board state: black moved last; en passant on rank 3",
-		},
-		{
-			"invalid en passant (eof after single valid char)",
-			"rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a",
-			"unexpected EOF",
-		},
-		{
-			"invalid piece",
-			"rnbqkbnr/pppppppp/8/8/8/8/XPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"unexpected 'X', expecting [PNBRQKpnbrqk1-8]",
-		},
-		{
-			"full moves too large",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 256",
-			"value out of range",
-		},
-		{
-			"multiple white kings",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKKBNR w KQkq - 0 1",
-			"invalid board: 2 white kings",
-		},
-		{
-			"zero black kings",
-			"rnbqqbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"invalid board: 0 black kings",
-		},
-		{
-			"pawns on rank 8",
-			"pnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-			"invalid board: pawns on rank 8",
-		},
-		{
-			"pawns on rank 1",
-			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/PNBQKBNR w KQkq - 0 1",
-			"invalid board: pawns on rank 1",
-		},
+	var tests map[string]struct {
+		FEN   string
+		Error string
 	}
-	for _, tt := range invalid {
-		t.Run(tt.name, func(t *testing.T) {
-			b, err := engine.NewBoardFromFEN(strings.NewReader(tt.fen))
-			assert.EqualError(t, err, tt.expected)
+
+	f, err := os.Open("testdata/invalid-fen.json")
+	require.NoError(t, err)
+	err = json.NewDecoder(f).Decode(&tests)
+	require.NoError(t, err)
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			b, err := engine.NewBoardFromFEN(strings.NewReader(tt.FEN))
+			assert.EqualError(t, err, tt.Error)
 			assert.Nil(t, b)
 		})
 	}
