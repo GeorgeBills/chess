@@ -159,9 +159,6 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 		// king. moving a piece on to this ray will block single check.
 		threatRay uint64
 
-		from    uint8
-		frombit uint64
-
 		colour, opposing uint64
 		pawns            uint64
 	)
@@ -205,7 +202,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
 
-	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
+	rayEvaluateCheckPinForward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
 		blockFirst, blockFirstBit := popLSB(&intersection)
@@ -234,7 +231,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 		return 0
 	}
 
-	rayEvaluateCheckPinBackward := func(moves *[64]uint64) uint64 {
+	rayEvaluateCheckPinBackward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
 		blockFirst, blockFirstBit := popMSB(&intersection)
@@ -297,7 +294,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 
 	{
 		opposingking := b.kings & opposing // always exactly one king
-		from = uint8(bits.TrailingZeros64(opposingking))
+		from := uint8(bits.TrailingZeros64(opposingking))
 		// there's a subtle bug here if we start using threatened for more than
 		// just a "can our king move to this square?" check - not all of these
 		// moves will be legal for the opposing king to make.
@@ -306,19 +303,19 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
-		from, frombit = popLSB(&opposingrooks)
-		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
-		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
-		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
-		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
+		from, frombit := popLSB(&opposingrooks)
+		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth, from, frombit)
+		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast, from, frombit)
+		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth, from, frombit)
+		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest, from, frombit)
 	}
 
 	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
-		from, frombit = popLSB(&opposingbishops)
-		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
-		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
-		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
-		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
+		from, frombit := popLSB(&opposingbishops)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast, from, frombit)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast, from, frombit)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest, from, frombit)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest, from, frombit)
 	}
 
 	// Check for castling.
@@ -474,10 +471,10 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank5) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare - 7; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 { // sw
+			if from := epSquare - 7; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = epSquare - 9; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 { // se
+			if from := epSquare - 9; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
@@ -491,17 +488,17 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank4) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare + 7; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 {
+			if from := epSquare + 7; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = epSquare + 9; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 {
+			if from := epSquare + 9; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}
 	}
 
 	for pawnsCanPromote != 0 {
-		from, frombit = popLSB(&pawnsCanPromote)
+		from, frombit := popLSB(&pawnsCanPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -529,7 +526,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for pawnsNotPromote != 0 {
-		from, frombit = popLSB(&pawnsNotPromote)
+		from, frombit := popLSB(&pawnsNotPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -563,14 +560,14 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for knights := b.knights & colour &^ pinnedAny; knights != 0; {
-		from, frombit = popLSB(&knights)
+		from, _ := popLSB(&knights)
 		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
 		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
-		from, frombit = popLSB(&rooks)
+		from, frombit := popLSB(&rooks)
 		var movesqs uint64
 		if pinnedExceptVertical&frombit == 0 {
 			// not pinned horizontally or diagonally, can move vertically
@@ -588,7 +585,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
-		from, frombit = popLSB(&bishops)
+		from, frombit := popLSB(&bishops)
 		var movesqs uint64
 		if pinnedExceptDiagonalNWSE&frombit == 0 {
 			// not pinned horizontally, vertically, or to the SW/NE diagonal
@@ -609,7 +606,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 
 KING_MOVES:
 	{
-		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
+		from := uint8(bits.TrailingZeros64(king)) // always exactly one king
 		movesqs := movesKing[from] &^ colour &^ threatened
 		moves = addCaptures(moves, from, movesqs&opposing)
 		moves = addQuietMoves(moves, from, movesqs&^occupied)
