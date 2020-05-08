@@ -91,11 +91,11 @@
         "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq a1 0 1",
         "error": "unexpected '1', expecting [36]"
     },
-    "invalid en passant (b2m)": {
+    "invalid en passant (black to move)": {
         "fen": "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a6 0 1",
         "error": "invalid board state: white moved last; en passant on rank 6"
     },
-    "invalid en passant (w2m)": {
+    "invalid en passant (white to move)": {
         "fen": "rnbqkbnr/1ppppppp/8/p7/8/7N/PPPPPPPP/RNBQKB1R w KQkq a3 0 2",
         "error": "invalid board state: black moved last; en passant on rank 3"
     },
