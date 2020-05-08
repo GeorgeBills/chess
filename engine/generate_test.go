@@ -341,33 +341,6 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			// This test exposes a bug in treating "threat" rays the same as
-			// "block" rays. F1 - the square east of the king - is not a valid
-			// square for the king to move to, so it must be included in the
-			// mask of "threat" rays. Moving the queen to that square does NOT
-			// clear the king from check however, and so is not a legal move.
-			"clearing check: moving behind king (MSB) doesn't clear check",
-			"4k3/8/8/8/8/3Q4/8/q3K3 w - - 0 123",
-			[]string{
-				"d3b1", "d3d1", // queen must move in between queen and king
-				"e1d2", "e1e2", "e1f2", // king may move up a rank
-			},
-		},
-		{
-			// As above this test makes sure that we're treating "threat" rays
-			// (squares the king may not move to) separately to "block" rays
-			// (squares that we may move a piece to in order to clear check).
-			// except now the bit for the square we must move to is more
-			// significant than the bit the king is occupying. D1 must be marked
-			// as a "threatened" (king may not move to square), but ♘D1 is not a
-			// valid move.
-			"clearing check: moving behind king (LSB) doesn't clear check",
-			"4k3/8/8/8/8/4N3/r7/4K2q w - - 0 123",
-			[]string{
-				"e3f1", // knight must move in between king and queen
-			},
-		},
-		{
 			"clearing check: pawn must push (black to move)",
 			"4k3/1pp5/8/8/Q6B/8/8/3RKR2 b - - 0 1",
 			[]string{
@@ -827,6 +800,33 @@ func TestMoves(t *testing.T) {
 			"edge conditions: king on h1 checked by north-east pawn",
 			"4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
 			[]string{"h1g1", "h1h2", "h1xg2"},
+		},
+		{
+			// This test exposes a bug in treating "threat" rays the same as
+			// "block" rays. F1 - the square east of the king - is not a valid
+			// square for the king to move to, so it must be included in the
+			// mask of "threat" rays. Moving the queen to that square does NOT
+			// clear the king from check however, and so is not a legal move.
+			"edge conditions: moving behind king (MSB) doesn't clear check",
+			"4k3/8/8/8/8/3Q4/8/q3K3 w - - 0 123",
+			[]string{
+				"d3b1", "d3d1", // queen must move in between queen and king
+				"e1d2", "e1e2", "e1f2", // king may move up a rank
+			},
+		},
+		{
+			// As above this test makes sure that we're treating "threat" rays
+			// (squares the king may not move to) separately to "block" rays
+			// (squares that we may move a piece to in order to clear check).
+			// except now the bit for the square we must move to is more
+			// significant than the bit the king is occupying. D1 must be marked
+			// as a "threatened" (king may not move to square), but ♘D1 is not a
+			// valid move.
+			"edge conditions: moving behind king (LSB) doesn't clear check",
+			"4k3/8/8/8/8/4N3/r7/4K2q w - - 0 123",
+			[]string{
+				"e3f1", // knight must move in between king and queen
+			},
 		},
 		{
 			"checkmate",
