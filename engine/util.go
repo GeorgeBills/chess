@@ -1,11 +1,62 @@
 package engine
 
+import (
+	"fmt"
+	"io"
+)
+
 // ToAlgebraicNotation converts the index i to algebraic notation (e.g. A1, H8).
 // Results for indexes outside of the sane 0...63 range are undefined.
 func ToAlgebraicNotation(i uint8) string {
 	file := File(i)
 	rank := Rank(i)
 	return string([]byte{'a' + file, '1' + rank})
+}
+
+// ParseAlgebraicNotation reads two bytes from r and parses them as Algebraic
+// Notation, returning the rank and file (both zero indexed).
+func ParseAlgebraicNotation(r io.ByteReader) (rank, file uint8, err error) {
+	file, err = parseFile(r)
+	if err != nil {
+		return 0, 0, err
+	}
+	rank, err = parseRank(r)
+	if err != nil {
+		return 0, 0, err
+	}
+	return rank, file, err
+}
+
+func parseFile(r io.ByteReader) (uint8, error) {
+	var file uint8
+	ch, err := r.ReadByte() // read file
+	if err != nil {
+		return 0, err
+	}
+	switch ch {
+	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
+		file = uint8(ch - 'a')
+	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
+		file = uint8(ch - 'A')
+	default:
+		return 0, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
+	}
+	return file, nil
+}
+
+func parseRank(r io.ByteReader) (uint8, error) {
+	var rank uint8
+	ch, err := r.ReadByte() // read rank
+	if err != nil {
+		return 0, err
+	}
+	switch ch {
+	case '1', '2', '3', '4', '5', '6', '7', '8':
+		rank = uint8(ch - '1')
+	default:
+		return 0, fmt.Errorf("unexpected '%c', expecting [1-8]", ch)
+	}
+	return rank, nil
 }
 
 // Rank returns the rank index (0...7) for a given square index.

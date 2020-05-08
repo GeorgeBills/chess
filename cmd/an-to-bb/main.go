@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 func main() {
@@ -16,22 +19,9 @@ func main() {
 			fatalsq(os.Args[i])
 		}
 
-		var file uint8
-		switch os.Args[i][0] {
-		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			file = uint8(os.Args[i][0] - 'a')
-		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			file = uint8(os.Args[i][0] - 'A')
-		default:
-			fatalsq(os.Args[i])
-		}
-
-		var rank uint8
-		switch os.Args[i][1] {
-		case '1', '2', '3', '4', '5', '6', '7', '8':
-			rank = uint8(os.Args[i][1] - '1')
-		default:
-			fatalsq(os.Args[i])
+		rank, file, err := engine.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
+		if err != nil {
+			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
 		board |= 1 << (8*rank + file)
