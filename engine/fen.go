@@ -138,6 +138,8 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
 	r := bufio.NewReaderSize(fen, maxFEN)
 
+	// TODO: can we use Peek here to simplify "seen" checks?
+
 	skipspace := func() error {
 		seen := false
 		for {
@@ -304,6 +306,7 @@ READ_CASTLING:
 			}
 			break READ_CASTLING
 		case ' ':
+			// TODO: should require at least one byte read here for robustness (use Peek?)
 			r.UnreadByte()
 			break READ_CASTLING
 		default:
