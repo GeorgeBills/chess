@@ -591,7 +591,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
@@ -612,7 +612,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 		movesqs &= maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
@@ -635,7 +635,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 		movesqs &= maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 KING_MOVES:
@@ -643,7 +643,7 @@ KING_MOVES:
 		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
 		movesqs := movesKing[from] &^ colour &^ threatened
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	return moves, checkers != 0
@@ -679,7 +679,7 @@ func addPromotions(moves []Move, from, to uint8, capture bool) []Move {
 	)
 }
 
-func addMoves(moves []Move, from uint8, movesqs uint64) []Move {
+func addQuietMoves(moves []Move, from uint8, movesqs uint64) []Move {
 	for movesqs != 0 {
 		to := uint8(bits.TrailingZeros64(movesqs))
 		movesqs &^= 1 << to
