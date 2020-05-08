@@ -183,8 +183,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 
 				seen = true
 			case ' ':
-				err = r.UnreadByte()
-				return n, err
+				return n, r.UnreadByte()
 			default:
 				return 0, fmt.Errorf("unexpected '%c', expecting [0-9]", ch)
 			}
@@ -305,10 +304,7 @@ READ_CASTLING:
 			}
 			break READ_CASTLING
 		case ' ':
-			err := r.UnreadByte()
-			if err != nil {
-				return nil, unexpectingEOF(err)
-			}
+			r.UnreadByte()
 			break READ_CASTLING
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [KQkq]", ch)
