@@ -46,7 +46,7 @@ func TestGenerateLegalMoves(t *testing.T) {
 }
 
 func TestTooManyCheckersPanics(t *testing.T) {
-	fen := "4k3/4r3/8/q7/7b/8/8/4K3 w - - 0 123" // 3 checkers
+	const fen = "4k3/4r3/8/q7/7b/8/8/4K3 w - - 0 123" // 3 checkers
 	b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
 	require.NoError(t, err)
 	require.NotNil(t, b)

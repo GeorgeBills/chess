@@ -23,14 +23,15 @@ func (*errorWriter) Write([]byte) (int, error) {
 
 func TestNewBoardToFEN(t *testing.T) {
 	fen := engine.NewBoard().FEN()
-	expected := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	const expected = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	assert.Equal(t, expected, fen)
 }
 
 func TestNewBoardFromFEN(t *testing.T) {
-	fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	expected := engine.NewBoard()
-	b, err := engine.NewBoardFromFEN(fen)
+	r := strings.NewReader(fen)
+	b, err := engine.NewBoardFromFEN(r)
 	require.NoError(t, err)
 	assert.Equal(t, &expected, b)
 }
@@ -126,9 +127,10 @@ func TestWriteFENError(t *testing.T) {
 }
 
 func BenchmarkNewBoardFromFEN(b *testing.B) {
+	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	for i := 0; i < b.N; i++ {
-		fen := strings.NewReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-		engine.NewBoardFromFEN(fen)
+		r := strings.NewReader(fen)
+		engine.NewBoardFromFEN(r)
 	}
 }
 
