@@ -134,70 +134,6 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"edge conditions: en passant a6 shouldn't wrap north-east",
-			"4k3/8/8/pP6/7P/8/8/4K3 w - a6 0 123",
-			[]string{
-				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-				"h4h5",              // h4 pawn; should NOT include h4xa6e.p.
-				"b5b6", "b5xa6e.p.", // b5 pawn may en passant
-			},
-		},
-		{
-			"edge conditions: en passant h6 shouldn't wrap north-west",
-			"4k3/8/P7/6Pp/8/8/8/4K3 w - h6 0 123",
-			[]string{
-				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-				"a6a7",              // a6 pawn; should NOT include a6xh6e.p.
-				"g5g6", "g5xh6e.p.", // g5 pawn may en passant
-			},
-		},
-		{
-			"edge conditions: en passant a3 shouldn't wrap south-east",
-			"4k3/8/8/8/Pp6/7p/8/4K3 b - a3 0 123",
-			[]string{
-				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-				"h3h2",              // h3 pawn; should NOT include h3xa3e.p.
-				"b4b3", "b4xa3e.p.", // b4 pawn may en passant
-			},
-		},
-		{
-			"edge conditions: en passant h3 shouldn't wrap south-west",
-			"4k3/8/8/p7/6pP/8/8/4K3 b - h3 0 123",
-			[]string{
-				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-				"a5a4",              // a5 pawn; should NOT include a5xh3e.p.
-				"g4g3", "g4xh3e.p.", // g4 pawn may en passant
-			},
-		},
-		{
-			"edge conditions: pawns shouldn't wrap east (white to move)",
-			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
-			[]string{
-				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-			},
-		},
-		{
-			"edge conditions: pawns shouldn't wrap west (white to move)",
-			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
-			[]string{
-				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
-			},
-		},
-		{
-			"edge conditions: pawns shouldn't wrap east (black to move)",
-			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
-			[]string{
-				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-			},
-		},
-		{
-			"edge conditions: pawns shouldn't wrap west (black to move)",
-			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
-			[]string{
-				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
-			},
-		},
-		{
 			"basic moves: knight moves",
 			"4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
 			[]string{
@@ -235,28 +171,6 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"edge conditions: rooks h1 and a8",
-			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
-			[]string{
-				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
-				"a8b8", "a8c8", "a8d8", "a8e8", "a8f8", "a8g8", "a8h8", // a8 rook horizontal
-				"h1a1", "h1b1", "h1c1", "h1d1", "h1e1", "h1f1", "h1g1", // h1 rook vertical
-				"h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", // h1 rook horizontal
-				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h2", "g2h3", // king
-			},
-		},
-		{
-			"edge conditions: rooks a1 and h8",
-			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
-			[]string{
-				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
-				"a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1", // a1 rook horizontal
-				"h8h1", "h8h2", "h8h3", "h8h4", "h8h5", "h8h6", "h8h7", // h8 rook vertical
-				"h8a8", "h8b8", "h8c8", "h8d8", "h8e8", "h8f8", "h8g8", // h8 rook horizontal
-				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h1", "g2h2", "g2h3", // king
-			},
-		},
-		{
 			"basic moves: bishop moves",
 			"4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
 			[]string{
@@ -281,17 +195,6 @@ func TestMoves(t *testing.T) {
 				"a6a5", "f3f2", // pawns
 				"b8c6", "b8d7", // queenside knight
 				"d5c4", "d5e4", "d5c6", "d5xb3", "d5xb7", "d5xe6", // bishop
-			},
-		},
-		{
-			"edge conditions: bishops moving to corners of the board",
-			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
-			[]string{
-				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
-				"c3a5", "c3b4", "c3d2", "c3e1", // c3 bishop falling diagonal
-				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5g8", // d5 bishop rising diagonal
-				"d5a8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
-				"g1f1", "g1f2", "g1g2", "g1h1", "g1h2", // king
 			},
 		},
 		{
@@ -375,46 +278,6 @@ func TestMoves(t *testing.T) {
 			},
 		},
 		{
-			"edge conditions: pawn threat shouldn't wrap (white king a1)",
-			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
-			[]string{"a1a2", "a1b1", "a1xb2"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (white king b1)",
-			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
-			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (white king h1)",
-			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
-			[]string{"h1g1", "h1xg2", "h1h2"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (white king g1)",
-			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
-			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (black king a8)",
-			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
-			[]string{"a8a7", "a8xb7", "a8b8"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (black king b8)",
-			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
-			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (black king h8)",
-			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
-			[]string{"h8h7", "h8xg7", "h8g8"},
-		},
-		{
-			"edge conditions: pawn threat shouldn't wrap (black king g8)",
-			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
-			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
-		},
-		{
 			"clearing check: must capture to clear check",
 			"r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
 			[]string{
@@ -462,26 +325,6 @@ func TestMoves(t *testing.T) {
 			[]string{
 				"e1d1", "e1xd2", "e1e2", "e1f1", "e1f2", // king
 			},
-		},
-		{
-			"edge conditions: king on h8 checked by south-west pawn",
-			"7k/6P1/8/8/1qprnb2/8/8/4K3 b - - 1 124",
-			[]string{"h8g8", "h8h7", "h8xg7"},
-		},
-		{
-			"edge conditions: king on a8 checked by south-east pawn",
-			"k7/1P6/8/8/2prnbq1/8/8/4K3 b - - 1 124",
-			[]string{"a8a7", "a8b8", "a8xb7"},
-		},
-		{
-			"edge conditions: king on a1 checked by north-east pawn",
-			"4k3/8/8/2QNPRB1/8/8/1p6/K7 w - - 1 124",
-			[]string{"a1a2", "a1b1", "a1xb2"},
-		},
-		{
-			"edge conditions: king on h1 checked by north-east pawn",
-			"4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
-			[]string{"h1g1", "h1h2", "h1xg2"},
 		},
 		{
 			"clearing check: piece must block to clear check (bishop)",
@@ -827,6 +670,163 @@ func TestMoves(t *testing.T) {
 				"h8f8", "h8g8", // kingside rook
 				"e8d8", "e8f8", // king
 			},
+		},
+		{
+			"edge conditions: en passant a6 shouldn't wrap north-east",
+			"4k3/8/8/pP6/7P/8/8/4K3 w - a6 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"h4h5",              // h4 pawn; should NOT include h4xa6e.p.
+				"b5b6", "b5xa6e.p.", // b5 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant h6 shouldn't wrap north-west",
+			"4k3/8/P7/6Pp/8/8/8/4K3 w - h6 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+				"a6a7",              // a6 pawn; should NOT include a6xh6e.p.
+				"g5g6", "g5xh6e.p.", // g5 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant a3 shouldn't wrap south-east",
+			"4k3/8/8/8/Pp6/7p/8/4K3 b - a3 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"h3h2",              // h3 pawn; should NOT include h3xa3e.p.
+				"b4b3", "b4xa3e.p.", // b4 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: en passant h3 shouldn't wrap south-west",
+			"4k3/8/8/p7/6pP/8/8/4K3 b - h3 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+				"a5a4",              // a5 pawn; should NOT include a5xh3e.p.
+				"g4g3", "g4xh3e.p.", // g4 pawn may en passant
+			},
+		},
+		{
+			"edge conditions: pawns shouldn't wrap east (white to move)",
+			"r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"edge conditions: pawns shouldn't wrap west (white to move)",
+			"r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
+			[]string{
+				"e1d1", "e1d2", "e1e2", "e1f1", "e1f2", // king
+			},
+		},
+		{
+			"edge conditions: pawns shouldn't wrap east (black to move)",
+			"4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+			},
+		},
+		{
+			"edge conditions: pawns shouldn't wrap west (black to move)",
+			"4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
+			[]string{
+				"e8d7", "e8d8", "e8e7", "e8f7", "e8f8", // king
+			},
+		},
+		{
+			"edge conditions: rooks h1 and a8",
+			"R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
+			[]string{
+				"a8a1", "a8a2", "a8a3", "a8a4", "a8a5", "a8a6", "a8a7", // a8 rook vertical
+				"a8b8", "a8c8", "a8d8", "a8e8", "a8f8", "a8g8", "a8h8", // a8 rook horizontal
+				"h1a1", "h1b1", "h1c1", "h1d1", "h1e1", "h1f1", "h1g1", // h1 rook vertical
+				"h1h2", "h1h3", "h1h4", "h1h5", "h1h6", "h1h7", "h1h8", // h1 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h2", "g2h3", // king
+			},
+		},
+		{
+			"edge conditions: rooks a1 and h8",
+			"7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
+			[]string{
+				"a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "a1a7", "a1a8", // a1 rook vertical
+				"a1b1", "a1c1", "a1d1", "a1e1", "a1f1", "a1g1", "a1h1", // a1 rook horizontal
+				"h8h1", "h8h2", "h8h3", "h8h4", "h8h5", "h8h6", "h8h7", // h8 rook vertical
+				"h8a8", "h8b8", "h8c8", "h8d8", "h8e8", "h8f8", "h8g8", // h8 rook horizontal
+				"g2f1", "g2f2", "g2f3", "g2g1", "g2g3", "g2h1", "g2h2", "g2h3", // king
+			},
+		},
+		{
+			"edge conditions: bishops moving to corners of the board",
+			"4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
+			[]string{
+				"c3a1", "c3b2", "c3d4", "c3e5", "c3f6", "c3g7", "c3h8", // c3 bishop rising diagonal
+				"c3a5", "c3b4", "c3d2", "c3e1", // c3 bishop falling diagonal
+				"d5a2", "d5b3", "d5c4", "d5e6", "d5f7", "d5g8", // d5 bishop rising diagonal
+				"d5a8", "d5b7", "d5c6", "d5e4", "d5f3", "d5g2", "d5h1", // d5 bishop falling diagonal
+				"g1f1", "g1f2", "g1g2", "g1h1", "g1h2", // king
+			},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (white king a1)",
+			"4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (white king b1)",
+			"4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
+			[]string{"b1a1", "b1a2", "b1b2", "b1xc2", "b1c1"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (white king h1)",
+			"4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
+			[]string{"h1g1", "h1xg2", "h1h2"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (white king g1)",
+			"4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
+			[]string{"g1f1", "g1xf2", "g1g2", "g1h1", "g1h2"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (black king a8)",
+			"k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"a8a7", "a8xb7", "a8b8"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (black king b8)",
+			"1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
+			[]string{"b8a7", "b8a8", "b8b7", "b8xc7", "b8c8"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (black king h8)",
+			"7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"h8h7", "h8xg7", "h8g8"},
+		},
+		{
+			"edge conditions: pawn threat shouldn't wrap (black king g8)",
+			"6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
+			[]string{"g8h7", "g8h8", "g8g7", "g8xf7", "g8f8"},
+		},
+		{
+			"edge conditions: king on h8 checked by south-west pawn",
+			"7k/6P1/8/8/1qprnb2/8/8/4K3 b - - 1 124",
+			[]string{"h8g8", "h8h7", "h8xg7"},
+		},
+		{
+			"edge conditions: king on a8 checked by south-east pawn",
+			"k7/1P6/8/8/2prnbq1/8/8/4K3 b - - 1 124",
+			[]string{"a8a7", "a8b8", "a8xb7"},
+		},
+		{
+			"edge conditions: king on a1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/1p6/K7 w - - 1 124",
+			[]string{"a1a2", "a1b1", "a1xb2"},
+		},
+		{
+			"edge conditions: king on h1 checked by north-east pawn",
+			"4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
+			[]string{"h1g1", "h1h2", "h1xg2"},
 		},
 		{
 			"checkmate",
