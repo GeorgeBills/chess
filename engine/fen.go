@@ -138,13 +138,6 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
 	r := bufio.NewReaderSize(fen, maxFEN)
 
-	unexpectingEOF := func(err error) error {
-		if err == io.EOF {
-			return io.ErrUnexpectedEOF
-		}
-		return err
-	}
-
 	skipspace := func() error {
 		seen := false
 		for {
@@ -332,21 +325,16 @@ READ_CASTLING:
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
+		r.UnreadByte()
+
 		b.meta |= maskCanEnPassant
 
-		// should be a file; store the file (zero indexed) as the last 4 bits in the board meta
-		switch ch {
-		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			b.meta |= uint8(ch - 'a')
-		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			b.meta |= uint8(ch - 'A')
-		default:
-			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
+		rank, file, err := ParseAlgebraicNotation(r)
+		if err != nil {
+			return nil, err
 		}
 
-		// The next char should indicate either rank 3 or rank 6.
-		//
-		// We don't encode this rank into the board state, since it can be
+		// We don't encode the rank into the board state, since it can be
 		// inferred from which colour is to move next.
 		//
 		// If black is to move and an en passant is possible, then white must
@@ -357,23 +345,19 @@ READ_CASTLING:
 		//
 		// This means we need to validate the state here, otherwise the board is
 		// inconsistent.
-		ch, err := r.ReadByte()
-		if err != nil {
-			return nil, unexpectingEOF(err)
+		switch tomove {
+		case 'w':
+			if rank != rank6 {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", rank+1)
+			}
+		case 'b':
+			if rank != rank3 {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", rank+1)
+			}
 		}
 
-		switch ch {
-		case '3':
-			if tomove == 'w' {
-				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank 3")
-			}
-		case '6':
-			if tomove == 'b' {
-				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank 6")
-			}
-		default:
-			return nil, fmt.Errorf("unexpected '%c', expecting [36]", ch)
-		}
+		// store the zero indexed file as the last 4 bits in the board meta
+		b.meta |= file
 	}
 
 	if err = skipspace(); err != nil {

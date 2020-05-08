@@ -28,35 +28,40 @@ func ParseAlgebraicNotation(r io.ByteReader) (rank, file uint8, err error) {
 }
 
 func parseFile(r io.ByteReader) (uint8, error) {
-	var file uint8
 	ch, err := r.ReadByte() // read file
 	if err != nil {
-		return 0, err
+		return 0, unexpectingEOF(err)
 	}
+
 	switch ch {
 	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-		file = uint8(ch - 'a')
+		return uint8(ch - 'a'), nil
 	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-		file = uint8(ch - 'A')
+		return uint8(ch - 'A'), nil
 	default:
 		return 0, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
 	}
-	return file, nil
 }
 
 func parseRank(r io.ByteReader) (uint8, error) {
-	var rank uint8
 	ch, err := r.ReadByte() // read rank
 	if err != nil {
-		return 0, err
+		return 0, unexpectingEOF(err)
 	}
+
 	switch ch {
 	case '1', '2', '3', '4', '5', '6', '7', '8':
-		rank = uint8(ch - '1')
+		return uint8(ch - '1'), nil
 	default:
 		return 0, fmt.Errorf("unexpected '%c', expecting [1-8]", ch)
 	}
-	return rank, nil
+}
+
+func unexpectingEOF(err error) error {
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	return err
 }
 
 // Rank returns the rank index (0...7) for a given square index.
