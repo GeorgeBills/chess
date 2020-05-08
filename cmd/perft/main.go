@@ -42,7 +42,7 @@ func fatal(v error) {
 func perft(g engine.Game, depth uint, validate, divide bool) uint64 {
 	var ret uint64
 	moves := make([]engine.Move, 0, 32)
-	moves, _ = g.GenerateMoves(moves)
+	moves, _ = g.GenerateLegalMoves(moves)
 	for _, move := range moves {
 		fen := ""
 		if validate {

@@ -130,16 +130,17 @@ const (
 	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
-// GenerateMoves returns a slice of possible moves from the current board state.
-// It also returns whether or not the side to move is in check. An empty or nil
-// slice of moves combined with an an indication of check implies that the side
-// to move is in checkmate.
+// GenerateLegalMoves returns a slice of possible moves from the current board
+// state. It also returns whether or not the side to move is in check. An empty
+// or nil slice of moves combined with an an indication of check implies that
+// the side to move is in checkmate.
 //
 // This function will panic if run with certain invalid boards, e.g. if there
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
-// only calling GenerateMoves() on valid boards by calling Validate() first.
-func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
+// only calling GenerateLegalMoves() on valid boards by calling Validate()
+// first.
+func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
 	var (
