@@ -19,9 +19,9 @@ func main() {
 		var file uint8
 		switch os.Args[i][0] {
 		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			file = uint8(os.Args[i][0]-'a') + 1
+			file = uint8(os.Args[i][0] - 'a')
 		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			file = uint8(os.Args[i][0]-'A') + 1
+			file = uint8(os.Args[i][0] - 'A')
 		default:
 			fatalsq(os.Args[i])
 		}
@@ -29,12 +29,12 @@ func main() {
 		var rank uint8
 		switch os.Args[i][1] {
 		case '1', '2', '3', '4', '5', '6', '7', '8':
-			rank = uint8(os.Args[i][1] - '0')
+			rank = uint8(os.Args[i][1] - '1')
 		default:
 			fatalsq(os.Args[i])
 		}
 
-		board |= 1 << (8*(rank-1) + file - 1)
+		board |= 1 << (8*rank + file)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)
