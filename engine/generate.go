@@ -207,10 +207,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
-		blockFirst := uint8(bits.TrailingZeros64(intersection))
-		var blockFirstBit uint64 = 1 << blockFirst
-		blockSecond := uint8(bits.TrailingZeros64(intersection &^ blockFirstBit))
-		var blockSecondBit uint64 = 1 << blockSecond
+		blockFirst, blockFirstBit := popLSB(&intersection)
+		_, blockSecondBit := popLSB(&intersection)
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
@@ -238,10 +236,8 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	rayEvaluateCheckPinBackward := func(moves *[64]uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
-		blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
-		var blockFirstBit uint64 = 1 << blockFirst
-		blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
-		var blockSecondBit uint64 = 1 << blockSecond
+		blockFirst, blockFirstBit := popMSB(&intersection)
+		_, blockSecondBit := popMSB(&intersection)
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
@@ -290,10 +286,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingknights := b.knights & opposing; opposingknights != 0; {
-		from = uint8(bits.TrailingZeros64(opposingknights))
-		frombit = 1 << from
-		opposingknights &^= frombit
-
+		from, frombit := popLSB(&opposingknights)
 		movesqs := movesKnights[from]
 		if movesqs&king != 0 {
 			checkers |= frombit
@@ -312,10 +305,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
-		from = uint8(bits.TrailingZeros64(opposingrooks))
-		frombit = 1 << from
-		opposingrooks &^= frombit
-
+		from, frombit = popLSB(&opposingrooks)
 		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
 		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
 		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
@@ -323,10 +313,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
-		from = uint8(bits.TrailingZeros64(opposingbishops))
-		frombit = 1 << from
-		opposingbishops &^= frombit
-
+		from, frombit = popLSB(&opposingbishops)
 		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
 		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
 		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
@@ -383,18 +370,14 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if kingSq > epCaptureSq {
 				ray = movesWest[kingSq] & occupied
 				for ray != 0 && pieceidx < 3 {
-					pieceSq := uint8(63 - bits.LeadingZeros64(ray))
-					var pieceMask uint64 = 1 << pieceSq
-					ray &^= pieceMask
+					_, pieceMask := popMSB(&ray)
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
 			} else {
 				ray = movesEast[kingSq] & occupied
 				for ray != 0 && pieceidx < 3 {
-					pieceSq := uint8(bits.TrailingZeros64(ray))
-					var pieceMask uint64 = 1 << pieceSq
-					ray &^= pieceMask
+					_, pieceMask := popLSB(&ray)
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
@@ -517,10 +500,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for pawnsCanPromote != 0 {
-		from = uint8(bits.TrailingZeros64(pawnsCanPromote))
-		frombit = 1 << from
-		pawnsCanPromote &^= frombit
-
+		from, frombit = popLSB(&pawnsCanPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -548,10 +528,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for pawnsNotPromote != 0 {
-		from = uint8(bits.TrailingZeros64(pawnsNotPromote))
-		frombit = 1 << from
-		pawnsNotPromote &^= frombit
-
+		from, frombit = popLSB(&pawnsNotPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -585,20 +562,14 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for knights := b.knights & colour &^ pinnedAny; knights != 0; {
-		from = uint8(bits.TrailingZeros64(knights))
-		frombit = 1 << from
-		knights &^= frombit
-
+		from, frombit = popLSB(&knights)
 		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
 		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
-		from = uint8(bits.TrailingZeros64(rooks))
-		frombit = 1 << from
-		rooks &^= frombit
-
+		from, frombit = popLSB(&rooks)
 		var movesqs uint64
 		if pinnedExceptVertical&frombit == 0 {
 			// not pinned horizontally or diagonally, can move vertically
@@ -616,10 +587,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
-		from = uint8(bits.TrailingZeros64(bishops))
-		frombit = 1 << from
-		bishops &^= frombit
-
+		from, frombit = popLSB(&bishops)
 		var movesqs uint64
 		if pinnedExceptDiagonalNWSE&frombit == 0 {
 			// not pinned horizontally, vertically, or to the SW/NE diagonal
@@ -695,4 +663,22 @@ func addCaptures(moves []Move, from uint8, movesqs uint64) []Move {
 		moves = append(moves, NewCapture(from, to))
 	}
 	return moves
+}
+
+// popLSB finds the Least Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popLSB(x *uint64) (uint8, uint64) {
+	idx := uint8(bits.TrailingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
+}
+
+// popMSB finds the Most Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popMSB(x *uint64) (uint8, uint64) {
+	idx := uint8(63 - bits.LeadingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
 }
