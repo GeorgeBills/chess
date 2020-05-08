@@ -1,12 +1,12 @@
-# printboard
+# bb-to-visual
 
-`printboard` takes a decimal, binary or hexadecimal bitboard variable and
+`bb-to-visual` takes a decimal, binary or hexadecimal bitboard variable and
 outputs a graphical representation of that board. It's useful mainly for
 visualising variables from e.g. existing code, the debugger, or the output of a
 failing unit test.
 
 ```
-PS C:\Users\georg.GEORGEB-XPS15\Documents\repositories\chess> go run .\cmd\printboard\ 0x70507
+PS C:\Users\georg.GEORGEB-XPS15\Documents\repositories\chess> go run .\cmd\bb-to-visual\ 0x70507
 □□□□□□□□
 □□□□□□□□
 □□□□□□□□
