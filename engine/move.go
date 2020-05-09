@@ -205,14 +205,18 @@ func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 	}
 	toSq := Square(toRank, toFile)
 
-	if b.isPawnAt(fromSq) && diff(fromSq, toSq) == 16 {
-		// pawn moving exactly two ranks: must be a double push
-		return NewPawnDoublePush(fromSq, toSq), nil
-	}
+	if b.isPawnAt(fromSq) {
+		diff := diff(fromSq, toSq)
 
-	if b.isPawnAt(fromSq) && diff(fromSq, toSq) != 8 && b.isEmptyAt(toSq) {
-		// pawn capturing to an empty square: must be en passant
-		return NewEnPassant(fromSq, toSq), nil
+		if diff == 16 {
+			// pawn moving exactly two ranks: must be a double push
+			return NewPawnDoublePush(fromSq, toSq), nil
+		}
+
+		if diff != 8 && b.isEmptyAt(toSq) {
+			// pawn capturing to an empty square: must be en passant
+			return NewEnPassant(fromSq, toSq), nil
+		}
 	}
 
 	if !b.isEmptyAt(toSq) {
@@ -220,21 +224,23 @@ func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 		return NewCapture(fromSq, toSq), nil
 	}
 
-	if fromSq == E1 && b.isKingAt(fromSq) {
-		if toSq == G1 { // "e1g1" is white kingside castling
-			return WhiteKingsideCastle, nil
+	if b.isKingAt(fromSq) {
+		if fromSq == E1 {
+			if toSq == G1 { // "e1g1" is white kingside castling
+				return WhiteKingsideCastle, nil
+			}
+			if toSq == C1 { // "e1c1" is white queenside castling
+				return WhiteQueensideCastle, nil
+			}
 		}
-		if toSq == C1 { // "e1c1" is white queenside castling
-			return WhiteQueensideCastle, nil
-		}
-	}
 
-	if fromSq == E8 && b.isKingAt(fromSq) {
-		if toSq == G8 { // "e8g8" is black kingside castling
-			return BlackKingsideCastle, nil
-		}
-		if toSq == C8 { // "e8c8" is black queensdie castling
-			return BlackQueensideCastle, nil
+		if fromSq == E8 {
+			if toSq == G8 { // "e8g8" is black kingside castling
+				return BlackKingsideCastle, nil
+			}
+			if toSq == C8 { // "e8c8" is black queensdie castling
+				return BlackQueensideCastle, nil
+			}
 		}
 	}
 
