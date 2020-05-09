@@ -1,0 +1,147 @@
+{
+    "pawn single push (white)": {
+        "before": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "move": "d2d3",
+        "after": "rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1"
+    },
+    "pawn single push (black)": {
+        "before": "rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+        "move": "d7d6",
+        "after": "rnbqkbnr/ppp1pppp/3p4/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 2"
+    },
+    "pawn double push (white)": {
+        "before": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "move": "e2e4",
+        "after": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+    },
+    "pawn double push (black)": {
+        "before": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+        "move": "e7e5",
+        "after": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
+    },
+    "en passant (white)": {
+        "before": "r1bqkbnr/pppp1ppp/2n5/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
+        "move": "d5e6",
+        "after": "r1bqkbnr/pppp1ppp/2n1P3/8/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 3"
+    },
+    "en passant (black)": {
+        "before": "rnbqkbnr/pppp1ppp/8/8/3PpP2/2N5/PPP1P1PP/R1BQKBNR b KQkq f3 0 3",
+        "move": "e4f3",
+        "after": "rnbqkbnr/pppp1ppp/8/8/3P4/2N2p2/PPP1P1PP/R1BQKBNR w KQkq - 0 4"
+    },
+    "en passant declined (white)": {
+        "before": "rnbqkb1r/pppp1ppp/5n2/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3",
+        "move": "g1f3",
+        "after": "rnbqkb1r/pppp1ppp/5n2/3Pp3/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3"
+    },
+    "white pawn capture black pawn": {
+        "before": "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+        "move": "d4e5",
+        "after": "rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2"
+    },
+    "white bishop capture black knight": {
+        "before": "r1bqkb1r/pppppppp/2n2n2/1B6/8/4P3/PPPP1PPP/RNBQK1NR w KQkq - 0 3",
+        "move": "b5c6",
+        "after": "r1bqkb1r/pppppppp/2B2n2/8/8/4P3/PPPP1PPP/RNBQK1NR b KQkq - 0 3"
+    },
+    "black queen capture white rook": {
+        "before": "4k3/8/5q2/8/8/8/8/R3K3 b - - 0 123",
+        "move": "f6a1",
+        "after": "4k3/8/8/8/8/8/8/q3K3 w - - 0 124"
+    },
+    "castle queenside (white)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+        "move": "e1c1",
+        "after": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/2KR1BNR b kq - 0 5"
+    },
+    "castle queenside (black)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+        "move": "e8c8",
+        "after": "2kr1bnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQ - 0 6"
+    },
+    "castle kingside (white)": {
+        "before": "rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+        "move": "e1g1",
+        "after": "rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQ1RK1 b kq - 0 4"
+    },
+    "castle kingside (black)": {
+        "before": "rnbqk2r/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R b KQkq - 0 4",
+        "move": "e8g8",
+        "after": "rnbq1rk1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQ - 0 5"
+    },
+    "moving king - can no longer castle (white)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+        "move": "e1d1",
+        "after": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R2K1BNR b kq - 0 5"
+    },
+    "moving queenside rook - can no longer castle queenside (white)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+        "move": "a1b1",
+        "after": "r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/1R2KBNR b Kkq - 0 5"
+    },
+    "moving kingside rook - can no longer castle kingside (white)": {
+        "before": "rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+        "move": "h1g1",
+        "after": "rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK1R1 b Qkq - 0 4"
+    },
+    "moving king - can no longer castle (black)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+        "move": "e8d8",
+        "after": "r2k1bnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQ - 0 6"
+    },
+    "moving queenside rook - can no longer castle queenside (black)": {
+        "before": "r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+        "move": "a8b8",
+        "after": "1r2kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQk - 0 6"
+    },
+    "moving kingside rook - can no longer castle kingside (black)": {
+        "before": "rnbqk2r/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R b KQkq - 0 4",
+        "move": "h8g8",
+        "after": "rnbqk1r1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQq - 0 5"
+    },
+    "capturing kingside rook - can no longer castle kingside (white to move)": {
+        "before": "4k2r/8/6N1/8/8/8/8/2KR4 w k - 1 125",
+        "move": "g6h8",
+        "after": "4k2N/8/8/8/8/8/8/2KR4 b - - 1 125"
+    },
+    "promotion to queen (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7b8q",
+        "after": "rQ2k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to bishop (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7b8b",
+        "after": "rB2k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to rook (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7b8r",
+        "after": "rR2k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to knight (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7b8n",
+        "after": "rN2k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to queen with capture (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7a8q",
+        "after": "Q3k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to bishop with capture  (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7a8b",
+        "after": "B3k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to rook with capture (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7a8r",
+        "after": "R3k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    },
+    "promotion to knight with capture (white)": {
+        "before": "r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+        "move": "b7a8n",
+        "after": "N3k3/8/8/8/8/8/8/4K3 b - - 0 123"
+    }
+}
