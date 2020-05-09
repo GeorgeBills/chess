@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -19,12 +18,7 @@ func main() {
 		fatal(err)
 	}
 
-	f := bufio.NewWriter(os.Stdout)
-	defer f.Flush()
-	_, err = f.WriteString(board.String())
-	if err != nil {
-		fatal(err)
-	}
+	fmt.Print(board.String())
 }
 
 func fatal(v error) {
