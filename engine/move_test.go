@@ -37,6 +37,48 @@ func TestMove_SAN(t *testing.T) {
 	}
 }
 
+func TestParseMakeUnmakeMove(t *testing.T) {
+	tests := []struct {
+		name          string
+		before, after string
+		move          string
+	}{
+		{
+			"pawn single push (white)",
+			"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+			"rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+			"d2d3",
+		},
+		{
+			"pawn single push (black)",
+			"rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
+			"rnbqkbnr/ppp1pppp/3p4/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+			"d7d6",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b, err := NewBoardFromFEN(strings.NewReader(tt.before))
+			require.NoError(t, err)
+			require.NotNil(t, b)
+
+			g := NewGame(b)
+
+			move, err := ParseNewMoveFromPCN(strings.NewReader(tt.move))
+			require.NoError(t, err)
+			require.NotNil(t, move)
+
+			// make the move and check the FEN is correct
+			g.MakeMove(move)
+			assert.Equal(t, tt.after, b.FEN(), "FEN after MakeMove() should match 'after' FEN'")
+
+			// reverse the move and check we're back to the original FEN
+			g.UnmakeMove()
+			assert.Equal(t, tt.before, b.FEN(), "FEN after UnmakeMove() should match 'before' FEN'")
+		})
+	}
+}
+
 func TestMakeUnmakeMove(t *testing.T) {
 	tests := []struct {
 		name          string

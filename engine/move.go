@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -182,6 +183,20 @@ func NewGame(b *Board) Game {
 		Board:   b,
 		history: make([]moveCapture, 0, 128),
 	}
+}
+
+func ParseNewMoveFromPCN(r io.ByteReader) (Move, error) {
+	fromRank, fromFile, err := ParseAlgebraicNotation(r)
+	if err != nil {
+		return 0, err
+	}
+	fromSq := Square(fromRank, fromFile)
+	toRank, toFile, err := ParseAlgebraicNotation(r)
+	if err != nil {
+		return 0, err
+	}
+	toSq := Square(toRank, toFile)
+	return NewMove(fromSq, toSq), nil
 }
 
 // MakeMove applies move to the board, updating its state.
