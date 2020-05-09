@@ -127,32 +127,32 @@ const (
 	moveIsPawnDoubleMove  = 0b0001 << 12
 )
 
-// IsCapture returns true iff the move represents a capture.
+// IsCapture returns true if the move represents a capture.
 func (m Move) IsCapture() bool {
 	return m&moveIsCapture == moveIsCapture
 }
 
-// IsEnPassant returns true iff the move represents a capture en passant.
+// IsEnPassant returns true if the move represents a capture en passant.
 func (m Move) IsEnPassant() bool {
 	return m&moveIsEnPassant == moveIsEnPassant
 }
 
-// IsPromotion returns true iff the move represents a pawn promotion.
+// IsPromotion returns true if the move represents a pawn promotion.
 func (m Move) IsPromotion() bool {
 	return m&moveIsPromotion == moveIsPromotion
 }
 
-// IsKingsideCastling returns true iff the move represents kingside castling.
+// IsKingsideCastling returns true if the move represents kingside castling.
 func (m Move) IsKingsideCastling() bool {
 	return m&moveMetaMask == moveIsKingsideCastle
 }
 
-// IsQueensideCastling returns true iff the move represents queenside castling.
+// IsQueensideCastling returns true if the move represents queenside castling.
 func (m Move) IsQueensideCastling() bool {
 	return m&moveMetaMask == moveIsQueensideCastle
 }
 
-// IsPawnDoublePush returns true iff the move represents a pawn double push.
+// IsPawnDoublePush returns true if the move represents a pawn double push.
 func (m Move) IsPawnDoublePush() bool {
 	return m&moveMetaMask == moveIsPawnDoubleMove
 }
