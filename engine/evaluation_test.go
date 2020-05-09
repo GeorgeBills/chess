@@ -23,6 +23,7 @@ func TestEvaluation(t *testing.T) {
 		"knight more central":          "r1bqkbnr/pppppppp/8/n7/3N4/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1",
 		"bishop more central":          "rn1qkbnr/ppp1pppp/8/8/5B2/7b/PPP1PPPP/RN1QKBNR w KQ - 0 1",
 	}
+	scores := make(map[string]int16, len(tests))
 	for name, fen := range tests {
 		t.Run(name, func(t *testing.T) {
 			b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
@@ -31,6 +32,13 @@ func TestEvaluation(t *testing.T) {
 
 			// white should be winning
 			assert.Greater(t, score, int16(0))
+
+			// TODO: use "golden" pattern for scores
+			scores[fen] = score
+
+			// TODO: flip the board and check black gets the same score
 		})
 	}
 }
+
+// TODO: benchmark evaluation
