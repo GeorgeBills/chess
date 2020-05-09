@@ -103,6 +103,30 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 			"4k3/8/8/8/8/8/8/q3K3 w - - 0 124",
 			"f6a1",
 		},
+		{
+			"castle queenside (white)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/R3KBNR w KQkq - 0 5",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPB3/PPPQPPPP/2KR1BNR b kq - 0 5",
+			"e1c1",
+		},
+		{
+			"castle queenside (black)",
+			"r3kbnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R b KQkq - 0 5",
+			"2kr1bnr/pppqpppp/2npb3/8/8/2NPBN2/PPPQPPPP/R3KB1R w KQ - 0 6",
+			"e8c8",
+		},
+		{
+			"castle kingside (white)",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/3BPN2/PPPP1PPP/RNBQ1RK1 b kq - 0 4",
+			"e1g1",
+		},
+		{
+			"castle kingside (black)",
+			"rnbqk2r/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R b KQkq - 0 4",
+			"rnbq1rk1/pppp1ppp/3bpn2/8/8/2NBPN2/PPPP1PPP/R1BQK2R w KQ - 0 5",
+			"e8g8",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

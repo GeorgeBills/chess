@@ -185,6 +185,13 @@ func NewGame(b *Board) Game {
 	}
 }
 
+const (
+	uciWhiteKingsideCastle  = "e1g1"
+	uciWhiteQueensideCastle = "e1c1"
+	uciBlackKingsideCastle  = "e8g8"
+	uciBlackQueensideCastle = "e8c8"
+)
+
 func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 	fromRank, fromFile, err := ParseAlgebraicNotation(r)
 	if err != nil {
@@ -211,6 +218,24 @@ func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 	if !b.isEmptyAt(toSq) {
 		// to square occupied; must be a capture
 		return NewCapture(fromSq, toSq), nil
+	}
+
+	if fromSq == E1 && b.isKingAt(fromSq) {
+		if toSq == G1 { // "e1g1" is white kingside castling
+			return WhiteKingsideCastle, nil
+		}
+		if toSq == C1 { // "e1c1" is white queenside castling
+			return WhiteQueensideCastle, nil
+		}
+	}
+
+	if fromSq == E8 && b.isKingAt(fromSq) {
+		if toSq == G8 { // "e8g8" is black kingside castling
+			return BlackKingsideCastle, nil
+		}
+		if toSq == C8 { // "e8c8" is black queensdie castling
+			return BlackQueensideCastle, nil
+		}
 	}
 
 	return NewMove(fromSq, toSq), nil
