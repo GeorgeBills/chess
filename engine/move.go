@@ -203,6 +203,11 @@ func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 		return NewPawnDoublePush(fromSq, toSq), nil
 	}
 
+	if b.isPawnAt(fromSq) && diff(fromSq, toSq) != 8 && b.isEmptyAt(toSq) {
+		// pawn capturing to an empty square: must be en passant
+		return NewEnPassant(fromSq, toSq), nil
+	}
+
 	return NewMove(fromSq, toSq), nil
 }
 

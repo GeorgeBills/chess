@@ -88,6 +88,9 @@ func (b Board) isWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
 // isBlackAt returns true if there is a piece at index i and it is black.
 func (b Board) isBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
 
+// IsEmptyAt returns true if the square at index i is empty.
+func (b Board) isEmptyAt(i uint8) bool { return !b.isWhiteAt(i) && !b.isBlackAt(i) }
+
 // isPawnAt returns true if there is a piece at index i and it is a pawn.
 func (b Board) isPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
 
