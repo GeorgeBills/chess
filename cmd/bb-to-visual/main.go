@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 func main() {
@@ -41,11 +43,13 @@ func main() {
 
 	f := bufio.NewWriter(os.Stdout)
 	defer f.Flush()
-	for i := 0; i < 64; i++ {
+
+	var i uint8
+	for i = 0; i < 64; i++ {
 		if i != 0 && i%8 == 0 {
 			f.WriteRune('\n')
 		}
-		idx := i + 56 - 16*(i/8) // reverse ranks as we print
+		idx := engine.PrintOrderedIndex(i) // reverse ranks as we print
 		if board&(1<<idx) != 0 {
 			f.WriteRune('■')
 		} else {

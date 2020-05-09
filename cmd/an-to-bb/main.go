@@ -24,7 +24,7 @@ func main() {
 			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
-		board |= 1 << (8*rank + file)
+		board |= 1 << engine.Square(rank, file)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)
