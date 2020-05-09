@@ -192,7 +192,12 @@ const (
 	uciBlackQueensideCastle = "e8c8"
 )
 
-func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
+// ParseNewMoveFromUCIN parses a new move from Universal Chess Interface
+// Notation. UCIN is very similar to Long Algebraic Notation, but omits the
+// hyphen, the moving piece (can be inferred from the "from" AN) and whether the
+// move is a capture (can be inferred from the "to" AN and the current state of
+// the board).
+func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 	fromRank, fromFile, err := ParseAlgebraicNotation(r)
 	if err != nil {
 		return 0, err
