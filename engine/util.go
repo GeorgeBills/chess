@@ -15,7 +15,7 @@ func ToAlgebraicNotation(i uint8) string {
 
 // ParseAlgebraicNotation reads two bytes from r and parses them as Algebraic
 // Notation, returning the rank and file (both zero indexed).
-func ParseAlgebraicNotation(r io.ByteReader) (rank, file uint8, err error) {
+func ParseAlgebraicNotation(r io.RuneReader) (rank, file uint8, err error) {
 	file, err = parseFile(r)
 	if err != nil {
 		return 0, 0, err
@@ -27,8 +27,8 @@ func ParseAlgebraicNotation(r io.ByteReader) (rank, file uint8, err error) {
 	return rank, file, err
 }
 
-func parseFile(r io.ByteReader) (uint8, error) {
-	ch, err := r.ReadByte() // read file
+func parseFile(r io.RuneReader) (uint8, error) {
+	ch, _, err := r.ReadRune() // read file
 	if err != nil {
 		return 0, unexpectingEOF(err)
 	}
@@ -43,8 +43,8 @@ func parseFile(r io.ByteReader) (uint8, error) {
 	}
 }
 
-func parseRank(r io.ByteReader) (uint8, error) {
-	ch, err := r.ReadByte() // read rank
+func parseRank(r io.RuneReader) (uint8, error) {
+	ch, _, err := r.ReadRune() // read rank
 	if err != nil {
 		return 0, unexpectingEOF(err)
 	}

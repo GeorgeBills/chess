@@ -143,7 +143,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	skipspace := func() error {
 		seen := false
 		for {
-			ch, err := r.ReadByte()
+			ch, _, err := r.ReadRune()
 			if err != nil {
 				return err
 			}
@@ -152,7 +152,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 					// require at least one space
 					return fmt.Errorf("unexpected '%c', expecting ' '", ch)
 				}
-				return r.UnreadByte()
+				return r.UnreadRune()
 			}
 			seen = true
 		}
@@ -162,7 +162,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 		var n uint8
 		seen := false
 		for {
-			ch, err := r.ReadByte()
+			ch, _, err := r.ReadRune()
 			if err == io.EOF && seen {
 				// expect at least one digit (which might be 0) before EOF
 				return n, err
@@ -185,7 +185,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 
 				seen = true
 			case ' ':
-				return n, r.UnreadByte()
+				return n, r.UnreadRune()
 			default:
 				return 0, fmt.Errorf("unexpected '%c', expecting [0-9]", ch)
 			}
@@ -196,7 +196,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	var i uint8
 READ_SQUARES:
 	for i = 0; i < 64; {
-		ch, err := r.ReadByte()
+		ch, _, err := r.ReadRune()
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}
@@ -206,7 +206,7 @@ READ_SQUARES:
 			if ch != '/' {
 				return nil, fmt.Errorf("unexpected '%c', expecting '/'", ch)
 			}
-			ch, err = r.ReadByte()
+			ch, _, err = r.ReadRune()
 			if err != nil {
 				return nil, unexpectingEOF(err)
 			}
@@ -268,7 +268,7 @@ READ_SQUARES:
 	}
 
 	// read whose move it is (white or black)
-	tomove, err := r.ReadByte()
+	tomove, _, err := r.ReadRune()
 	if err != nil {
 		return nil, unexpectingEOF(err)
 	}
@@ -285,7 +285,7 @@ READ_SQUARES:
 	// read castling information
 READ_CASTLING:
 	for {
-		ch, err := r.ReadByte()
+		ch, _, err := r.ReadRune()
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}
@@ -307,7 +307,7 @@ READ_CASTLING:
 			break READ_CASTLING
 		case ' ':
 			// TODO: should require at least one byte read here for robustness (use Peek?)
-			r.UnreadByte()
+			r.UnreadRune()
 			break READ_CASTLING
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [KQkq]", ch)
@@ -319,12 +319,12 @@ READ_CASTLING:
 	}
 
 	// read en passant square
-	ch, err := r.ReadByte()
+	ch, _, err := r.ReadRune()
 	if err != nil {
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
-		r.UnreadByte()
+		r.UnreadRune()
 
 		b.meta |= maskCanEnPassant
 

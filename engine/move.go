@@ -185,7 +185,7 @@ func NewGame(b *Board) Game {
 	}
 }
 
-func ParseNewMoveFromPCN(r io.ByteReader) (Move, error) {
+func ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 	fromRank, fromFile, err := ParseAlgebraicNotation(r)
 	if err != nil {
 		return 0, err

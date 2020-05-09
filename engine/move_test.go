@@ -64,7 +64,7 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 
 			g := NewGame(b)
 
-			move, err := ParseNewMoveFromPCN(strings.NewReader(tt.move))
+			move, err := b.ParseNewMoveFromPCN(strings.NewReader(tt.move))
 			require.NoError(t, err)
 			require.NotNil(t, move)
 
