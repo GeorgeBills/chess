@@ -28,8 +28,9 @@ func TestNewBoardToFEN(t *testing.T) {
 
 func TestNewBoardFromFEN(t *testing.T) {
 	expected := engine.NewBoard()
-	r := strings.NewReader(engine.InitialBoardFEN)
-	b, err := engine.NewBoardFromFEN(r)
+	b, err := engine.NewBoardFromFEN(
+		strings.NewReader(engine.InitialBoardFEN),
+	)
 	require.NoError(t, err)
 	assert.Equal(t, &expected, b)
 }
@@ -118,16 +119,15 @@ func TestRoundTripFEN(t *testing.T) {
 }
 
 func TestWriteFENError(t *testing.T) {
-	b := engine.NewBoard()
-	w := &errorWriter{}
-	err := b.WriteFEN(w)
+	err := engine.NewBoard().WriteFEN(&errorWriter{})
 	assert.EqualError(t, err, "error writing")
 }
 
 func BenchmarkNewBoardFromFEN(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		r := strings.NewReader(engine.InitialBoardFEN)
-		engine.NewBoardFromFEN(r)
+		engine.NewBoardFromFEN(
+			strings.NewReader(engine.InitialBoardFEN),
+		)
 	}
 }
 
