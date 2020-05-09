@@ -210,6 +210,8 @@ func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 	}
 	toSq := Square(toRank, toFile)
 
+	isCapture := !b.isEmptyAt(toSq)
+
 	if b.isPawnAt(fromSq) {
 		diff := diff(fromSq, toSq)
 
@@ -222,10 +224,29 @@ func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 			// pawn capturing to an empty square: must be en passant
 			return NewEnPassant(fromSq, toSq), nil
 		}
+
+		if toRank == rank1 || toRank == rank8 {
+			// pawn moving to rank 1 or 8; must be a promotion
+			ch, _, err := r.ReadRune()
+			if err != nil {
+				return 0, err
+			}
+			switch ch {
+			case 'q':
+				return NewQueenPromotion(fromSq, toSq, isCapture), nil
+			case 'r':
+				return NewRookPromotion(fromSq, toSq, isCapture), nil
+			case 'n':
+				return NewKnightPromotion(fromSq, toSq, isCapture), nil
+			case 'b':
+				return NewBishopPromotion(fromSq, toSq, isCapture), nil
+			default:
+				return 0, fmt.Errorf("unexpected promotion '%c', expecting [qrnb]", ch)
+			}
+		}
 	}
 
-	if !b.isEmptyAt(toSq) {
-		// to square occupied; must be a capture
+	if isCapture {
 		return NewCapture(fromSq, toSq), nil
 	}
 

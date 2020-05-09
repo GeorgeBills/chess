@@ -169,6 +169,54 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 			"4k2N/8/8/8/8/8/8/2KR4 b - - 1 125",
 			"g6h8",
 		},
+		{
+			"promotion to queen (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rQ2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7b8q",
+		},
+		{
+			"promotion to bishop (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rB2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7b8b",
+		},
+		{
+			"promotion to rook (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rR2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7b8r",
+		},
+		{
+			"promotion to knight (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"rN2k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7b8n",
+		},
+		{
+			"promotion to queen with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"Q3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7a8q",
+		},
+		{
+			"promotion to bishop with capture  (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"B3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7a8b",
+		},
+		{
+			"promotion to rook with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"R3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7a8r",
+		},
+		{
+			"promotion to knight with capture (white)",
+			"r3k3/1P6/8/8/8/8/8/4K3 w - - 0 123",
+			"N3k3/8/8/8/8/8/8/4K3 b - - 0 123",
+			"b7a8n",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
