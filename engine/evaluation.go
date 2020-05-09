@@ -20,6 +20,7 @@ const (
 // Note that these are visually from blacks perspective: the 0th index
 // corresponds to A1, and the 63rd index corresponds to H8.
 var (
+	// pawns get bonuses for either advancing or sheltering the king
 	pstWhitePawn = [64]int16{
 		000, 000, 000, 000, 000, 000, 000, 000,
 		005, 010, 010, -20, -20, 010, 010, 005,
@@ -30,6 +31,8 @@ var (
 		050, 050, 050, 050, 050, 050, 050, 050,
 		000, 000, 000, 000, 000, 000, 000, 000,
 	}
+
+	// knights get bonuses for occupying the center, penalties for the edges
 	pstWhiteKnight = [64]int16{
 		-20, -10, -10, -10, -10, -10, -10, -20,
 		-10, 005, 000, 000, 000, 000, 005, -10,
@@ -40,6 +43,8 @@ var (
 		-10, 000, 000, 000, 000, 000, 000, -10,
 		-20, -10, -10, -10, -10, -10, -10, -20,
 	}
+
+	// bishops get bonuses for occupying the center, penalties for the edges
 	pstWhiteBishop = [64]int16{
 		-20, -10, -10, -10, -10, -10, -10, -20,
 		-10, 005, 000, 000, 000, 000, 005, -10,
@@ -50,6 +55,9 @@ var (
 		-10, 000, 000, 000, 000, 000, 000, -10,
 		-20, -10, -10, -10, -10, -10, -10, -20,
 	}
+
+	// rooks get bonuses for occupying the opponents pawn rank, and for castling
+	// rooks get penalties for occupying the A and H files "in order not to defend pawn b3 from a3"
 	pstWhiteRook = [64]int16{
 		000, 000, 000, 005, 005, 000, 000, 000,
 		-05, 000, 000, 000, 000, 000, 000, -05,
@@ -60,6 +68,8 @@ var (
 		005, 010, 010, 010, 010, 010, 010, 005,
 		000, 000, 000, 000, 000, 000, 000, 000,
 	}
+
+	// queens get bonuses for occupying the center, penalties for the edges
 	pstWhiteQueen = [64]int16{
 		-20, -10, -10, -05, -05, -10, -10, -20,
 		-10, 000, 005, 000, 000, 000, 000, -10,
@@ -70,6 +80,10 @@ var (
 		-10, 000, 000, 000, 000, 000, 000, -10,
 		-20, -10, -10, -05, -05, -10, -10, -20,
 	}
+
+	// kings get bonuses for castling to behind the pawn shelter
+	// kings get penalties for occupying anywhere unsafe
+	// TODO: implement the early / late game split
 	pstWhiteKing = [64]int16{
 		020, 030, 010, 000, 000, 010, 030, 020,
 		020, 020, 000, 000, 000, 000, 020, 020,
@@ -80,6 +94,7 @@ var (
 		-30, -40, -40, -50, -50, -40, -40, -30,
 		-30, -40, -40, -50, -50, -40, -40, -30,
 	}
+
 	pstBlackPawn   [64]int16
 	pstBlackKnight [64]int16
 	pstBlackBishop [64]int16
@@ -89,6 +104,7 @@ var (
 )
 
 func init() {
+	// mirror white piece-square tables for black
 	var i uint8 = 0
 	var j uint8 = 63
 	for i < 64 {
