@@ -185,17 +185,24 @@ func NewGame(b *Board) Game {
 	}
 }
 
-func ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
+func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 	fromRank, fromFile, err := ParseAlgebraicNotation(r)
 	if err != nil {
 		return 0, err
 	}
 	fromSq := Square(fromRank, fromFile)
+
 	toRank, toFile, err := ParseAlgebraicNotation(r)
 	if err != nil {
 		return 0, err
 	}
 	toSq := Square(toRank, toFile)
+
+	if b.isPawnAt(fromSq) && diff(fromSq, toSq) == 16 {
+		// pawn moving exactly two ranks: must be a double push
+		return NewPawnDoublePush(fromSq, toSq), nil
+	}
+
 	return NewMove(fromSq, toSq), nil
 }
 

@@ -123,3 +123,11 @@ func Square(rank, file uint8) uint8 {
 func PrintOrderedIndex(i uint8) uint8 {
 	return i + 56 - 16*(i/8)
 }
+
+func diff(sq1, sq2 uint8) uint8 {
+	diff := int(sq1) - int(sq2)
+	if diff < 0 {
+		diff *= -1
+	}
+	return uint8(diff)
+}
