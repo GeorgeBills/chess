@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// InitialBoardFEN is the FEN for a board in the initial state.
+const InitialBoardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 // Board represents an 8×8 chess board.
 //
 // The 0th index represents A1 and the 63rd index represents H8.

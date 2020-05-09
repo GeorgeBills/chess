@@ -23,14 +23,12 @@ func (*errorWriter) Write([]byte) (int, error) {
 
 func TestNewBoardToFEN(t *testing.T) {
 	fen := engine.NewBoard().FEN()
-	const expected = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	assert.Equal(t, expected, fen)
+	assert.Equal(t, engine.InitialBoardFEN, fen)
 }
 
 func TestNewBoardFromFEN(t *testing.T) {
-	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	expected := engine.NewBoard()
-	r := strings.NewReader(fen)
+	r := strings.NewReader(engine.InitialBoardFEN)
 	b, err := engine.NewBoardFromFEN(r)
 	require.NoError(t, err)
 	assert.Equal(t, &expected, b)
@@ -127,9 +125,8 @@ func TestWriteFENError(t *testing.T) {
 }
 
 func BenchmarkNewBoardFromFEN(b *testing.B) {
-	const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	for i := 0; i < b.N; i++ {
-		r := strings.NewReader(fen)
+		r := strings.NewReader(engine.InitialBoardFEN)
 		engine.NewBoardFromFEN(r)
 	}
 }
