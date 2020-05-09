@@ -11,7 +11,7 @@ import (
 
 func perft(g engine.Game, depth uint8) uint64 {
 	moves := make([]engine.Move, 0, 96)
-	moves, _ = g.GenerateMoves(moves)
+	moves, _ = g.GenerateLegalMoves(moves)
 	if depth == 1 {
 		return uint64(len(moves))
 	}

@@ -10,11 +10,9 @@ import (
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
-const defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
 func main() {
 	depth := flag.Uint("depth", 1, "depth to generate moves to")
-	fen := flag.String("fen", defaultFEN, "FEN to start with")
+	fen := flag.String("fen", engine.InitialBoardFEN, "FEN to start with")
 	divide := flag.Bool("divide", false, "whether or not to output node count divided by initial moves")
 	validate := flag.Bool("validate", false, "whether or not to validate each board state")
 
@@ -42,7 +40,7 @@ func fatal(v error) {
 func perft(g engine.Game, depth uint, validate, divide bool) uint64 {
 	var ret uint64
 	moves := make([]engine.Move, 0, 32)
-	moves, _ = g.GenerateMoves(moves)
+	moves, _ = g.GenerateLegalMoves(moves)
 	for _, move := range moves {
 		fen := ""
 		if validate {

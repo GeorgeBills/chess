@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -126,32 +127,32 @@ const (
 	moveIsPawnDoubleMove  = 0b0001 << 12
 )
 
-// IsCapture returns true iff the move represents a capture.
+// IsCapture returns true if the move represents a capture.
 func (m Move) IsCapture() bool {
 	return m&moveIsCapture == moveIsCapture
 }
 
-// IsEnPassant returns true iff the move represents a capture en passant.
+// IsEnPassant returns true if the move represents a capture en passant.
 func (m Move) IsEnPassant() bool {
 	return m&moveIsEnPassant == moveIsEnPassant
 }
 
-// IsPromotion returns true iff the move represents a pawn promotion.
+// IsPromotion returns true if the move represents a pawn promotion.
 func (m Move) IsPromotion() bool {
 	return m&moveIsPromotion == moveIsPromotion
 }
 
-// IsKingsideCastling returns true iff the move represents kingside castling.
+// IsKingsideCastling returns true if the move represents kingside castling.
 func (m Move) IsKingsideCastling() bool {
 	return m&moveMetaMask == moveIsKingsideCastle
 }
 
-// IsQueensideCastling returns true iff the move represents queenside castling.
+// IsQueensideCastling returns true if the move represents queenside castling.
 func (m Move) IsQueensideCastling() bool {
 	return m&moveMetaMask == moveIsQueensideCastle
 }
 
-// IsPawnDoublePush returns true iff the move represents a pawn double push.
+// IsPawnDoublePush returns true if the move represents a pawn double push.
 func (m Move) IsPawnDoublePush() bool {
 	return m&moveMetaMask == moveIsPawnDoubleMove
 }
@@ -182,6 +183,94 @@ func NewGame(b *Board) Game {
 		Board:   b,
 		history: make([]moveCapture, 0, 128),
 	}
+}
+
+const (
+	uciWhiteKingsideCastle  = "e1g1"
+	uciWhiteQueensideCastle = "e1c1"
+	uciBlackKingsideCastle  = "e8g8"
+	uciBlackQueensideCastle = "e8c8"
+)
+
+// ParseNewMoveFromUCIN parses a new move from Universal Chess Interface
+// Notation. UCIN is very similar to Long Algebraic Notation, but omits the
+// hyphen, the moving piece (can be inferred from the "from" AN) and whether the
+// move is a capture (can be inferred from the "to" AN and the current state of
+// the board).
+func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
+	fromRank, fromFile, err := ParseAlgebraicNotation(r)
+	if err != nil {
+		return 0, err
+	}
+	fromSq := Square(fromRank, fromFile)
+
+	toRank, toFile, err := ParseAlgebraicNotation(r)
+	if err != nil {
+		return 0, err
+	}
+	toSq := Square(toRank, toFile)
+
+	isCapture := !b.isEmptyAt(toSq)
+
+	if b.isPawnAt(fromSq) {
+		diff := diff(fromSq, toSq)
+
+		if diff == 16 {
+			// pawn moving exactly two ranks: must be a double push
+			return NewPawnDoublePush(fromSq, toSq), nil
+		}
+
+		if diff != 8 && b.isEmptyAt(toSq) {
+			// pawn capturing to an empty square: must be en passant
+			return NewEnPassant(fromSq, toSq), nil
+		}
+
+		if toRank == rank1 || toRank == rank8 {
+			// pawn moving to rank 1 or 8; must be a promotion
+			ch, _, err := r.ReadRune()
+			if err != nil {
+				return 0, err
+			}
+			switch ch {
+			case 'q':
+				return NewQueenPromotion(fromSq, toSq, isCapture), nil
+			case 'r':
+				return NewRookPromotion(fromSq, toSq, isCapture), nil
+			case 'n':
+				return NewKnightPromotion(fromSq, toSq, isCapture), nil
+			case 'b':
+				return NewBishopPromotion(fromSq, toSq, isCapture), nil
+			default:
+				return 0, fmt.Errorf("unexpected promotion '%c', expecting [qrnb]", ch)
+			}
+		}
+	}
+
+	if isCapture {
+		return NewCapture(fromSq, toSq), nil
+	}
+
+	if b.isKingAt(fromSq) {
+		if fromSq == E1 {
+			if toSq == G1 { // "e1g1" is white kingside castling
+				return WhiteKingsideCastle, nil
+			}
+			if toSq == C1 { // "e1c1" is white queenside castling
+				return WhiteQueensideCastle, nil
+			}
+		}
+
+		if fromSq == E8 {
+			if toSq == G8 { // "e8g8" is black kingside castling
+				return BlackKingsideCastle, nil
+			}
+			if toSq == C8 { // "e8c8" is black queensdie castling
+				return BlackQueensideCastle, nil
+			}
+		}
+	}
+
+	return NewMove(fromSq, toSq), nil
 }
 
 // MakeMove applies move to the board, updating its state.

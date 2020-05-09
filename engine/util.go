@@ -1,11 +1,67 @@
 package engine
 
+import (
+	"fmt"
+	"io"
+)
+
 // ToAlgebraicNotation converts the index i to algebraic notation (e.g. A1, H8).
 // Results for indexes outside of the sane 0...63 range are undefined.
 func ToAlgebraicNotation(i uint8) string {
 	file := File(i)
 	rank := Rank(i)
 	return string([]byte{'a' + file, '1' + rank})
+}
+
+// ParseAlgebraicNotation reads two bytes from r and parses them as Algebraic
+// Notation, returning the rank and file (both zero indexed).
+func ParseAlgebraicNotation(r io.RuneReader) (rank, file uint8, err error) {
+	file, err = parseFile(r)
+	if err != nil {
+		return 0, 0, err
+	}
+	rank, err = parseRank(r)
+	if err != nil {
+		return 0, 0, err
+	}
+	return rank, file, err
+}
+
+func parseFile(r io.RuneReader) (uint8, error) {
+	ch, _, err := r.ReadRune() // read file
+	if err != nil {
+		return 0, unexpectingEOF(err)
+	}
+
+	switch ch {
+	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
+		return uint8(ch - 'a'), nil
+	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
+		return uint8(ch - 'A'), nil
+	default:
+		return 0, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
+	}
+}
+
+func parseRank(r io.RuneReader) (uint8, error) {
+	ch, _, err := r.ReadRune() // read rank
+	if err != nil {
+		return 0, unexpectingEOF(err)
+	}
+
+	switch ch {
+	case '1', '2', '3', '4', '5', '6', '7', '8':
+		return uint8(ch - '1'), nil
+	default:
+		return 0, fmt.Errorf("unexpected '%c', expecting [1-8]", ch)
+	}
+}
+
+func unexpectingEOF(err error) error {
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	return err
 }
 
 // Rank returns the rank index (0...7) for a given square index.
@@ -66,4 +122,12 @@ func Square(rank, file uint8) uint8 {
 //      0,  1,  2, ...,             6.      (1)
 func PrintOrderedIndex(i uint8) uint8 {
 	return i + 56 - 16*(i/8)
+}
+
+func diff(sq1, sq2 uint8) uint8 {
+	diff := int(sq1) - int(sq2)
+	if diff < 0 {
+		diff *= -1
+	}
+	return uint8(diff)
 }

@@ -130,16 +130,17 @@ const (
 	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
-// GenerateMoves returns a slice of possible moves from the current board state.
-// It also returns whether or not the side to move is in check. An empty or nil
-// slice of moves combined with an an indication of check implies that the side
-// to move is in checkmate.
+// GenerateLegalMoves returns a slice of possible moves from the current board
+// state. It also returns whether or not the side to move is in check. An empty
+// or nil slice of moves combined with an an indication of check implies that
+// the side to move is in checkmate.
 //
 // This function will panic if run with certain invalid boards, e.g. if there
 // are more than two pieces giving check, or if one side doesn't have a king on
 // the board. You should wrap it in a recover, or ideally ensure that you're
-// only calling GenerateMoves() on valid boards by calling Validate() first.
-func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
+// only calling GenerateLegalMoves() on valid boards by calling Validate()
+// first.
+func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	moves = moves[:0] // empty passed in slice
 
 	var (
@@ -157,9 +158,6 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		// threatRay tracks a ray of threat from a bishop, rook or queen to the
 		// king. moving a piece on to this ray will block single check.
 		threatRay uint64
-
-		from    uint8
-		frombit uint64
 
 		colour, opposing uint64
 		pawns            uint64
@@ -204,13 +202,11 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
 
-	rayEvaluateCheckPinForward := func(moves *[64]uint64) uint64 {
+	rayEvaluateCheckPinForward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
-		blockFirst := uint8(bits.TrailingZeros64(intersection))
-		var blockFirstBit uint64 = 1 << blockFirst
-		blockSecond := uint8(bits.TrailingZeros64(intersection &^ blockFirstBit))
-		var blockSecondBit uint64 = 1 << blockSecond
+		blockFirst, blockFirstBit := popLSB(&intersection)
+		_, blockSecondBit := popLSB(&intersection)
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
@@ -235,13 +231,11 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		return 0
 	}
 
-	rayEvaluateCheckPinBackward := func(moves *[64]uint64) uint64 {
+	rayEvaluateCheckPinBackward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]
 		intersection := ray & occupied
-		blockFirst := uint8(63 - bits.LeadingZeros64(intersection))
-		var blockFirstBit uint64 = 1 << blockFirst
-		blockSecond := uint8(63 - bits.LeadingZeros64(intersection&^blockFirstBit))
-		var blockSecondBit uint64 = 1 << blockSecond
+		blockFirst, blockFirstBit := popMSB(&intersection)
+		_, blockSecondBit := popMSB(&intersection)
 
 		// occlude the ray based on whether it hits the king or not
 		switch {
@@ -290,10 +284,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingknights := b.knights & opposing; opposingknights != 0; {
-		from = uint8(bits.TrailingZeros64(opposingknights))
-		frombit = 1 << from
-		opposingknights &^= frombit
-
+		from, frombit := popLSB(&opposingknights)
 		movesqs := movesKnights[from]
 		if movesqs&king != 0 {
 			checkers |= frombit
@@ -303,7 +294,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 
 	{
 		opposingking := b.kings & opposing // always exactly one king
-		from = uint8(bits.TrailingZeros64(opposingking))
+		from := uint8(bits.TrailingZeros64(opposingking))
 		// there's a subtle bug here if we start using threatened for more than
 		// just a "can our king move to this square?" check - not all of these
 		// moves will be legal for the opposing king to make.
@@ -312,25 +303,19 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for opposingrooks := (b.rooks | b.queens) & opposing; opposingrooks != 0; {
-		from = uint8(bits.TrailingZeros64(opposingrooks))
-		frombit = 1 << from
-		opposingrooks &^= frombit
-
-		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth)
-		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast)
-		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth)
-		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest)
+		from, frombit := popLSB(&opposingrooks)
+		pinnedVertical |= rayEvaluateCheckPinForward(&movesNorth, from, frombit)
+		pinnedHorizontal |= rayEvaluateCheckPinForward(&movesEast, from, frombit)
+		pinnedVertical |= rayEvaluateCheckPinBackward(&movesSouth, from, frombit)
+		pinnedHorizontal |= rayEvaluateCheckPinBackward(&movesWest, from, frombit)
 	}
 
 	for opposingbishops := (b.bishops | b.queens) & opposing; opposingbishops != 0; {
-		from = uint8(bits.TrailingZeros64(opposingbishops))
-		frombit = 1 << from
-		opposingbishops &^= frombit
-
-		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast)
-		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast)
-		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest)
-		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest)
+		from, frombit := popLSB(&opposingbishops)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinForward(&movesNorthEast, from, frombit)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinBackward(&movesSouthEast, from, frombit)
+		pinnedDiagonalSWNE |= rayEvaluateCheckPinBackward(&movesSouthWest, from, frombit)
+		pinnedDiagonalNWSE |= rayEvaluateCheckPinForward(&movesNorthWest, from, frombit)
 	}
 
 	// Check for castling.
@@ -383,18 +368,14 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if kingSq > epCaptureSq {
 				ray = movesWest[kingSq] & occupied
 				for ray != 0 && pieceidx < 3 {
-					pieceSq := uint8(63 - bits.LeadingZeros64(ray))
-					var pieceMask uint64 = 1 << pieceSq
-					ray &^= pieceMask
+					_, pieceMask := popMSB(&ray)
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
 			} else {
 				ray = movesEast[kingSq] & occupied
 				for ray != 0 && pieceidx < 3 {
-					pieceSq := uint8(bits.TrailingZeros64(ray))
-					var pieceMask uint64 = 1 << pieceSq
-					ray &^= pieceMask
+					_, pieceMask := popLSB(&ray)
 					pieces[pieceidx] = pieceMask
 					pieceidx++
 				}
@@ -490,10 +471,10 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank5) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare - 7; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 { // sw
+			if from := epSquare - 7; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 { // sw
 				moves = append(moves, NewEnPassant(from, from+7)) // ne
 			}
-			if from = epSquare - 9; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 { // se
+			if from := epSquare - 9; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 { // se
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
@@ -507,20 +488,17 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 			if breakEnPassant(epCaptureSq, maskRank4) {
 				break EN_PASSANT // would put king in check
 			}
-			if from = epSquare + 7; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 {
+			if from := epSquare + 7; pawns&^pinnedAny&^maskFileH&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-7)) // se
 			}
-			if from = epSquare + 9; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 {
+			if from := epSquare + 9; pawns&^pinnedAny&^maskFileA&(1<<from) != 0 {
 				moves = append(moves, NewEnPassant(from, from-9)) // sw
 			}
 		}
 	}
 
 	for pawnsCanPromote != 0 {
-		from = uint8(bits.TrailingZeros64(pawnsCanPromote))
-		frombit = 1 << from
-		pawnsCanPromote &^= frombit
-
+		from, frombit := popLSB(&pawnsCanPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -548,10 +526,7 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for pawnsNotPromote != 0 {
-		from = uint8(bits.TrailingZeros64(pawnsNotPromote))
-		frombit = 1 << from
-		pawnsNotPromote &^= frombit
-
+		from, frombit := popLSB(&pawnsNotPromote)
 		// TODO: break these out into individual loops?
 		// TODO: include in the pawn block above to save on branch mispredictions?
 		switch tomove {
@@ -585,20 +560,14 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 	}
 
 	for knights := b.knights & colour &^ pinnedAny; knights != 0; {
-		from = uint8(bits.TrailingZeros64(knights))
-		frombit = 1 << from
-		knights &^= frombit
-
+		from, _ := popLSB(&knights)
 		movesqs := movesKnights[from] &^ colour & maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for rooks := (b.rooks | b.queens) & colour; rooks != 0; {
-		from = uint8(bits.TrailingZeros64(rooks))
-		frombit = 1 << from
-		rooks &^= frombit
-
+		from, frombit := popLSB(&rooks)
 		var movesqs uint64
 		if pinnedExceptVertical&frombit == 0 {
 			// not pinned horizontally or diagonally, can move vertically
@@ -612,14 +581,11 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 		movesqs &= maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	for bishops := (b.bishops | b.queens) & colour; bishops != 0; {
-		from = uint8(bits.TrailingZeros64(bishops))
-		frombit = 1 << from
-		bishops &^= frombit
-
+		from, frombit := popLSB(&bishops)
 		var movesqs uint64
 		if pinnedExceptDiagonalNWSE&frombit == 0 {
 			// not pinned horizontally, vertically, or to the SW/NE diagonal
@@ -635,15 +601,15 @@ func (b *Board) GenerateMoves(moves []Move) ([]Move, bool) {
 		}
 		movesqs &= maskMayMoveTo
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 KING_MOVES:
 	{
-		from = uint8(bits.TrailingZeros64(king)) // always exactly one king
+		from := uint8(bits.TrailingZeros64(king)) // always exactly one king
 		movesqs := movesKing[from] &^ colour &^ threatened
 		moves = addCaptures(moves, from, movesqs&opposing)
-		moves = addMoves(moves, from, movesqs&^occupied)
+		moves = addQuietMoves(moves, from, movesqs&^occupied)
 	}
 
 	return moves, checkers != 0
@@ -679,7 +645,7 @@ func addPromotions(moves []Move, from, to uint8, capture bool) []Move {
 	)
 }
 
-func addMoves(moves []Move, from uint8, movesqs uint64) []Move {
+func addQuietMoves(moves []Move, from uint8, movesqs uint64) []Move {
 	for movesqs != 0 {
 		to := uint8(bits.TrailingZeros64(movesqs))
 		movesqs &^= 1 << to
@@ -695,4 +661,22 @@ func addCaptures(moves []Move, from uint8, movesqs uint64) []Move {
 		moves = append(moves, NewCapture(from, to))
 	}
 	return moves
+}
+
+// popLSB finds the Least Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popLSB(x *uint64) (uint8, uint64) {
+	idx := uint8(bits.TrailingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
+}
+
+// popMSB finds the Most Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popMSB(x *uint64) (uint8, uint64) {
+	idx := uint8(63 - bits.LeadingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
 }

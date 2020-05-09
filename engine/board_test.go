@@ -82,7 +82,7 @@ func TestNewBoard(t *testing.T) {
 
 	// to string
 	str := board.String()
-	expected := `♜♞♝♛♚♝♞♜
+	const expected = `♜♞♝♛♚♝♞♜
 ♟♟♟♟♟♟♟♟
 □□□□□□□□
 □□□□□□□□

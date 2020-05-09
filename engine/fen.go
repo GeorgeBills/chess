@@ -138,17 +138,12 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	b := &Board{}
 	r := bufio.NewReaderSize(fen, maxFEN)
 
-	unexpectingEOF := func(err error) error {
-		if err == io.EOF {
-			return io.ErrUnexpectedEOF
-		}
-		return err
-	}
+	// TODO: can we use Peek here to simplify "seen" checks?
 
 	skipspace := func() error {
 		seen := false
 		for {
-			ch, err := r.ReadByte()
+			ch, _, err := r.ReadRune()
 			if err != nil {
 				return err
 			}
@@ -157,7 +152,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 					// require at least one space
 					return fmt.Errorf("unexpected '%c', expecting ' '", ch)
 				}
-				return r.UnreadByte()
+				return r.UnreadRune()
 			}
 			seen = true
 		}
@@ -167,7 +162,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 		var n uint8
 		seen := false
 		for {
-			ch, err := r.ReadByte()
+			ch, _, err := r.ReadRune()
 			if err == io.EOF && seen {
 				// expect at least one digit (which might be 0) before EOF
 				return n, err
@@ -190,8 +185,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 
 				seen = true
 			case ' ':
-				err = r.UnreadByte()
-				return n, err
+				return n, r.UnreadRune()
 			default:
 				return 0, fmt.Errorf("unexpected '%c', expecting [0-9]", ch)
 			}
@@ -202,7 +196,7 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 	var i uint8
 READ_SQUARES:
 	for i = 0; i < 64; {
-		ch, err := r.ReadByte()
+		ch, _, err := r.ReadRune()
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}
@@ -212,7 +206,7 @@ READ_SQUARES:
 			if ch != '/' {
 				return nil, fmt.Errorf("unexpected '%c', expecting '/'", ch)
 			}
-			ch, err = r.ReadByte()
+			ch, _, err = r.ReadRune()
 			if err != nil {
 				return nil, unexpectingEOF(err)
 			}
@@ -274,7 +268,7 @@ READ_SQUARES:
 	}
 
 	// read whose move it is (white or black)
-	tomove, err := r.ReadByte()
+	tomove, _, err := r.ReadRune()
 	if err != nil {
 		return nil, unexpectingEOF(err)
 	}
@@ -291,7 +285,7 @@ READ_SQUARES:
 	// read castling information
 READ_CASTLING:
 	for {
-		ch, err := r.ReadByte()
+		ch, _, err := r.ReadRune()
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}
@@ -312,10 +306,8 @@ READ_CASTLING:
 			}
 			break READ_CASTLING
 		case ' ':
-			err := r.UnreadByte()
-			if err != nil {
-				return nil, unexpectingEOF(err)
-			}
+			// TODO: should require at least one byte read here for robustness (use Peek?)
+			r.UnreadRune()
 			break READ_CASTLING
 		default:
 			return nil, fmt.Errorf("unexpected '%c', expecting [KQkq]", ch)
@@ -327,26 +319,21 @@ READ_CASTLING:
 	}
 
 	// read en passant square
-	ch, err := r.ReadByte()
+	ch, _, err := r.ReadRune()
 	if err != nil {
 		return nil, unexpectingEOF(err)
 	}
 	if ch != '-' {
+		r.UnreadRune()
+
 		b.meta |= maskCanEnPassant
 
-		// should be a file; store the file (zero indexed) as the last 4 bits in the board meta
-		switch ch {
-		case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-			b.meta |= uint8(ch - 'a')
-		case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-			b.meta |= uint8(ch - 'A')
-		default:
-			return nil, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
+		rank, file, err := ParseAlgebraicNotation(r)
+		if err != nil {
+			return nil, err
 		}
 
-		// The next char should indicate either rank 3 or rank 6.
-		//
-		// We don't encode this rank into the board state, since it can be
+		// We don't encode the rank into the board state, since it can be
 		// inferred from which colour is to move next.
 		//
 		// If black is to move and an en passant is possible, then white must
@@ -357,23 +344,19 @@ READ_CASTLING:
 		//
 		// This means we need to validate the state here, otherwise the board is
 		// inconsistent.
-		ch, err := r.ReadByte()
-		if err != nil {
-			return nil, unexpectingEOF(err)
+		switch tomove {
+		case 'w':
+			if rank != rank6 {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", rank+1)
+			}
+		case 'b':
+			if rank != rank3 {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", rank+1)
+			}
 		}
 
-		switch ch {
-		case '3':
-			if tomove == 'w' {
-				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank 3")
-			}
-		case '6':
-			if tomove == 'b' {
-				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank 6")
-			}
-		default:
-			return nil, fmt.Errorf("unexpected '%c', expecting [36]", ch)
-		}
+		// store the zero indexed file as the last 4 bits in the board meta
+		b.meta |= file
 	}
 
 	if err = skipspace(); err != nil {

@@ -11,7 +11,7 @@
 
 ## Useful commands
 
- * `go test ./engine -bench 'GenerateMoves'`
+ * `go test ./engine -bench 'GenerateLegalMoves'`
 
    Run unit tests and move generation micro-benchmarks.
 
@@ -23,11 +23,11 @@
 
    View coverage report.
 
- * `go test ./engine  -bench 'GenerateMoves' -cpuprofile cpu.prof -memprofile mem.prof`
+ * `go test ./engine  -bench 'GenerateLegalMoves' -cpuprofile cpu.prof -memprofile mem.prof`
 
    Write out profiling information.
 
- * `go tool pprof cpu.prof` (followed by e.g. `top` or `list GenerateMoves`)
+ * `go tool pprof cpu.prof` (followed by e.g. `top` or `list GenerateLegalMoves`)
 
    View profiling information.
 

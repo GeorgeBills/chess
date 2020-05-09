@@ -1,0 +1,1291 @@
+{
+    "basic moves: pawn pushes (white to move)": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "moves": [
+            "a2a3",
+            "a2a4",
+            "b1a3",
+            "b1c3",
+            "b2b3",
+            "b2b4",
+            "c2c3",
+            "c2c4",
+            "d2d3",
+            "d2d4",
+            "e2e3",
+            "e2e4",
+            "f2f3",
+            "f2f4",
+            "g1f3",
+            "g1h3",
+            "g2g3",
+            "g2g4",
+            "h2h3",
+            "h2h4"
+        ]
+    },
+    "basic moves: pawn pushes (black to move)": {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+        "moves": [
+            "a7a5",
+            "a7a6",
+            "b7b5",
+            "b7b6",
+            "b8a6",
+            "b8c6",
+            "c7c5",
+            "c7c6",
+            "d7d5",
+            "d7d6",
+            "e7e5",
+            "e7e6",
+            "f7f5",
+            "f7f6",
+            "g7g5",
+            "g7g6",
+            "g8f6",
+            "g8h6",
+            "h7h5",
+            "h7h6"
+        ]
+    },
+    "basic moves: pawns can't move if blocked by opposing piece": {
+        "fen": "k7/8/8/8/3p4/p5P1/P2Pp3/7K w - - 0 123",
+        "moves": [
+            "d2d3",
+            "g3g4",
+            "h1g1",
+            "h1g2",
+            "h1h2"
+        ]
+    },
+    "basic moves: pawns can't move if blocked by friendly piece": {
+        "fen": "k7/5pp1/p5n1/1p3p2/8/2pp4/8/7K b - - 0 123",
+        "moves": [
+            "a6a5",
+            "a8a7",
+            "a8b7",
+            "a8b8",
+            "b5b4",
+            "c3c2",
+            "d3d2",
+            "f5f4",
+            "f7f6",
+            "g6e5",
+            "g6e7",
+            "g6f4",
+            "g6f8",
+            "g6h4",
+            "g6h8"
+        ]
+    },
+    "basic moves: pawn captures (white to move)": {
+        "fen": "4k3/8/8/p1bpp2p/P2PPPpP/r5PP/1P6/4K3 w - - 0 123",
+        "moves": [
+            "b2b3",
+            "b2b4",
+            "b2xa3",
+            "d4xc5",
+            "d4xe5",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "e4xd5",
+            "f4f5",
+            "f4xe5",
+            "h3xg4"
+        ]
+    },
+    "basic moves: pawn captures (black to move)": {
+        "fen": "4k3/8/8/p2pp2p/P2PPPpP/R5PR/1P6/4K3 b - - 0 123",
+        "moves": [
+            "d5xe4",
+            "e5xd4",
+            "e5xf4",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8",
+            "g4xh3"
+        ]
+    },
+    "basic moves: pawn promotions (white to move)": {
+        "fen": "rn3rk1/P1PP4/4P3/5P2/8/8/8/4K3 w - - 0 123",
+        "moves": [
+            "a7xb8=B",
+            "a7xb8=N",
+            "a7xb8=Q",
+            "a7xb8=R",
+            "c7c8=B",
+            "c7c8=N",
+            "c7c8=Q",
+            "c7c8=R",
+            "c7xb8=B",
+            "c7xb8=N",
+            "c7xb8=Q",
+            "c7xb8=R",
+            "d7d8=B",
+            "d7d8=N",
+            "d7d8=Q",
+            "d7d8=R",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "e6e7",
+            "f5f6"
+        ]
+    },
+    "basic moves: pawn promotions (black to move)": {
+        "fen": "4k3/8/8/8/8/3P4/1pp4p/bN1QK2R b - - 0 123",
+        "moves": [
+            "c2c1=B",
+            "c2c1=N",
+            "c2c1=Q",
+            "c2c1=R",
+            "c2xb1=B",
+            "c2xb1=N",
+            "c2xb1=Q",
+            "c2xb1=R",
+            "c2xd1=B",
+            "c2xd1=N",
+            "c2xd1=Q",
+            "c2xd1=R",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "basic moves: pawn en passant (black to move)": {
+        "fen": "4k3/8/8/8/3pPp2/3P2P1/8/4K3 b - e3 0 123",
+        "moves": [
+            "d4xe3e.p.",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8",
+            "f4f3",
+            "f4xe3e.p.",
+            "f4xg3"
+        ]
+    },
+    "basic moves: pawn en passant (white to move)": {
+        "fen": "4k3/8/8/2PpP3/4P3/8/8/K7 w - d6 0 123",
+        "moves": [
+            "a1a2",
+            "a1b1",
+            "a1b2",
+            "c5c6",
+            "c5xd6e.p.",
+            "e4xd5",
+            "e5e6",
+            "e5xd6e.p."
+        ]
+    },
+    "basic moves: knight moves": {
+        "fen": "4k3/8/8/3p4/p7/2N5/P3P3/4K3 w - - 1 123",
+        "moves": [
+            "a2a3",
+            "c3b1",
+            "c3b5",
+            "c3d1",
+            "c3e4",
+            "c3xa4",
+            "c3xd5",
+            "e1d1",
+            "e1d2",
+            "e1f1",
+            "e1f2",
+            "e2e3",
+            "e2e4"
+        ]
+    },
+    "basic moves: rook moves": {
+        "fen": "k7/8/8/8/8/8/8/1R5K w - - 1 123",
+        "moves": [
+            "b1a1",
+            "b1b2",
+            "b1b3",
+            "b1b4",
+            "b1b5",
+            "b1b6",
+            "b1b7",
+            "b1b8",
+            "b1c1",
+            "b1d1",
+            "b1e1",
+            "b1f1",
+            "b1g1",
+            "h1g1",
+            "h1g2",
+            "h1h2"
+        ]
+    },
+    "basic moves: rook captures": {
+        "fen": "k7/8/8/8/1q6/8/rR2P3/1N5K w - - 1 123",
+        "moves": [
+            "b1a3",
+            "b1c3",
+            "b1d2",
+            "b2b3",
+            "b2c2",
+            "b2d2",
+            "b2xa2",
+            "b2xb4",
+            "e2e3",
+            "e2e4",
+            "h1g1",
+            "h1g2",
+            "h1h2"
+        ]
+    },
+    "basic moves: rook moves blocked": {
+        "fen": "2bqk3/1pppp3/8/P1pr1P1p/8/3P4/8/3QK3 b - - 0 123",
+        "moves": [
+            "b7b5",
+            "b7b6",
+            "c5c4",
+            "c7c6",
+            "d5d4",
+            "d5d6",
+            "d5e5",
+            "d5xd3",
+            "d5xf5",
+            "d7d6",
+            "e7e5",
+            "e7e6",
+            "e8f7",
+            "e8f8",
+            "h5h4"
+        ]
+    },
+    "basic moves: bishop moves": {
+        "fen": "4k3/3b4/8/8/8/8/8/3K4 b - - 1 123",
+        "moves": [
+            "d7a4",
+            "d7b5",
+            "d7c6",
+            "d7c8",
+            "d7e6",
+            "d7f5",
+            "d7g4",
+            "d7h3",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "basic moves: bishop captures": {
+        "fen": "4k3/3p4/p7/1B6/8/3K4/8/8 w - - 1 123",
+        "moves": [
+            "b5a4",
+            "b5c4",
+            "b5c6",
+            "b5xa6",
+            "b5xd7",
+            "d3c2",
+            "d3c3",
+            "d3c4",
+            "d3d2",
+            "d3d4",
+            "d3e2",
+            "d3e3",
+            "d3e4"
+        ]
+    },
+    "basic moves: bishop moves blocked": {
+        "fen": "rn2k1n1/pP2p3/p3R3/3b4/8/1P3p2/P7/4K2R b - - 0 123",
+        "moves": [
+            "a6a5",
+            "b8c6",
+            "b8d7",
+            "d5c4",
+            "d5c6",
+            "d5e4",
+            "d5xb3",
+            "d5xb7",
+            "d5xe6",
+            "e8d7",
+            "e8d8",
+            "e8f7",
+            "e8f8",
+            "f3f2",
+            "g8f6",
+            "g8h6"
+        ]
+    },
+    "basic moves: queen moves": {
+        "fen": "3k4/2p3P1/P2q3B/8/8/P7/7P/3BK3 b - - 1 123",
+        "moves": [
+            "c7c5",
+            "c7c6",
+            "d6b4",
+            "d6b6",
+            "d6c5",
+            "d6c6",
+            "d6d2",
+            "d6d3",
+            "d6d4",
+            "d6d5",
+            "d6d7",
+            "d6e5",
+            "d6e6",
+            "d6e7",
+            "d6f4",
+            "d6f6",
+            "d6f8",
+            "d6g3",
+            "d6g6",
+            "d6xa3",
+            "d6xa6",
+            "d6xd1",
+            "d6xh2",
+            "d6xh6",
+            "d8c8",
+            "d8d7",
+            "d8e7",
+            "d8e8"
+        ]
+    },
+    "king must not move into check: pawns (black to move)": {
+        "fen": "4k3/6P1/2P1P3/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "e8d8",
+            "e8e7"
+        ]
+    },
+    "king must not move into check: pawns (white to move)": {
+        "fen": "4k3/8/8/8/8/2p3p1/8/4K3 w - - 0 123",
+        "moves": [
+            "e1d1",
+            "e1e2",
+            "e1f1"
+        ]
+    },
+    "king must not move into check: bishop": {
+        "fen": "4k3/8/8/3p4/4Kb2/8/8/8 w - - 1 123",
+        "moves": [
+            "e4d3",
+            "e4d4",
+            "e4f3",
+            "e4f5",
+            "e4xd5",
+            "e4xf4"
+        ]
+    },
+    "king must not move into check: rook": {
+        "fen": "4k2r/8/8/8/8/8/8/6K1 w - - 1 123",
+        "moves": [
+            "g1f1",
+            "g1f2",
+            "g1g2"
+        ]
+    },
+    "king must not move into check: knights": {
+        "fen": "4k3/8/6N1/3N4/8/8/8/4K3 b - - 1 123",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8f7"
+        ]
+    },
+    "king must not move into check: opposing king": {
+        "fen": "k7/2K5/7R/8/8/8/8/8 b - - 1 123",
+        "moves": [
+            "a8a7"
+        ]
+    },
+    "king must not move into check: queen": {
+        "fen": "4k3/8/8/2q5/4K3/8/8/8 w - - 0 123",
+        "moves": [
+            "e4d3",
+            "e4f3",
+            "e4f4"
+        ]
+    },
+    "king must not move into check: own piece blocks check": {
+        "fen": "3qk3/8/8/8/8/8/3P4/3K4 w - - 1 123",
+        "moves": [
+            "d1c1",
+            "d1c2",
+            "d1e1",
+            "d1e2",
+            "d2d3",
+            "d2d4"
+        ]
+    },
+    "king must not move into check: opposing piece blocks check": {
+        "fen": "3qk3/3b4/8/8/8/8/8/3K4 w - - 1 123",
+        "moves": [
+            "d1c1",
+            "d1c2",
+            "d1d2",
+            "d1e1",
+            "d1e2"
+        ]
+    },
+    "king must not move into check: king may not capture a covered piece": {
+        "fen": "4k3/5B2/6P1/8/8/8/8/4K2R b K - 0 123",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f8"
+        ]
+    },
+    "clearing check: must capture": {
+        "fen": "r1b1k3/1P6/8/8/4n3/6P1/2nPP2P/R2QKBN1 w - - 0 123",
+        "moves": [
+            "d1xc2"
+        ]
+    },
+    "clearing check: pawn must capture ne": {
+        "fen": "4k3/8/8/8/1b6/P7/4PP2/3BKB2 w - - 0 123",
+        "moves": [
+            "a3xb4"
+        ]
+    },
+    "clearing check: pawn must capture nw": {
+        "fen": "3rk3/4q3/5P2/8/8/6p1/8/4KR2 w - - 0 123",
+        "moves": [
+            "f6xe7"
+        ]
+    },
+    "clearing check: pawn must capture se": {
+        "fen": "8/8/7R/1p1k4/2PP4/1P2Q3/8/4K3 b - - 0 123",
+        "moves": [
+            "b5xc4"
+        ]
+    },
+    "clearing check: pawn must capture sw": {
+        "fen": "3qkb2/3ppp2/3N4/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "e7xd6"
+        ]
+    },
+    "clearing check: king must capture": {
+        "fen": "3qkb2/3ppP2/2PP4/8/8/8/8/4K2R b K - 0 123",
+        "moves": [
+            "e8xf7"
+        ]
+    },
+    "clearing check: king may capture or move": {
+        "fen": "4k3/8/8/8/8/8/3p4/4K3 w - - 0 123",
+        "moves": [
+            "e1d1",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "e1xd2"
+        ]
+    },
+    "clearing check: piece must block checking bishop": {
+        "fen": "4k3/8/8/8/1b6/8/4PP2/1N1BKB2 w - - 0 123",
+        "moves": [
+            "b1c3",
+            "b1d2"
+        ]
+    },
+    "clearing check: piece must block checking rook": {
+        "fen": "R3kb2/2brpp2/8/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "c7b8",
+            "c7d8",
+            "d7d8"
+        ]
+    },
+    "clearing check: pawn must push (black to move)": {
+        "fen": "4k3/1pp5/8/8/Q6B/8/8/3RKR2 b - - 0 1",
+        "moves": [
+            "b7b5",
+            "c7c6"
+        ]
+    },
+    "clearing check: pawn must push (white to move)": {
+        "fen": "3rk3/8/8/b7/8/8/PPP1PP2/4KB2 w - - 0 123",
+        "moves": [
+            "b2b4",
+            "c2c3"
+        ]
+    },
+    "clearing check: pawn must promote (black to move)": {
+        "fen": "8/8/8/8/8/8/R5p1/2K1k2R b - - 0 1",
+        "moves": [
+            "g2g1=B",
+            "g2g1=N",
+            "g2g1=Q",
+            "g2g1=R",
+            "g2xh1=B",
+            "g2xh1=N",
+            "g2xh1=Q",
+            "g2xh1=R"
+        ]
+    },
+    "clearing check: pawn must promote (white to move)": {
+        "fen": "4K1rk/q4P2/8/8/8/8/8/8 w - - 0 123",
+        "moves": [
+            "f7f8=B",
+            "f7f8=N",
+            "f7f8=Q",
+            "f7f8=R",
+            "f7xg8=B",
+            "f7xg8=N",
+            "f7xg8=Q",
+            "f7xg8=R"
+        ]
+    },
+    "clearing check: king must move if double check": {
+        "fen": "4k3/1pp5/2B5/1b3n2/8/3r1p2/4R2r/4K3 b - - 0 123",
+        "moves": [
+            "e8d8",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "clearing check: en passant valid if it would block check": {
+        "fen": "4k3/8/r6K/4pP2/8/8/8/8 w - e6 0 123",
+        "moves": [
+            "f5f6",
+            "f5xe6e.p.",
+            "h6g5",
+            "h6g7",
+            "h6h5",
+            "h6h7"
+        ]
+    },
+    "clearing check: en passant not valid if it would not clear check (white to move)": {
+        "fen": "3qk3/8/8/4pP2/7K/8/8/8 w - e6 0 123",
+        "moves": [
+            "f5f6",
+            "h4g3",
+            "h4g4",
+            "h4h3",
+            "h4h5"
+        ]
+    },
+    "clearing check: en passant not valid if it would not clear check (black to move)": {
+        "fen": "R3k3/8/8/8/3pP3/8/8/4K3 b - e3 0 123",
+        "moves": [
+            "e8d7",
+            "e8e7",
+            "e8f7"
+        ]
+    },
+    "clearing check: en passant valid to capture checking piece": {
+        "source": "https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-check-evasions",
+        "fen": "4k3/8/6p1/4pP2/3K4/8/8/8 w - e6 0 123",
+        "moves": [
+            "d4c3",
+            "d4c4",
+            "d4c5",
+            "d4d3",
+            "d4d5",
+            "d4e3",
+            "d4e4",
+            "d4xe5",
+            "f5xe6e.p."
+        ]
+    },
+    "clearing check: king may not move away from checking slider while still on ray": {
+        "source": "https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-king-moves-away-from-a-checking-slider",
+        "fen": "4k3/1q6/8/8/2r1K3/8/8/8 w - - 0 1",
+        "moves": [
+            "e4d3",
+            "e4e3",
+            "e4e5",
+            "e4f5"
+        ]
+    },
+    "pinning: pawn may not move": {
+        "fen": "4k3/3p4/8/8/Q7/8/8/4K3 b - - 0 3",
+        "moves": [
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: pawn may move forwards on pinned ray": {
+        "fen": "4k3/8/4p3/5P2/8/8/4Q3/4K3 b - - 0 3",
+        "moves": [
+            "e6e5",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: pawn may capture south-east pinner": {
+        "fen": "4k3/5p2/6Q1/8/8/8/8/4K3 b - - 0 3",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f8",
+            "f7xg6"
+        ]
+    },
+    "pinning: pawn may capture south-west pinner": {
+        "fen": "4k3/8/2p5/1B6/B7/8/8/4K3 b - - 0 3",
+        "moves": [
+            "c6xb5",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: pawn may capture north-east pinner": {
+        "fen": "4k3/8/8/8/7b/6P1/8/4K3 w - - 0 3",
+        "moves": [
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "g3xh4"
+        ]
+    },
+    "pinning: pawn may capture north-west pinner": {
+        "fen": "4k3/8/8/8/8/2q5/3P4/4K3 w - - 0 3",
+        "moves": [
+            "d2xc3",
+            "e1d1",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "pinning: knight": {
+        "fen": "4k3/8/8/4n3/8/8/4Q3/4K3 b - - 0 3",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: queen pinned to NW/SE diagonal": {
+        "fen": "5k2/8/8/q7/8/8/3Q4/4K3 w - - 0 123",
+        "moves": [
+            "d2b4",
+            "d2c3",
+            "d2xa5",
+            "e1d1",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "pinning: queen pinned to vertical": {
+        "fen": "4k3/8/8/8/8/4q3/4Q3/4K3 b - - 0 123",
+        "moves": [
+            "e3e4",
+            "e3e5",
+            "e3e6",
+            "e3e7",
+            "e3xe2",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: queen pinned to horizontal": {
+        "fen": "4k3/8/8/8/8/8/8/r1Q1K3 w - - 0 123",
+        "moves": [
+            "c1b1",
+            "c1d1",
+            "c1xa1",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "pinning: queen pinned to SW/NE diagonal": {
+        "fen": "4k3/8/2q5/1B6/B7/8/8/4K3 b - - 0 123",
+        "moves": [
+            "c6d7",
+            "c6xb5",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: bishop pinned to SW/NE diagonal": {
+        "fen": "4k3/8/2b5/8/B7/8/8/4K3 b - - 0 1",
+        "moves": [
+            "c6b5",
+            "c6d7",
+            "c6xa4",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: bishop pinned to NW/SE diagonal": {
+        "fen": "4k3/8/8/8/1b6/2B5/8/4K3 w - - 0 1",
+        "moves": [
+            "c3d2",
+            "c3xb4",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "pinning: rook pinned to vertical": {
+        "fen": "4k3/4r3/8/8/8/8/4R3/4K3 w - - 0 1",
+        "moves": [
+            "e1d1",
+            "e1d2",
+            "e1f1",
+            "e1f2",
+            "e2e3",
+            "e2e4",
+            "e2e5",
+            "e2e6",
+            "e2xe7"
+        ]
+    },
+    "pinning: rook pinned to horizontal": {
+        "fen": "Rr2k3/8/8/8/8/8/8/4K3 b - - 0 1",
+        "moves": [
+            "b8c8",
+            "b8d8",
+            "b8xa8",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: may not promote if that exposes king diagonally (white to move)": {
+        "fen": "K1n1k3/1P6/8/8/4b3/8/8/8 w - - 0 1",
+        "moves": [
+            "a8b8"
+        ]
+    },
+    "pinning: may not promote if that exposes king horizontally (black to move)": {
+        "fen": "8/8/8/8/8/8/k5pQ/4KB1R b - - 0 3",
+        "moves": [
+            "a2a1",
+            "a2a3",
+            "a2b1",
+            "a2b2",
+            "a2b3"
+        ]
+    },
+    "pinning: may not promote if that exposes king horizontally (white to move)": {
+        "fen": "b3k3/KP5r/8/8/8/8/8/8 w - - 0 1",
+        "moves": [
+            "a7a6",
+            "a7b6",
+            "a7b8",
+            "a7xa8"
+        ]
+    },
+    "pinning: may not promote if that exposes king vertically (black to move)": {
+        "fen": "2Q5/8/8/8/8/8/2p5/1Nk1K3 b - - 0 3",
+        "moves": [
+            "c1b2",
+            "c1xb1"
+        ]
+    },
+    "pinning: may not en passant if that exposes king vertically (black to move)": {
+        "fen": "4k3/8/8/8/4pP2/8/4Q3/4K3 b - f3 0 3",
+        "moves": [
+            "e4e3",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "pinning: may not en passant if that exposes king horizontally (black to move)": {
+        "source": "https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check",
+        "fen": "8/8/8/8/R3Pp1k/8/8/4K3 b - e3 0 123",
+        "moves": [
+            "f4f3",
+            "h4g3",
+            "h4g4",
+            "h4g5",
+            "h4h3",
+            "h4h5"
+        ]
+    },
+    "pinning: may not en passant if that exposes king horizontally (white to move)": {
+        "source": "https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/#gotcha-en-passant-discovered-check",
+        "fen": "4k3/8/8/K4pPq/8/8/8/8 w - f6 0 123",
+        "moves": [
+            "a5a4",
+            "a5a6",
+            "a5b4",
+            "a5b5",
+            "a5b6",
+            "g5g6"
+        ]
+    },
+    "castling: white can kingside castle only (queenside blocked)": {
+        "fen": "4k3/8/8/8/8/8/P6P/R3K1NR w KQ - 1 123",
+        "moves": [
+            "O-O-O",
+            "a1b1",
+            "a1c1",
+            "a1d1",
+            "a2a3",
+            "a2a4",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "g1e2",
+            "g1f3",
+            "g1h3",
+            "h2h3",
+            "h2h4"
+        ]
+    },
+    "castling: white can castle both (kingside pawn protects from check, queenside despite rook being covered)": {
+        "fen": "4kr2/8/8/8/8/r4P2/7P/R3K2R w KQ - 1 123",
+        "moves": [
+            "O-O",
+            "O-O-O",
+            "a1a2",
+            "a1b1",
+            "a1c1",
+            "a1d1",
+            "a1xa3",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "f3f4",
+            "h1f1",
+            "h1g1",
+            "h2h3",
+            "h2h4"
+        ]
+    },
+    "castling: white can castle neither (kingside pass through check, queenside into check)": {
+        "fen": "2r1kr2/8/8/8/8/8/P6P/R3K2R w KQ - 1 123",
+        "moves": [
+            "a1b1",
+            "a1c1",
+            "a1d1",
+            "a2a3",
+            "a2a4",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "h1f1",
+            "h1g1",
+            "h2h3",
+            "h2h4"
+        ]
+    },
+    "castling: black can qs castle only (board state)": {
+        "fen": "r3k2r/p6p/8/8/8/8/8/4K3 b q - 1 123",
+        "moves": [
+            "O-O-O",
+            "a7a5",
+            "a7a6",
+            "a8b8",
+            "a8c8",
+            "a8d8",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8",
+            "h7h5",
+            "h7h6",
+            "h8f8",
+            "h8g8"
+        ]
+    },
+    "castling: black can castle neither (king in check)": {
+        "fen": "r3k2r/p6p/3N4/8/8/8/8/4K3 b kq - 0 1",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f8"
+        ]
+    },
+    "castling: black can kingside castle only (queenside into check)": {
+        "fen": "r3k2r/p1R4p/8/8/8/8/8/4K3 b kq - 0 123",
+        "moves": [
+            "O-O",
+            "a7a5",
+            "a7a6",
+            "a8b8",
+            "a8c8",
+            "a8d8",
+            "e8d8",
+            "e8f8",
+            "h7h5",
+            "h7h6",
+            "h8f8",
+            "h8g8"
+        ]
+    },
+    "edge conditions: en passant a6 shouldn't wrap north-east": {
+        "fen": "4k3/8/8/pP6/7P/8/8/4K3 w - a6 0 123",
+        "moves": [
+            "b5b6",
+            "b5xa6e.p.",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "h4h5"
+        ]
+    },
+    "edge conditions: en passant h6 shouldn't wrap north-west": {
+        "fen": "4k3/8/P7/6Pp/8/8/8/4K3 w - h6 0 123",
+        "moves": [
+            "a6a7",
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2",
+            "g5g6",
+            "g5xh6e.p."
+        ]
+    },
+    "edge conditions: en passant a3 shouldn't wrap south-east": {
+        "fen": "4k3/8/8/8/Pp6/7p/8/4K3 b - a3 0 123",
+        "moves": [
+            "b4b3",
+            "b4xa3e.p.",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8",
+            "h3h2"
+        ]
+    },
+    "edge conditions: en passant h3 shouldn't wrap south-west": {
+        "fen": "4k3/8/8/p7/6pP/8/8/4K3 b - h3 0 123",
+        "moves": [
+            "a5a4",
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8",
+            "g4g3",
+            "g4xh3e.p."
+        ]
+    },
+    "edge conditions: pawns shouldn't wrap east (white to move)": {
+        "fen": "r3k2r/p6P/p6P/p6P/p6P/p6P/p6P/4K3 w - - 1 123",
+        "moves": [
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "edge conditions: pawns shouldn't wrap west (white to move)": {
+        "fen": "r3k2r/P6p/P6p/P6p/P6p/P6p/P6p/4K3 w - - 0 123",
+        "moves": [
+            "e1d1",
+            "e1d2",
+            "e1e2",
+            "e1f1",
+            "e1f2"
+        ]
+    },
+    "edge conditions: pawns shouldn't wrap east (black to move)": {
+        "fen": "4k3/P6p/P6p/P6p/P6p/P6p/P6p/R3K2R b - - 0 123",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "edge conditions: pawns shouldn't wrap west (black to move)": {
+        "fen": "4k3/p6P/p6P/p6P/p6P/p6P/p6P/R3K2R b - - 1 123",
+        "moves": [
+            "e8d7",
+            "e8d8",
+            "e8e7",
+            "e8f7",
+            "e8f8"
+        ]
+    },
+    "edge conditions: rooks h1 and a8": {
+        "fen": "R7/1k6/8/8/8/8/6K1/7R w - - 1 123",
+        "moves": [
+            "a8a1",
+            "a8a2",
+            "a8a3",
+            "a8a4",
+            "a8a5",
+            "a8a6",
+            "a8a7",
+            "a8b8",
+            "a8c8",
+            "a8d8",
+            "a8e8",
+            "a8f8",
+            "a8g8",
+            "a8h8",
+            "g2f1",
+            "g2f2",
+            "g2f3",
+            "g2g1",
+            "g2g3",
+            "g2h2",
+            "g2h3",
+            "h1a1",
+            "h1b1",
+            "h1c1",
+            "h1d1",
+            "h1e1",
+            "h1f1",
+            "h1g1",
+            "h1h2",
+            "h1h3",
+            "h1h4",
+            "h1h5",
+            "h1h6",
+            "h1h7",
+            "h1h8"
+        ]
+    },
+    "edge conditions: rooks a1 and h8": {
+        "fen": "7R/1k6/8/8/8/8/6K1/R7 w - - 1 123",
+        "moves": [
+            "a1a2",
+            "a1a3",
+            "a1a4",
+            "a1a5",
+            "a1a6",
+            "a1a7",
+            "a1a8",
+            "a1b1",
+            "a1c1",
+            "a1d1",
+            "a1e1",
+            "a1f1",
+            "a1g1",
+            "a1h1",
+            "g2f1",
+            "g2f2",
+            "g2f3",
+            "g2g1",
+            "g2g3",
+            "g2h1",
+            "g2h2",
+            "g2h3",
+            "h8a8",
+            "h8b8",
+            "h8c8",
+            "h8d8",
+            "h8e8",
+            "h8f8",
+            "h8g8",
+            "h8h1",
+            "h8h2",
+            "h8h3",
+            "h8h4",
+            "h8h5",
+            "h8h6",
+            "h8h7"
+        ]
+    },
+    "edge conditions: bishops moving to corners of the board": {
+        "fen": "4k3/8/8/3B4/8/2B5/8/6K1 w - - 0 1",
+        "moves": [
+            "c3a1",
+            "c3a5",
+            "c3b2",
+            "c3b4",
+            "c3d2",
+            "c3d4",
+            "c3e1",
+            "c3e5",
+            "c3f6",
+            "c3g7",
+            "c3h8",
+            "d5a2",
+            "d5a8",
+            "d5b3",
+            "d5b7",
+            "d5c4",
+            "d5c6",
+            "d5e4",
+            "d5e6",
+            "d5f3",
+            "d5f7",
+            "d5g2",
+            "d5g8",
+            "d5h1",
+            "g1f1",
+            "g1f2",
+            "g1g2",
+            "g1h1",
+            "g1h2"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (white king a1)": {
+        "fen": "4k3/8/8/8/8/7p/1p5p/K7 w - - 0 1",
+        "moves": [
+            "a1a2",
+            "a1b1",
+            "a1xb2"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (white king b1)": {
+        "fen": "4k3/8/8/8/8/7p/2p4p/1K6 w - - 0 1",
+        "moves": [
+            "b1a1",
+            "b1a2",
+            "b1b2",
+            "b1c1",
+            "b1xc2"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (white king h1)": {
+        "fen": "4k3/8/8/8/8/p7/p5p1/7K w - - 0 1",
+        "moves": [
+            "h1g1",
+            "h1h2",
+            "h1xg2"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (white king g1)": {
+        "fen": "4k3/8/8/8/8/p7/p4p2/6K1 w - - 0 1",
+        "moves": [
+            "g1f1",
+            "g1g2",
+            "g1h1",
+            "g1h2",
+            "g1xf2"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (black king a8)": {
+        "fen": "k7/1P5P/7P/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "a8a7",
+            "a8b8",
+            "a8xb7"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (black king b8)": {
+        "fen": "1k6/2P4P/7P/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "b8a7",
+            "b8a8",
+            "b8b7",
+            "b8c8",
+            "b8xc7"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (black king h8)": {
+        "fen": "7k/P5P1/P7/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "h8g8",
+            "h8h7",
+            "h8xg7"
+        ]
+    },
+    "edge conditions: pawn threat shouldn't wrap (black king g8)": {
+        "fen": "6k1/P4P2/P7/8/8/8/8/4K3 b - - 0 123",
+        "moves": [
+            "g8f8",
+            "g8g7",
+            "g8h7",
+            "g8h8",
+            "g8xf7"
+        ]
+    },
+    "edge conditions: king on h8 checked by south-west pawn": {
+        "fen": "7k/6P1/8/8/1qprnb2/8/8/4K3 b - - 1 124",
+        "moves": [
+            "h8g8",
+            "h8h7",
+            "h8xg7"
+        ]
+    },
+    "edge conditions: king on a8 checked by south-east pawn": {
+        "fen": "k7/1P6/8/8/2prnbq1/8/8/4K3 b - - 1 124",
+        "moves": [
+            "a8a7",
+            "a8b8",
+            "a8xb7"
+        ]
+    },
+    "edge conditions: king on a1 checked by north-east pawn": {
+        "fen": "4k3/8/8/2QNPRB1/8/8/1p6/K7 w - - 1 124",
+        "moves": [
+            "a1a2",
+            "a1b1",
+            "a1xb2"
+        ]
+    },
+    "edge conditions: king on h1 checked by north-east pawn": {
+        "fen": "4k3/8/8/2QNPRB1/8/8/6p1/7K w - - 1 124",
+        "moves": [
+            "h1g1",
+            "h1h2",
+            "h1xg2"
+        ]
+    },
+    "edge conditions: moving behind king (MSB) doesn't clear check": {
+        "fen": "4k3/8/8/8/8/3Q4/8/q3K3 w - - 0 123",
+        "moves": [
+            "d3b1",
+            "d3d1",
+            "e1d2",
+            "e1e2",
+            "e1f2"
+        ]
+    },
+    "edge conditions: moving behind king (LSB) doesn't clear check": {
+        "fen": "4k3/8/8/8/8/4N3/r7/4K2q w - - 0 123",
+        "moves": [
+            "e3f1"
+        ]
+    },
+    "checkmate": {
+        "fen": "8/8/8/8/8/K1k5/8/r7 w - - 30 16",
+        "moves": []
+    },
+    "stalemate": {
+        "fen": "4k1r1/8/8/8/8/8/r7/7K w - - 1 123",
+        "moves": []
+    }
+}

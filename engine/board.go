@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// InitialBoardFEN is the FEN for a board in the initial state.
+const InitialBoardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 // Board represents an 8×8 chess board.
 //
 // The 0th index represents A1 and the 63rd index represents H8.
@@ -79,28 +82,31 @@ func NewBoard() Board {
 	}
 }
 
-// isWhiteAt returns true iff there is a piece at index i and it is white.
+// isWhiteAt returns true if there is a piece at index i and it is white.
 func (b Board) isWhiteAt(i uint8) bool { return b.white&(1<<i) != 0 }
 
-// isBlackAt returns true iff there is a piece at index i and it is black.
+// isBlackAt returns true if there is a piece at index i and it is black.
 func (b Board) isBlackAt(i uint8) bool { return b.black&(1<<i) != 0 }
 
-// isPawnAt returns true iff there is a piece at index i and it is a pawn.
+// IsEmptyAt returns true if the square at index i is empty.
+func (b Board) isEmptyAt(i uint8) bool { return !b.isWhiteAt(i) && !b.isBlackAt(i) }
+
+// isPawnAt returns true if there is a piece at index i and it is a pawn.
 func (b Board) isPawnAt(i uint8) bool { return b.pawns&(1<<i) != 0 }
 
-// isKnightAt returns true iff there is a piece at index i and it is a knight.
+// isKnightAt returns true if there is a piece at index i and it is a knight.
 func (b Board) isKnightAt(i uint8) bool { return b.knights&(1<<i) != 0 }
 
-// isBishopAt returns true iff there is a piece at index i and it is a bishop.
+// isBishopAt returns true if there is a piece at index i and it is a bishop.
 func (b Board) isBishopAt(i uint8) bool { return b.bishops&(1<<i) != 0 }
 
-// isRookAt returns true iff there is a piece at index i and it is a rook.
+// isRookAt returns true if there is a piece at index i and it is a rook.
 func (b Board) isRookAt(i uint8) bool { return b.rooks&(1<<i) != 0 }
 
-// isQueenAt returns true iff there is a piece at index i and it is a queen.
+// isQueenAt returns true if there is a piece at index i and it is a queen.
 func (b Board) isQueenAt(i uint8) bool { return b.queens&(1<<i) != 0 }
 
-// isKingAt returns true iff there is a piece at index i and it is a king.
+// isKingAt returns true if there is a piece at index i and it is a king.
 func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
 // EnPassant returns the index of the square under threat of en passant, or
@@ -170,16 +176,16 @@ func (b Board) ToMove() Colour {
 	return Black
 }
 
-// CanWhiteCastleKingside returns true iff white can castle kingside.
+// CanWhiteCastleKingside returns true if white can castle kingside.
 func (b Board) CanWhiteCastleKingside() bool { return b.meta&maskWhiteCastleKingside != 0 }
 
-// CanWhiteCastleQueenside returns true iff white can castle queenside.
+// CanWhiteCastleQueenside returns true if white can castle queenside.
 func (b Board) CanWhiteCastleQueenside() bool { return b.meta&maskWhiteCastleQueenside != 0 }
 
-// CanBlackCastleKingside returns true iff black can castle kingside.
+// CanBlackCastleKingside returns true if black can castle kingside.
 func (b Board) CanBlackCastleKingside() bool { return b.meta&maskBlackCastleKingside != 0 }
 
-// CanBlackCastleQueenside returns true iff black can castle queenside.
+// CanBlackCastleQueenside returns true if black can castle queenside.
 func (b Board) CanBlackCastleQueenside() bool { return b.meta&maskBlackCastleQueenside != 0 }
 
 // HalfMoves returns the number of half moves (moves by one player) since the
