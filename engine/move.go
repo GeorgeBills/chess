@@ -208,6 +208,11 @@ func (b *Board) ParseNewMoveFromPCN(r io.RuneReader) (Move, error) {
 		return NewEnPassant(fromSq, toSq), nil
 	}
 
+	if !b.isEmptyAt(toSq) {
+		// to square occupied; must be a capture
+		return NewCapture(fromSq, toSq), nil
+	}
+
 	return NewMove(fromSq, toSq), nil
 }
 

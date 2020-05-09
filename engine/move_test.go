@@ -85,6 +85,24 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 			"rnbqkb1r/pppp1ppp/5n2/3Pp3/8/5N2/PPP1PPPP/RNBQKB1R b KQkq - 0 3",
 			"g1f3",
 		},
+		{
+			"white pawn capture black pawn",
+			"rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2",
+			"rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2",
+			"d4e5",
+		},
+		{
+			"white bishop capture black knight",
+			"r1bqkb1r/pppppppp/2n2n2/1B6/8/4P3/PPPP1PPP/RNBQK1NR w KQkq - 0 3",
+			"r1bqkb1r/pppppppp/2B2n2/8/8/4P3/PPPP1PPP/RNBQK1NR b KQkq - 0 3",
+			"b5c6",
+		},
+		{
+			"black queen capture white rook",
+			"4k3/8/5q2/8/8/8/8/R3K3 b - - 0 123",
+			"4k3/8/8/8/8/8/8/q3K3 w - - 0 124",
+			"f6a1",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
