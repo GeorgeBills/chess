@@ -125,78 +125,27 @@ func init() {
 // than lower numbers.
 func (b *Board) Evaluate() int16 {
 	var score int16
+	score += evaluateMaterial(b.white&b.pawns, valPawn, &pstWhitePawn)
+	score += evaluateMaterial(b.white&b.bishops, valBishop, &pstWhiteBishop)
+	score += evaluateMaterial(b.white&b.knights, valKnight, &pstWhiteKnight)
+	score += evaluateMaterial(b.white&b.queens, valQueen, &pstWhiteQueen)
+	score += evaluateMaterial(b.white&b.kings, valKing, &pstWhiteKing)
+	score += evaluateMaterial(b.white&b.rooks, valRook, &pstWhiteRook)
+	score -= evaluateMaterial(b.black&b.pawns, valPawn, &pstBlackPawn)
+	score -= evaluateMaterial(b.black&b.bishops, valBishop, &pstBlackBishop)
+	score -= evaluateMaterial(b.black&b.knights, valKnight, &pstBlackKnight)
+	score -= evaluateMaterial(b.black&b.queens, valQueen, &pstBlackQueen)
+	score -= evaluateMaterial(b.black&b.kings, valKing, &pstBlackKing)
+	score -= evaluateMaterial(b.black&b.rooks, valRook, &pstBlackRook)
+	return score
+}
 
-	for whitePawns := b.white & b.pawns; whitePawns != 0; {
-		idx, _ := popLSB(&whitePawns)
-		score += valPawn
-		score += pstWhitePawn[idx]
+func evaluateMaterial(x uint64, val int16, pst *[64]int16) int16 {
+	var score int16
+	for x != 0 {
+		idx, _ := popLSB(&x)
+		score += val
+		score += pst[idx]
 	}
-
-	for whiteBishops := b.white & b.bishops; whiteBishops != 0; {
-		idx, _ := popLSB(&whiteBishops)
-		score += valBishop
-		score += pstWhiteBishop[idx]
-	}
-
-	for whiteKnights := b.white & b.knights; whiteKnights != 0; {
-		idx, _ := popLSB(&whiteKnights)
-		score += valKnight
-		score += pstWhiteKnight[idx]
-	}
-
-	for whiteQueens := b.white & b.queens; whiteQueens != 0; {
-		idx, _ := popLSB(&whiteQueens)
-		score += valQueen
-		score += pstWhiteQueen[idx]
-	}
-
-	for whiteKings := b.white & b.kings; whiteKings != 0; {
-		idx, _ := popLSB(&whiteKings)
-		score += valKing
-		score += pstWhiteKing[idx]
-	}
-
-	for whiteRooks := b.white & b.rooks; whiteRooks != 0; {
-		idx, _ := popLSB(&whiteRooks)
-		score += valRook
-		score += pstWhiteRook[idx]
-	}
-
-	for blackPawns := b.black & b.pawns; blackPawns != 0; {
-		idx, _ := popLSB(&blackPawns)
-		score -= valPawn
-		score -= pstBlackPawn[idx]
-	}
-
-	for blackBishops := b.black & b.bishops; blackBishops != 0; {
-		idx, _ := popLSB(&blackBishops)
-		score -= valBishop
-		score -= pstBlackBishop[idx]
-	}
-
-	for blackKnights := b.black & b.knights; blackKnights != 0; {
-		idx, _ := popLSB(&blackKnights)
-		score -= valKnight
-		score -= pstBlackKnight[idx]
-	}
-
-	for blackQueens := b.black & b.queens; blackQueens != 0; {
-		idx, _ := popLSB(&blackQueens)
-		score -= valQueen
-		score -= pstBlackQueen[idx]
-	}
-
-	for blackKings := b.black & b.kings; blackKings != 0; {
-		idx, _ := popLSB(&blackKings)
-		score -= valKing
-		score -= pstBlackKing[idx]
-	}
-
-	for blackRooks := b.black & b.rooks; blackRooks != 0; {
-		idx, _ := popLSB(&blackRooks)
-		score -= valRook
-		score -= pstBlackRook[idx]
-	}
-
 	return score
 }
