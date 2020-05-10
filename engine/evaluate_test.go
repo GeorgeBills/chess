@@ -2,6 +2,7 @@ package engine_test
 
 import (
 	"encoding/json"
+	"flag"
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -9,6 +10,8 @@ import (
 	"strings"
 	"testing"
 )
+
+var update = flag.Bool("update", false, "update golden files")
 
 func TestEvaluate(t *testing.T) {
 	tests := map[string]string{
@@ -48,7 +51,17 @@ func TestEvaluate(t *testing.T) {
 		})
 	}
 
-	assert.Equal(t, golden, scores, "evaluation scores didn't match golden file")
+	if *update {
+		t.Log("updating golden file")
+		fw, err := os.Create("testdata/evaluate.golden.json")
+		require.NoError(t, err)
+		enc := json.NewEncoder(fw)
+		enc.SetIndent("", "    ")
+		err = enc.Encode(scores)
+		require.NoError(t, err)
+	} else {
+		assert.Equal(t, golden, scores, "evaluation scores didn't match golden file")
+	}
 }
 
 func BenchmarkEvaluate(b *testing.B) {
