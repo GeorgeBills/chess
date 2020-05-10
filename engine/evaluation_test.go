@@ -41,4 +41,9 @@ func TestEvaluation(t *testing.T) {
 	}
 }
 
-// TODO: benchmark evaluation
+func BenchmarkEvaluate(b *testing.B) {
+	board := engine.NewBoard()
+	for i := 0; i < b.N; i++ {
+		board.Evaluate()
+	}
+}
