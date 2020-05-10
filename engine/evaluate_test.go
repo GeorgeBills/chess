@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestEvaluation(t *testing.T) {
+func TestEvaluate(t *testing.T) {
 	tests := map[string]string{
 		"down a pawn":                  "rnbqkbnr/ppp1pppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 		"down a knight":                "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
