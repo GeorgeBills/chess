@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"math/bits"
+)
+
 // We use a very simple evaluation function (barely a step up from a simple
 // count of material), the logic for which is taken straight from
 // https://www.chessprogramming.org/Simplified_Evaluation_Function.
@@ -81,10 +85,10 @@ var (
 		-20, -10, -10, -05, -05, -10, -10, -20,
 	}
 
+	// opening-mid game:
 	// kings get bonuses for castling to behind the pawn shelter
 	// kings get penalties for occupying anywhere unsafe
-	// TODO: implement the early / late game split
-	pstWhiteKing = [64]int16{
+	pstWhiteKingOpeningMid = [64]int16{
 		020, 030, 010, 000, 000, 010, 030, 020,
 		020, 020, 000, 000, 000, 000, 020, 020,
 		-10, -20, -20, -20, -20, -20, -20, -10,
@@ -95,12 +99,27 @@ var (
 		-30, -40, -40, -50, -50, -40, -40, -30,
 	}
 
-	pstBlackPawn   [64]int16
-	pstBlackKnight [64]int16
-	pstBlackBishop [64]int16
-	pstBlackRook   [64]int16
-	pstBlackQueen  [64]int16
-	pstBlackKing   [64]int16
+	// end game:
+	// kings get bonuses for occupying the center
+	// kings get penalties for occupying the back ranks (due to back-rank mates)
+	pstWhiteKingEnd = [64]int16{
+		-50, -30, -30, -30, -30, -30, -30, -50,
+		-30, -30, 000, 000, 000, 000, -30, -30,
+		-30, -10, 020, 030, 030, 020, -10, -30,
+		-30, -10, 030, 040, 040, 030, -10, -30,
+		-30, -10, 030, 040, 040, 030, -10, -30,
+		-30, -10, 020, 030, 030, 020, -10, -30,
+		-30, -20, -10, 000, 000, -10, -20, -30,
+		-50, -40, -30, -20, -20, -30, -40, -50,
+	}
+
+	pstBlackPawn           [64]int16
+	pstBlackKnight         [64]int16
+	pstBlackBishop         [64]int16
+	pstBlackRook           [64]int16
+	pstBlackQueen          [64]int16
+	pstBlackKingOpeningMid [64]int16
+	pstBlackKingEnd        [64]int16
 )
 
 func init() {
@@ -113,7 +132,8 @@ func init() {
 		pstBlackBishop[j] = pstWhiteBishop[i]
 		pstBlackRook[j] = pstWhiteRook[i]
 		pstBlackQueen[j] = pstWhiteQueen[i]
-		pstBlackKing[j] = pstWhiteKing[i]
+		pstBlackKingOpeningMid[j] = pstWhiteKingOpeningMid[i]
+		pstBlackKingEnd[j] = pstWhiteKingEnd[i]
 		i++
 		j--
 	}
@@ -124,6 +144,28 @@ func init() {
 // winning. Larger numbers indicate that the side is winning by a wider margin
 // than lower numbers.
 func (b *Board) Evaluate() int16 {
+	minorPieces := b.bishops | b.knights
+
+	numWhiteMinor := bits.OnesCount64(b.white & minorPieces)
+	numWhiteQueens := bits.OnesCount64(b.white & b.queens)
+	numWhiteRooks := bits.OnesCount64(b.white & b.rooks)
+	isLateGameWhite := numWhiteQueens == 0 || numWhiteRooks == 0 && numWhiteMinor <= 1
+
+	numBlackMinor := bits.OnesCount64(b.black & minorPieces)
+	numBlackQueens := bits.OnesCount64(b.black & b.queens)
+	numBlackRooks := bits.OnesCount64(b.black & b.rooks)
+	isLateGameBlack := numBlackQueens == 0 || numBlackRooks == 0 && numBlackMinor <= 1
+
+	// late game: both sides have no queen; or queen + knight; or queen + bishop
+	isLateGame := isLateGameWhite && isLateGameBlack
+
+	pstWhiteKing := pstWhiteKingOpeningMid
+	pstBlackKing := pstBlackKingOpeningMid
+	if isLateGame {
+		pstWhiteKing = pstWhiteKingEnd
+		pstBlackKing = pstBlackKingEnd
+	}
+
 	var score int16
 	score += evaluateMaterial(b.white&b.pawns, valPawn, &pstWhitePawn)
 	score += evaluateMaterial(b.white&b.bishops, valBishop, &pstWhiteBishop)
