@@ -1,9 +1,11 @@
 package engine_test
 
 import (
+	"encoding/json"
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"os"
 	"strings"
 	"testing"
 )
@@ -23,7 +25,14 @@ func TestEvaluate(t *testing.T) {
 		"knight more central":          "r1bqkbnr/pppppppp/8/n7/3N4/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1",
 		"bishop more central":          "rn1qkbnr/ppp1pppp/8/8/5B2/7b/PPP1PPPP/RN1QKBNR w KQ - 0 1",
 	}
+
 	scores := make(map[string]int16, len(tests))
+	var golden map[string]int16
+	f, err := os.Open("testdata/evaluate.golden.json")
+	require.NoError(t, err)
+	err = json.NewDecoder(f).Decode(&golden)
+	require.NoError(t, err)
+
 	for name, fen := range tests {
 		t.Run(name, func(t *testing.T) {
 			b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
@@ -33,12 +42,13 @@ func TestEvaluate(t *testing.T) {
 			// white should be winning
 			assert.Greater(t, score, int16(0))
 
-			// TODO: use "golden" pattern for scores
 			scores[fen] = score
 
 			// TODO: flip the board and check black gets the same score
 		})
 	}
+
+	assert.Equal(t, golden, scores, "evaluation scores didn't match golden file")
 }
 
 func BenchmarkEvaluate(b *testing.B) {
