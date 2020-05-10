@@ -140,10 +140,10 @@ func (b *Board) Evaluate() int16 {
 	return score
 }
 
-func evaluateMaterial(x uint64, val int16, pst *[64]int16) int16 {
+func evaluateMaterial(material uint64, val int16, pst *[64]int16) int16 {
 	var score int16
-	for x != 0 {
-		idx, _ := popLSB(&x)
+	for material != 0 {
+		idx, _ := popLSB(&material)
 		score += val
 		score += pst[idx]
 	}
