@@ -3,11 +3,13 @@ package engine_test
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	. "github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewBoard(t *testing.T) {
@@ -91,4 +93,14 @@ func TestNewBoard(t *testing.T) {
 ♙♙♙♙♙♙♙♙
 ♖♘♗♕♔♗♘♖`
 	assert.Equal(t, expected, str)
+}
+
+func TestBoardSwapped(t *testing.T) {
+	const fen = "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1"
+	const expected = "rnbqkbnr/pppppppp/8/8/8/8/8/4K3 w kq - 0 1"
+	b, err := NewBoardFromFEN(strings.NewReader(fen))
+	require.NoError(t, err)
+	require.NotNil(t, b)
+	swapped := b.Swapped()
+	assert.Equal(t, expected, swapped.FEN())
 }

@@ -55,9 +55,11 @@ func TestEvaluate(t *testing.T) {
 			// white should be winning
 			assert.Greater(t, score, int16(0))
 
-			scores[fen] = score
+			// swap the board and check black gets the same score, but negative
+			swapped := b.Swapped()
+			assert.Equal(t, score, -1*swapped.Evaluate())
 
-			// TODO: flip the board and check black gets the same score
+			scores[fen] = score
 		})
 	}
 
