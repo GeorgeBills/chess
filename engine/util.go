@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"io"
+	"math/bits"
 )
 
 // ToAlgebraicNotation converts the index i to algebraic notation (e.g. A1, H8).
@@ -130,4 +131,22 @@ func diff(sq1, sq2 uint8) uint8 {
 		diff *= -1
 	}
 	return uint8(diff)
+}
+
+// popLSB finds the Least Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popLSB(x *uint64) (uint8, uint64) {
+	idx := uint8(bits.TrailingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
+}
+
+// popMSB finds the Most Significant Bit in x, returning the index of that bit,
+// a bitmask with only that bit set, and mutating x to unset that bit.
+func popMSB(x *uint64) (uint8, uint64) {
+	idx := uint8(63 - bits.LeadingZeros64(*x))
+	var bit uint64 = 1 << idx
+	*x &^= bit
+	return idx, bit
 }

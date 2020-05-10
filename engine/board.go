@@ -61,6 +61,7 @@ const (
 	maskWhiteCastleQueenside uint8 = 0b01000000
 	maskBlackCastleKingside  uint8 = 0b00100000
 	maskBlackCastleQueenside uint8 = 0b00010000
+	maskCastling             uint8 = maskWhiteCastleKingside | maskWhiteCastleQueenside | maskBlackCastleKingside | maskBlackCastleQueenside
 	maskCanEnPassant         uint8 = 0b00001000
 	maskEnPassantFile        uint8 = 0b00000111 // the last 3 bits of meta indicate the file (zero indexed) for a valid en passant
 )
@@ -209,6 +210,88 @@ func (b Board) String() string {
 		sb.WriteRune(r)
 	}
 	return sb.String()
+}
+
+// Swapped returns a board such that all the black pieces are now white pieces
+// and all the white pieces are now black pieces.
+func (b Board) Swapped() Board {
+	b.white, b.black = b.black, b.white // swap colours
+
+	b.meta ^= maskCastling // swap castling
+
+	var i uint8
+	for i = 0; i < 32; i++ {
+		j := PrintOrderedIndex(i)
+
+		// swap position of i and j
+		pi, pj := b.PieceAt(i), b.PieceAt(j)
+		b.removePieceAt(i)
+		b.removePieceAt(j)
+		b.setPieceAt(i, pj)
+		b.setPieceAt(j, pi)
+	}
+	return b
+}
+
+func (b *Board) removePieceAt(i uint8) {
+	var bit uint64 = 1 << i
+	b.black &^= bit
+	b.white &^= bit
+	b.pawns &^= bit
+	b.knights &^= bit
+	b.bishops &^= bit
+	b.rooks &^= bit
+	b.queens &^= bit
+	b.kings &^= bit
+}
+
+// setPieceAt sets piece p at index i. It does not remove any existing piece
+// first: calling setPieceAt() with an existing piece on the square will result
+// in an invalid board.
+func (b *Board) setPieceAt(i uint8, p Piece) {
+	var bit uint64 = 1 << i
+	switch p {
+	case PieceWhitePawn:
+		b.white |= bit
+		b.pawns |= bit
+	case PieceWhiteKnight:
+		b.white |= bit
+		b.knights |= bit
+	case PieceWhiteBishop:
+		b.white |= bit
+		b.bishops |= bit
+	case PieceWhiteRook:
+		b.white |= bit
+		b.rooks |= bit
+	case PieceWhiteQueen:
+		b.white |= bit
+		b.queens |= bit
+	case PieceWhiteKing:
+		b.white |= bit
+		b.kings |= bit
+	case PieceBlackPawn:
+		b.black |= bit
+		b.pawns |= bit
+	case PieceBlackKnight:
+		b.black |= bit
+		b.knights |= bit
+	case PieceBlackBishop:
+		b.black |= bit
+		b.bishops |= bit
+	case PieceBlackRook:
+		b.black |= bit
+		b.rooks |= bit
+	case PieceBlackQueen:
+		b.black |= bit
+		b.queens |= bit
+	case PieceBlackKing:
+		b.black |= bit
+		b.kings |= bit
+	case PieceNone:
+		// do nothing
+	default:
+		panic(fmt.Sprintf("invalid piece to set: %b", p))
+	}
 }
 
 // Validate returns an error on an inconsistent or invalid board.
