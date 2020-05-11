@@ -114,6 +114,7 @@ func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
+// TODO: return bool here, this isn't used anywhere performance critical
 func (b Board) EnPassant() uint8 {
 	if b.meta&maskCanEnPassant == 0 {
 		return math.MaxUint8

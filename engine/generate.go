@@ -132,6 +132,8 @@ const (
 	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
+// TODO: https://www.chessprogramming.org/Move_List to reduce memory alloc churn
+
 // GenerateLegalMoves returns a slice of possible moves from the current board
 // state. It also returns whether or not the side to move is in check. An empty
 // or nil slice of moves combined with an an indication of check implies that
@@ -203,6 +205,11 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	// must move our king to a safe square. It's neither possible to capture nor
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
+
+	// TODO: rayEvaluateCheckPinForward and Backward are grotty
+	//       calculate attack squares on a king removed board...
+	//       ...then king attacks (for check) by radiating out from the king?
+	//       https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
 
 	rayEvaluateCheckPinForward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]

@@ -84,6 +84,7 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // type. Piece type can be unambiguously determined from the source square and
 // the current state of the board.
 func (m Move) SAN() string {
+	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
 	if m.IsKingsideCastling() {
 		return "O-O"
 	}
