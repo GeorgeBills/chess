@@ -212,9 +212,12 @@ func (b Board) String() string {
 	return sb.String()
 }
 
-// Swapped returns a board such that all the black pieces are now white pieces
-// and all the white pieces are now black pieces.
-func (b Board) Swapped() Board {
+// ColourFlipped returns a board such that all the black pieces are now white
+// pieces and all the white pieces are now black pieces, and the players have
+// switched sides.
+func (b Board) ColourFlipped() Board {
+	// https://www.chessprogramming.org/Color_Flipping
+
 	b.white, b.black = b.black, b.white // swap colours
 
 	b.meta ^= maskCastling // swap castling
