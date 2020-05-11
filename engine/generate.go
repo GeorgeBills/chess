@@ -6,6 +6,8 @@ import (
 	"math/bits"
 )
 
+// https://www.chessprogramming.org/Move_Generation
+
 // Pregenerated masks for moves in any of the compass directions from any given
 // square, and for kings and knights. Takes up 10 * 64 * 64 = 40kb of memory,
 // which should fit in L1 cache on a modern CPU.
@@ -614,6 +616,12 @@ KING_MOVES:
 
 	return moves, checkers != 0
 }
+
+// rayForward and rayBackward look up a pre-calculated attack ray from the
+// passed moves array, and subtract from it the ray of our first intersected
+// blocker. The result is a mask for the moves our piece may make.
+//
+// https://www.chessprogramming.org/Classical_Approach
 
 func rayForward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
 	ray := moves[from]

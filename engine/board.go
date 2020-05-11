@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Bitboards
+
 // InitialBoardFEN is the FEN for a board in the initial state.
 const InitialBoardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 

@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Forsyth-Edwards_Notation
+
 const maxFEN = 96 // actually less than this
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.

@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Encoding_Moves
+
 // Move represents a chess move.
 type Move uint16
 
