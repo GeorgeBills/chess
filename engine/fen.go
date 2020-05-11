@@ -302,13 +302,13 @@ READ_CASTLING:
 			b.meta |= maskBlackCastleQueenside
 		case '-':
 			// '-' indicates that castling is unavailable
-			// if present it must be the one and only byte
+			// if present it must be the one and only rune
 			if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) != 0 {
 				return nil, errors.New("castling '-' must be solitary if present")
 			}
 			break READ_CASTLING
 		case ' ':
-			// TODO: should require at least one byte read here for robustness (use Peek?)
+			// TODO: should require at least one rune read here for robustness (use Peek?)
 			r.UnreadRune()
 			break READ_CASTLING
 		default:

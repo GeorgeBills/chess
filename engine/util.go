@@ -14,7 +14,7 @@ func ToAlgebraicNotation(i uint8) string {
 	return string([]byte{'a' + file, '1' + rank})
 }
 
-// ParseAlgebraicNotation reads two bytes from r and parses them as Algebraic
+// ParseAlgebraicNotation reads two runes from r and parses them as Algebraic
 // Notation, returning the rank and file (both zero indexed).
 func ParseAlgebraicNotation(r io.RuneReader) (rank, file uint8, err error) {
 	file, err = parseFile(r)
