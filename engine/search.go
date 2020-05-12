@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -10,7 +11,19 @@ const (
 	infinity   = math.MaxInt16
 )
 
-func (g *Game) BestMoveToDepth(depth uint8, mm int8) (Move, int16) {
+// BestMoveToDepth returns the best move (with its score) to the given depth.
+func (g *Game) BestMoveToDepth(depth uint8) (Move, int16) {
+	switch g.ToMove() {
+	case White:
+		return g.bestMoveToDepth(depth, maximizing)
+	case Black:
+		return g.bestMoveToDepth(depth, minimizing)
+	default:
+		panic(fmt.Errorf("invalid to move; %#v", g))
+	}
+}
+
+func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 	if depth == 0 {
 		return 0, g.Evaluate()
 	}
@@ -27,7 +40,7 @@ func (g *Game) BestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		best.score = -1 * infinity
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.BestMoveToDepth(depth-1, mm*-1); s > best.score {
+			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s > best.score {
 				best.score = s
 				best.move = m
 			}
@@ -37,7 +50,7 @@ func (g *Game) BestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		best.score = +1 * infinity
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.BestMoveToDepth(depth-1, mm*-1); s < best.score {
+			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s < best.score {
 				best.score = s
 				best.move = m
 			}

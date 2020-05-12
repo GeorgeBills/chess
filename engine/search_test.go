@@ -29,7 +29,7 @@ func TestBestMoveToDepth(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, b)
 			g := engine.NewGame(b)
-			move, _ := g.BestMoveToDepth(tt.depth, 1)
+			move, _ := g.BestMoveToDepth(tt.depth)
 			assert.Equal(t, tt.expected, move.SAN())
 		})
 	}
