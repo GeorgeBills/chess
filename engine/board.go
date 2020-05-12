@@ -120,14 +120,13 @@ func (b Board) EnPassant() uint8 {
 		return math.MaxUint8
 	}
 	file := uint8(b.meta & maskEnPassantFile)
-	tomove := b.ToMove()
-	switch tomove {
+	switch b.ToMove() {
 	case White:
 		return Square(rank6, file)
 	case Black:
 		return Square(rank3, file)
 	default:
-		panic(fmt.Errorf("invalid to move: %b", tomove))
+		panic(fmt.Errorf("invalid to move; %#v", b))
 	}
 }
 
