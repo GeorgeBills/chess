@@ -22,6 +22,12 @@ func TestBestMoveToDepth(t *testing.T) {
 			1,
 			"d1xd8",
 		},
+		{
+			"depth 2: mate in one",
+			"5k2/4ppp1/8/8/8/8/8/R2bK3 w Q - 0 1",
+			2,
+			"a1a8",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
