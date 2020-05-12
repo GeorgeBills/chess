@@ -76,7 +76,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 		case PieceNone:
 			empty++
 		default:
-			panic(fmt.Sprintf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
+			panic(fmt.Errorf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
 		}
 	}
 	// flush any remaining empty squares

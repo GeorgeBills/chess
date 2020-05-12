@@ -127,7 +127,7 @@ func (b Board) EnPassant() uint8 {
 	case Black:
 		return Square(rank3, file)
 	default:
-		panic(fmt.Sprintf("invalid to move: %b", tomove))
+		panic(fmt.Errorf("invalid to move: %b", tomove))
 	}
 }
 
@@ -148,7 +148,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.isKingAt(i):
 			return PieceWhiteKing
 		default:
-			panic(fmt.Sprintf("invalid white piece at index %d; %#v", i, b))
+			panic(fmt.Errorf("invalid white piece at index %d; %#v", i, b))
 		}
 	}
 	if b.isBlackAt(i) {
@@ -166,7 +166,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.isKingAt(i):
 			return PieceBlackKing
 		default:
-			panic(fmt.Sprintf("invalid black piece at index %d; %#v", i, b))
+			panic(fmt.Errorf("invalid black piece at index %d; %#v", i, b))
 		}
 	}
 	return PieceNone
@@ -296,7 +296,7 @@ func (b *Board) setPieceAt(i uint8, p Piece) {
 	case PieceNone:
 		// do nothing
 	default:
-		panic(fmt.Sprintf("invalid piece to set: %b", p))
+		panic(fmt.Errorf("invalid piece to set: %b", p))
 	}
 }
 

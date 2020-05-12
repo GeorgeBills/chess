@@ -438,7 +438,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 		// double check: we must move our king
 		goto KING_MOVES
 	default:
-		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
+		panic(fmt.Errorf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
 	switch tomove {

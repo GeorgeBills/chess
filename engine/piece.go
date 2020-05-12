@@ -67,6 +67,6 @@ func (p Piece) Rune() rune {
 	case PieceBlackQueen:
 		return '♛'
 	default:
-		panic(fmt.Sprintf("invalid piece while generating rune: %b", p))
+		panic(fmt.Errorf("invalid piece while generating rune: %b", p))
 	}
 }

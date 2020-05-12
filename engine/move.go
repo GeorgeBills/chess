@@ -363,7 +363,7 @@ func (g *Game) MakeMove(move Move) {
 		case move&moveIsBishopPromotion == moveIsBishopPromotion:
 			g.bishops |= frombit
 		default:
-			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+			panic(fmt.Errorf("promotion to unknown piece: %b", move))
 		}
 	case move.IsEnPassant():
 		switch tomove {
@@ -473,7 +473,7 @@ func (g Game) UnmakeMove() {
 		case move.Move&moveIsBishopPromotion == moveIsBishopPromotion:
 			g.bishops &^= frombit
 		default:
-			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+			panic(fmt.Errorf("promotion to unknown piece: %b", move))
 		}
 	case move.IsEnPassant():
 		var epCaptureSq uint8
