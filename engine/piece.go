@@ -7,6 +7,9 @@ import (
 // Piece represents a chess piece.
 type Piece byte
 
+// TODO: seems like it's better to have these as indexes into an array of boards
+//       doing that would mean we'd never need to switch on piece type, just index
+
 // Pieces will have a bit set for the colour and a bit set for the type.
 const (
 	PieceNone   Piece = 0b00000000
@@ -64,6 +67,6 @@ func (p Piece) Rune() rune {
 	case PieceBlackQueen:
 		return '♛'
 	default:
-		panic(fmt.Sprintf("invalid piece while generating rune: %b", p))
+		panic(fmt.Errorf("invalid piece while generating rune: %b", p))
 	}
 }

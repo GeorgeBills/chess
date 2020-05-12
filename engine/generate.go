@@ -6,6 +6,8 @@ import (
 	"math/bits"
 )
 
+// https://www.chessprogramming.org/Move_Generation
+
 // Pregenerated masks for moves in any of the compass directions from any given
 // square, and for kings and knights. Takes up 10 * 64 * 64 = 40kb of memory,
 // which should fit in L1 cache on a modern CPU.
@@ -130,6 +132,8 @@ const (
 	maskBlackQueensideCastleBlocked uint64 = 1<<B8 | 1<<C8 | 1<<D8
 )
 
+// TODO: https://www.chessprogramming.org/Move_List to reduce memory alloc churn
+
 // GenerateLegalMoves returns a slice of possible moves from the current board
 // state. It also returns whether or not the side to move is in check. An empty
 // or nil slice of moves combined with an an indication of check implies that
@@ -201,6 +205,11 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	// must move our king to a safe square. It's neither possible to capture nor
 	// to block two separate threatening pieces in the same turn, so the only
 	// remaining option is to move our king.
+
+	// TODO: rayEvaluateCheckPinForward and Backward are grotty
+	//       calculate attack squares on a king removed board...
+	//       ...then king attacks (for check) by radiating out from the king?
+	//       https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
 
 	rayEvaluateCheckPinForward := func(moves *[64]uint64, from uint8, frombit uint64) uint64 {
 		ray := moves[from]
@@ -429,7 +438,7 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 		// double check: we must move our king
 		goto KING_MOVES
 	default:
-		panic(fmt.Sprintf("invalid checkers mask: %b; %#v", checkers, b))
+		panic(fmt.Errorf("invalid checkers mask: %b; %#v", checkers, b))
 	}
 
 	switch tomove {
@@ -614,6 +623,12 @@ KING_MOVES:
 
 	return moves, checkers != 0
 }
+
+// rayForward and rayBackward look up a pre-calculated attack ray from the
+// passed moves array, and subtract from it the ray of our first intersected
+// blocker. The result is a mask for the moves our piece may make.
+//
+// https://www.chessprogramming.org/Classical_Approach
 
 func rayForward(moves *[64]uint64, from uint8, occupied uint64) uint64 {
 	ray := moves[from]

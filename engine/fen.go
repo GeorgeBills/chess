@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Forsyth-Edwards_Notation
+
 const maxFEN = 96 // actually less than this
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
@@ -74,7 +76,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 		case PieceNone:
 			empty++
 		default:
-			panic(fmt.Sprintf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
+			panic(fmt.Errorf("invalid piece %b at index %d while generating FEN; %#v", p, i, b))
 		}
 	}
 	// flush any remaining empty squares
@@ -300,13 +302,13 @@ READ_CASTLING:
 			b.meta |= maskBlackCastleQueenside
 		case '-':
 			// '-' indicates that castling is unavailable
-			// if present it must be the one and only byte
+			// if present it must be the one and only rune
 			if b.meta&(maskWhiteCastleKingside|maskWhiteCastleQueenside|maskBlackCastleKingside|maskBlackCastleQueenside) != 0 {
 				return nil, errors.New("castling '-' must be solitary if present")
 			}
 			break READ_CASTLING
 		case ' ':
-			// TODO: should require at least one byte read here for robustness (use Peek?)
+			// TODO: should require at least one rune read here for robustness (use Peek?)
 			r.UnreadRune()
 			break READ_CASTLING
 		default:

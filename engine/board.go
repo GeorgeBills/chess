@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Bitboards
+
 // InitialBoardFEN is the FEN for a board in the initial state.
 const InitialBoardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -112,19 +114,19 @@ func (b Board) isKingAt(i uint8) bool { return b.kings&(1<<i) != 0 }
 
 // EnPassant returns the index of the square under threat of en passant, or
 // math.MaxUint8 if there is no such square.
+// TODO: return bool here, this isn't used anywhere performance critical
 func (b Board) EnPassant() uint8 {
 	if b.meta&maskCanEnPassant == 0 {
 		return math.MaxUint8
 	}
 	file := uint8(b.meta & maskEnPassantFile)
-	tomove := b.ToMove()
-	switch tomove {
+	switch b.ToMove() {
 	case White:
 		return Square(rank6, file)
 	case Black:
 		return Square(rank3, file)
 	default:
-		panic(fmt.Sprintf("invalid to move: %b", tomove))
+		panic(fmt.Errorf("invalid to move; %#v", b))
 	}
 }
 
@@ -145,7 +147,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.isKingAt(i):
 			return PieceWhiteKing
 		default:
-			panic(fmt.Sprintf("invalid white piece at index %d; %#v", i, b))
+			panic(fmt.Errorf("invalid white piece at index %d; %#v", i, b))
 		}
 	}
 	if b.isBlackAt(i) {
@@ -163,7 +165,7 @@ func (b Board) PieceAt(i uint8) Piece {
 		case b.isKingAt(i):
 			return PieceBlackKing
 		default:
-			panic(fmt.Sprintf("invalid black piece at index %d; %#v", i, b))
+			panic(fmt.Errorf("invalid black piece at index %d; %#v", i, b))
 		}
 	}
 	return PieceNone
@@ -212,9 +214,12 @@ func (b Board) String() string {
 	return sb.String()
 }
 
-// Swapped returns a board such that all the black pieces are now white pieces
-// and all the white pieces are now black pieces.
-func (b Board) Swapped() Board {
+// ColourFlipped returns a board such that all the black pieces are now white
+// pieces and all the white pieces are now black pieces, and the players have
+// switched sides.
+func (b Board) ColourFlipped() Board {
+	// https://www.chessprogramming.org/Color_Flipping
+
 	b.white, b.black = b.black, b.white // swap colours
 
 	b.meta ^= maskCastling // swap castling
@@ -290,7 +295,7 @@ func (b *Board) setPieceAt(i uint8, p Piece) {
 	case PieceNone:
 		// do nothing
 	default:
-		panic(fmt.Sprintf("invalid piece to set: %b", p))
+		panic(fmt.Errorf("invalid piece to set: %b", p))
 	}
 }
 

@@ -4,6 +4,8 @@ import (
 	"math/bits"
 )
 
+// https://www.chessprogramming.org/Evaluation
+
 // We use a very simple evaluation function (barely a step up from a simple
 // count of material), the logic for which is taken straight from
 // https://www.chessprogramming.org/Simplified_Evaluation_Function.

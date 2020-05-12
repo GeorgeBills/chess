@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// https://www.chessprogramming.org/Encoding_Moves
+
 // Move represents a chess move.
 type Move uint16
 
@@ -82,6 +84,7 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // type. Piece type can be unambiguously determined from the source square and
 // the current state of the board.
 func (m Move) SAN() string {
+	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
 	if m.IsKingsideCastling() {
 		return "O-O"
 	}
@@ -360,7 +363,7 @@ func (g *Game) MakeMove(move Move) {
 		case move&moveIsBishopPromotion == moveIsBishopPromotion:
 			g.bishops |= frombit
 		default:
-			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+			panic(fmt.Errorf("promotion to unknown piece: %b", move))
 		}
 	case move.IsEnPassant():
 		switch tomove {
@@ -470,7 +473,7 @@ func (g Game) UnmakeMove() {
 		case move.Move&moveIsBishopPromotion == moveIsBishopPromotion:
 			g.bishops &^= frombit
 		default:
-			panic(fmt.Sprintf("promotion to unknown piece: %b", move))
+			panic(fmt.Errorf("promotion to unknown piece: %b", move))
 		}
 	case move.IsEnPassant():
 		var epCaptureSq uint8
