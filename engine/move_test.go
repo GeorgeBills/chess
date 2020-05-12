@@ -75,3 +75,6 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 		})
 	}
 }
+
+// FIXME: add test for making a sequence of moves and then undoing them
+//        (including double push, capture, etc)

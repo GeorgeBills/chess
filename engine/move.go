@@ -426,7 +426,7 @@ func (g *Game) MakeMove(move Move) {
 }
 
 // UnmakeMove unapplies the most recent move on the board.
-func (g Game) UnmakeMove() {
+func (g *Game) UnmakeMove() {
 	tomove := g.ToMove()
 	move := g.history[len(g.history)-1]
 	g.history = g.history[0 : len(g.history)-1]
