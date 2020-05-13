@@ -40,3 +40,19 @@ func TestBestMoveToDepth(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkBestMoveToDepth(b *testing.B) {
+	const depth = 6
+
+	board := engine.NewBoard()
+	g := engine.NewGame(&board)
+
+	var move engine.Move
+	for i := 0; i < b.N; i++ {
+		move, _ = g.BestMoveToDepth(depth)
+	}
+	b.StopTimer()
+
+	// sanity check our best move
+	assert.Contains(b, []string{"g1f3", "e2e4", "d2d4", "c2c4"}, move.SAN())
+}
