@@ -28,6 +28,19 @@ func TestBestMoveToDepth(t *testing.T) {
 			2,
 			"a1a8",
 		},
+		{
+			"depth 2: must underpromote to avoid stalemate",
+			"4k3/8/8/8/r7/7K/6p1/8 b - - 0 1",
+			2,
+			"g2g1=R",
+		},
+		{
+			// based on Evans vs Reshevsky "The Mother of All Swindles"
+			"depth 3: white to force stalemate",
+			"7k/3Q4/8/1p2p2p/1P2Pn1P/5Pq1/8/7K w - - 0 1",
+			3,
+			"d7h7",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
