@@ -85,6 +85,9 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // the current state of the board.
 func (m Move) SAN() string {
 	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
+	if m == 0 {
+		return "-" // TODO: 0000 in UCI
+	}
 	if m.IsKingsideCastling() {
 		return "O-O"
 	}

@@ -17,6 +17,12 @@ func TestBestMoveToDepth(t *testing.T) {
 		expected string
 	}{
 		{
+			"depth 0",
+			engine.InitialBoardFEN,
+			0,
+			"-",
+		},
+		{
 			"depth 1: capture queen",
 			"3q3k/8/8/8/8/8/8/3QK3 w - - 0 1",
 			1,
