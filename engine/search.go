@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+// https://www.chessprogramming.org/Search
+
 const (
 	maximizing = +1
 	minimizing = -1
