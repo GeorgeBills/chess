@@ -85,6 +85,9 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // the current state of the board.
 func (m Move) SAN() string {
 	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
+	if m == 0 {
+		return "-" // TODO: 0000 in UCI
+	}
 	if m.IsKingsideCastling() {
 		return "O-O"
 	}
@@ -426,7 +429,7 @@ func (g *Game) MakeMove(move Move) {
 }
 
 // UnmakeMove unapplies the most recent move on the board.
-func (g Game) UnmakeMove() {
+func (g *Game) UnmakeMove() {
 	tomove := g.ToMove()
 	move := g.history[len(g.history)-1]
 	g.history = g.history[0 : len(g.history)-1]
