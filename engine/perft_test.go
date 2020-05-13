@@ -102,10 +102,16 @@ func BenchmarkPerft(b *testing.B) {
 	// not too many moves so the perft will be reasonably quick.
 	const fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"
 	const depth = 6
+	const expected = 706_045_033
 	board, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
 	g := engine.NewGame(board)
 
+	var n uint64
 	for i := 0; i < b.N; i++ {
-		_ = perft(g, depth)
+		n = perft(g, depth)
 	}
+	b.StopTimer()
+
+	// sanity check our expected perft
+	assert.EqualValues(b, expected, n)
 }
