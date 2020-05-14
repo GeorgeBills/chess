@@ -53,10 +53,10 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		}
 	case minimizing:
 		best.score = +1 * infinity
+		if len(moves) == 0 && !isCheck {
+			return 0, 0 // stalemate
+		}
 		for _, m := range moves {
-			if len(moves) == 0 && !isCheck {
-				return 0, 0 // stalemate
-			}
 			g.MakeMove(m)
 			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s < best.score {
 				best.score = s
