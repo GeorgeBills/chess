@@ -178,6 +178,10 @@ type Game struct {
 	history []moveCapture
 }
 
+func (g *Game) SetBoard(b *Board) {
+	g.Board = b
+}
+
 type moveCapture struct {
 	Move
 	capture      Piece

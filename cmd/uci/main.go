@@ -3,8 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
+
+var logger = log.New(os.Stderr, "", 0)
 
 const (
 	gteUCI        = "uci"        // tell engine to use the universal chess interface
@@ -33,11 +39,14 @@ const (
 )
 
 const (
-	name   = "github.com/GeorgeBills/chess"
-	author = "George Bills"
+	name          = "github.com/GeorgeBills/chess"
+	author        = "George Bills"
+	maxDepthPlies = 40
 )
 
 func main() {
+	var game *engine.Game
+
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanWords)
 SCAN_INPUT:
@@ -49,6 +58,12 @@ SCAN_INPUT:
 			uciok()
 		case gteIsReady:
 			readyok()
+		case gteNewGame:
+			game = ucinewgame()
+		case gtePosition:
+			position(scanner, game)
+		case gteGo:
+			ucigo(scanner, game)
 		case gteQuit:
 			break SCAN_INPUT
 		}
@@ -70,4 +85,41 @@ func uciok() {
 func readyok() {
 	// TODO: block on mutex in engine if we're waiting on anything slow?
 	fmt.Println(etgReadyOK)
+}
+
+func ucinewgame() *engine.Game {
+	logger.Println("initialised new game")
+	g := engine.NewGame(nil) // TODO: return pointer
+	return &g
+}
+
+func position(scanner *bufio.Scanner, game *engine.Game) {
+	_ = scanner.Scan()
+	_ = scanner.Err()
+	fen := scanner.Text()
+	var b engine.Board
+	if fen == "startpos" {
+		logger.Println("set starting position")
+		b = engine.NewBoard()
+	}
+	// FIXME: fen isn't a single word...
+	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	game.SetBoard(&b)
+}
+
+func ucigo(scanner *bufio.Scanner, game *engine.Game) {
+	_ = scanner.Scan()
+	_ = scanner.Err()
+	which := scanner.Text()
+	switch which {
+	case "depth":
+		_ = scanner.Scan()
+		_ = scanner.Err()
+		depthPlies, _ := strconv.Atoi(scanner.Text())
+		if 0 < depthPlies && depthPlies < maxDepthPlies {
+			depthMoves := uint8(depthPlies) * 2
+			m, _ := game.BestMoveToDepth(depthMoves)
+			fmt.Println(etgBestMove, m.SAN())
+		}
+	}
 }
