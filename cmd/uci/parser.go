@@ -90,6 +90,7 @@ func waitingForCommand(p *parser) statefn {
 	switch text {
 	case gteIsReady:
 		p.handler.IsReady()
+		fmt.Println(etgReadyOK)
 		return waitingForCommand
 	case gteNewGame:
 		p.handler.NewGame()
