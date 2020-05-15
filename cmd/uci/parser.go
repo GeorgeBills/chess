@@ -53,9 +53,11 @@ type parser struct {
 }
 
 func (p *parser) Run() {
-	// we parse UCI with a func-to-func state machine as described in the talk
-	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). each
-	// state func returns the next state func we are transitioning to.
+	// We parse UCI with a func-to-func state machine as described in the talk
+	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). Each
+	// state func returns the next state func we are transitioning to. We start
+	// off in the "waiting for UCI" state. We perpetually evaluate states until
+	// we receive a nil (terminal) state.
 	for state := waitingForUCI(p); state != nil; {
 		state = state(p)
 	}
