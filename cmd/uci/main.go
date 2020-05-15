@@ -44,58 +44,67 @@ const (
 	maxDepthPlies = 40
 )
 
-// TODO: state machine
-//       http://denis.papathanasiou.org/archive/2013.02.10.post.pdf
-//       https://www.youtube.com/watch?v=HxaD_trXwRE
-
 func main() {
 	h := &handler{}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanWords)
-SCAN_INPUT:
-	for scanner.Scan() {
-		word := scanner.Text()
-		switch word {
-		case gteUCI:
-			id()
-			uciok()
-		case gteIsReady:
-			readyok()
-		case gteNewGame:
-			h.NewGame()
-		case gtePosition:
-			position(scanner, h)
-		case gteGo:
-			ucigo(scanner, h)
-		case gteQuit:
-			break SCAN_INPUT
-		}
+
+	// we parse UCI with a function-to-function state machine as described in
+	// the talk "Lexical Scanning in Go" by Rob Pike
+	// (https://youtu.be/HxaD_trXwRE). each state func returns the next state
+	// func we are transitioning to.
+	for state := waitingForUCI(h, scanner); state != nil; {
+		state = state(h, scanner)
 	}
+}
+
+type statefn func(h *handler, scanner *bufio.Scanner) statefn
+
+func waitingForUCI(h *handler, scanner *bufio.Scanner) statefn {
+	_ = scanner.Scan()
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		return errorScanning(err)
+	}
+	text := scanner.Text()
+	switch text {
+	case gteUCI:
+		h.Identify()
+		fmt.Println(etgUCIOK)
+		return waitingForCommand
+	case gteQuit:
+		return nil // no further states
+	default:
+		logger.Printf("unrecognized: %s\n", text)
+		return waitingForUCI
 	}
 }
 
-func id() {
-	fmt.Println(etgID, etgIDName, name)
-	fmt.Println(etgID, etgIDAuthor, author)
+func waitingForCommand(h *handler, scanner *bufio.Scanner) statefn {
+	_ = scanner.Scan()
+	if err := scanner.Err(); err != nil {
+		return errorScanning(err)
+	}
+	text := scanner.Text()
+	switch text {
+	case gteIsReady:
+		h.IsReady()
+		return waitingForCommand
+	case gteNewGame:
+		h.NewGame()
+		return waitingForCommand
+	case gtePosition:
+		return positionCommand
+	case gteGo:
+		return goCommand
+	case gteQuit:
+		return nil
+	default:
+		return errorUnrecognized(text, waitingForCommand)
+	}
 }
 
-func uciok() {
-	fmt.Println(etgUCIOK)
-}
-
-func readyok() {
-	// TODO: block on mutex in engine if we're waiting on anything slow?
-	fmt.Println(etgReadyOK)
-}
-
-func ucinewgame(h *handler) {
-	h.NewGame()
-}
-
-func position(scanner *bufio.Scanner, h *handler) {
+func positionCommand(h *handler, scanner *bufio.Scanner) statefn {
 	_ = scanner.Scan()
 	_ = scanner.Err()
 	fen := scanner.Text()
@@ -104,13 +113,14 @@ func position(scanner *bufio.Scanner, h *handler) {
 	}
 	// FIXME: fen isn't a single word...
 	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	return waitingForCommand
 }
 
-func ucigo(scanner *bufio.Scanner, h *handler) {
+func goCommand(h *handler, scanner *bufio.Scanner) statefn {
 	_ = scanner.Scan()
 	_ = scanner.Err()
-	which := scanner.Text()
-	switch which {
+	text := scanner.Text()
+	switch text {
 	case "depth":
 		_ = scanner.Scan()
 		_ = scanner.Err()
@@ -119,10 +129,30 @@ func ucigo(scanner *bufio.Scanner, h *handler) {
 			h.GoDepth(uint8(plies))
 		}
 	}
+	return waitingForCommand
+}
+
+func errorUnrecognized(text string, next statefn) statefn {
+	logger.Printf("unrecognized: %s\n", text)
+	return next
+}
+
+func errorScanning(err error) statefn {
+	logger.Printf("error scanning input: %v", err)
+	return nil
 }
 
 type handler struct {
 	game *engine.Game
+}
+
+func (h *handler) Identify() {
+	fmt.Println(etgID, etgIDName, name)
+	fmt.Println(etgID, etgIDAuthor, author)
+}
+
+func (h *handler) IsReady() {
+	// TODO: block on mutex in engine if we're waiting on anything slow?
 }
 
 func (h *handler) NewGame() {
