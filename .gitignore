@@ -1,4 +1,5 @@
 *.exe
+*.log
 *.out
 *.prof
 *.test

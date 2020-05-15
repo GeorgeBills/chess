@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 )
@@ -33,27 +34,33 @@ const (
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
 
-type statefn func(h *handler, scanner *bufio.Scanner) statefn
+type parser struct {
+	logger  *log.Logger
+	handler *handler
+	scanner *bufio.Scanner
+}
 
-func waitingForUCI(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	if err := scanner.Err(); err != nil {
-		return errorScanning(err)
+type statefn func(p *parser) statefn
+
+func waitingForUCI(p *parser) statefn {
+	_ = p.scanner.Scan()
+	if err := p.scanner.Err(); err != nil {
+		return errorScanning(p, err)
 	}
-	text := scanner.Text()
+	text := p.scanner.Text()
 	switch text {
 	case gteUCI:
 		return uci
 	case gteQuit:
 		return nil // no further states
 	default:
-		logger.Printf("unrecognized: %s\n", text)
+		p.logger.Printf("unrecognized: %s\n", text)
 		return waitingForUCI
 	}
 }
 
-func uci(h *handler, scanner *bufio.Scanner) statefn {
-	name, author, rest := h.Identify()
+func uci(p *parser) statefn {
+	name, author, rest := p.handler.Identify()
 
 	// print required name and author
 	fmt.Println(etgID, etgIDName, name)
@@ -74,18 +81,18 @@ func uci(h *handler, scanner *bufio.Scanner) statefn {
 	return waitingForCommand
 }
 
-func waitingForCommand(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	if err := scanner.Err(); err != nil {
-		return errorScanning(err)
+func waitingForCommand(p *parser) statefn {
+	_ = p.scanner.Scan()
+	if err := p.scanner.Err(); err != nil {
+		return errorScanning(p, err)
 	}
-	text := scanner.Text()
+	text := p.scanner.Text()
 	switch text {
 	case gteIsReady:
-		h.IsReady()
+		p.handler.IsReady()
 		return waitingForCommand
 	case gteNewGame:
-		h.NewGame()
+		p.handler.NewGame()
 		return waitingForCommand
 	case gtePosition:
 		return positionCommand
@@ -94,72 +101,72 @@ func waitingForCommand(h *handler, scanner *bufio.Scanner) statefn {
 	case gteQuit:
 		return nil // no further states
 	default:
-		return errorUnrecognized(text, waitingForCommand)
+		return errorUnrecognized(p, text, waitingForCommand)
 	}
 }
 
-func positionCommand(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	_ = scanner.Err()
-	fen := scanner.Text()
+func positionCommand(p *parser) statefn {
+	_ = p.scanner.Scan()
+	_ = p.scanner.Err()
+	fen := p.scanner.Text()
 	if fen == "startpos" {
-		h.SetStartingPosition()
+		p.handler.SetStartingPosition()
 	}
 	// FIXME: fen isn't a single word...
 	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
 	return waitingForCommand
 }
 
-func goCommand(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	_ = scanner.Err()
-	text := scanner.Text()
+func goCommand(p *parser) statefn {
+	_ = p.scanner.Scan()
+	_ = p.scanner.Err()
+	text := p.scanner.Text()
 	switch text {
 	case gteGoDepth:
-		return goDepthCommand(h, scanner)
+		return goDepthCommand
 	case gteGoInfinite:
-		h.GoInfinite()
+		p.handler.GoInfinite()
 	case gteGoNodes:
-		return goNodesCommand(h, scanner)
+		return goNodesCommand
 	}
 	return waitingForCommand
 }
 
-func goDepthCommand(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	_ = scanner.Err()
-	plies, err := strconv.ParseUint(scanner.Text(), 10, 8)
+func goDepthCommand(p *parser) statefn {
+	_ = p.scanner.Scan()
+	_ = p.scanner.Err()
+	plies, err := strconv.ParseUint(p.scanner.Text(), 10, 8)
 	if err != nil {
-		return errorParsingNumber(err, waitingForCommand)
+		return errorParsingNumber(p, err, waitingForCommand)
 	}
-	movestr := h.GoDepth(uint8(plies))
+	movestr := p.handler.GoDepth(uint8(plies))
 	fmt.Println(etgBestMove, movestr)
 	return waitingForCommand
 }
 
-func goNodesCommand(h *handler, scanner *bufio.Scanner) statefn {
-	_ = scanner.Scan()
-	_ = scanner.Err()
-	nodes, err := strconv.ParseUint(scanner.Text(), 10, 64)
+func goNodesCommand(p *parser) statefn {
+	_ = p.scanner.Scan()
+	_ = p.scanner.Err()
+	nodes, err := strconv.ParseUint(p.scanner.Text(), 10, 64)
 	if err != nil {
-		return errorParsingNumber(err, waitingForCommand)
+		return errorParsingNumber(p, err, waitingForCommand)
 	}
-	movestr := h.GoNodes(nodes)
+	movestr := p.handler.GoNodes(nodes)
 	fmt.Println(etgBestMove, movestr)
 	return waitingForCommand
 }
 
-func errorUnrecognized(text string, next statefn) statefn {
-	logger.Printf("unrecognized: %s\n", text)
+func errorUnrecognized(p *parser, text string, next statefn) statefn {
+	p.logger.Printf("unrecognized: %s\n", text)
 	return next
 }
 
-func errorParsingNumber(err error, next statefn) statefn {
-	logger.Printf("error parsing number: %v", err)
+func errorParsingNumber(p *parser, err error, next statefn) statefn {
+	p.logger.Printf("error parsing number: %v", err)
 	return next
 }
 
-func errorScanning(err error) statefn {
-	logger.Printf("error scanning input: %v", err)
+func errorScanning(p *parser, err error) statefn {
+	p.logger.Printf("error scanning input: %v", err)
 	return nil // no further states
 }

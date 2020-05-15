@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
@@ -11,7 +13,8 @@ const Name = "github.com/GeorgeBills/chess"
 const Author = "George Bills"
 
 type handler struct {
-	game *engine.Game
+	logger *log.Logger
+	game   *engine.Game
 }
 
 func (h *handler) Identify() (name, author string, other map[string]string) {
@@ -23,13 +26,13 @@ func (h *handler) IsReady() {
 }
 
 func (h *handler) NewGame() {
-	logger.Println("initialised new game")
+	h.logger.Println("initialised new game")
 	g := engine.NewGame(nil) // TODO: return pointer
 	h.game = &g
 }
 
 func (h *handler) SetStartingPosition() {
-	logger.Println("set starting position")
+	h.logger.Println("set starting position")
 	b := engine.NewBoard()
 	h.game.SetBoard(&b)
 }
