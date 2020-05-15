@@ -39,9 +39,8 @@ const (
 )
 
 const (
-	name          = "github.com/GeorgeBills/chess"
-	author        = "George Bills"
-	maxDepthPlies = 40
+	name   = "github.com/GeorgeBills/chess"
+	author = "George Bills"
 )
 
 func main() {
@@ -121,19 +120,45 @@ func goCommand(h *handler, scanner *bufio.Scanner) statefn {
 	_ = scanner.Err()
 	text := scanner.Text()
 	switch text {
-	case "depth":
-		_ = scanner.Scan()
-		_ = scanner.Err()
-		plies, _ := strconv.Atoi(scanner.Text())
-		if 0 < plies && plies < maxDepthPlies {
-			h.GoDepth(uint8(plies))
-		}
+	case gteGoDepth:
+		return goDepthCommand(h, scanner)
+	case gteGoInfinite:
+		h.GoInfinite()
+	case gteGoNodes:
+		return goNodesCommand(h, scanner)
 	}
+	return waitingForCommand
+}
+
+func goDepthCommand(h *handler, scanner *bufio.Scanner) statefn {
+	_ = scanner.Scan()
+	_ = scanner.Err()
+	plies, err := strconv.ParseUint(scanner.Text(), 10, 8)
+	if err != nil {
+		return errorParsingNumber(err, waitingForCommand)
+	}
+	h.GoDepth(uint8(plies))
+	return waitingForCommand
+}
+
+func goNodesCommand(h *handler, scanner *bufio.Scanner) statefn {
+	_ = scanner.Scan()
+	_ = scanner.Err()
+	nodes, err := strconv.ParseUint(scanner.Text(), 10, 64)
+	if err != nil {
+		return errorParsingNumber(err, waitingForCommand)
+	}
+	h.GoNodes(nodes)
 	return waitingForCommand
 }
 
 func errorUnrecognized(text string, next statefn) statefn {
 	logger.Printf("unrecognized: %s\n", text)
+	return next
+}
+
+func errorParsingNumber(err error, next statefn) statefn {
+	logger.Printf("error parsing number: %v", err)
 	return next
 }
 
@@ -174,4 +199,12 @@ func (h *handler) SetPosition(fen string) {
 func (h *handler) GoDepth(plies uint8) {
 	m, _ := h.game.BestMoveToDepth(plies * 2)
 	fmt.Println(etgBestMove, m.SAN())
+}
+
+func (h *handler) GoNodes(nodes uint64) {
+	panic("GoNodes not implemented")
+}
+
+func (h *handler) GoInfinite() {
+	panic("GoInfinite not implemented")
 }
