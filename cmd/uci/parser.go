@@ -52,6 +52,15 @@ type parser struct {
 	scanner *bufio.Scanner
 }
 
+func (p *parser) Run() {
+	// we parse UCI with a func-to-func state machine as described in the talk
+	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). each
+	// state func returns the next state func we are transitioning to.
+	for state := waitingForUCI(p); state != nil; {
+		state = state(p)
+	}
+}
+
 type statefn func(p *parser) statefn
 
 func waitingForUCI(p *parser) statefn {
