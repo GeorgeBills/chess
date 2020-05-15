@@ -61,6 +61,7 @@ func (p *parser) Run() {
 	for state := waitingForUCI(p); state != nil; {
 		state = state(p)
 	}
+	// TODO: give the engine a chance to cleanup here
 	p.logger.Println("finished")
 }
 
@@ -76,16 +77,20 @@ func waitingForUCI(p *parser) statefn {
 	text := p.scanner.Text()
 	switch text {
 	case gteUCI:
-		return uci
+		return commandUCI
 	case gteQuit:
-		return nil // no further states
+		return commandQuit
 	default:
-		p.logger.Printf("unrecognized: %s\n", text)
-		return waitingForUCI
+		return errorUnrecognized(p, text, waitingForUCI)
 	}
 }
 
-func uci(p *parser) statefn {
+func commandQuit(p *parser) statefn {
+	p.logger.Println("quitting")
+	return nil
+}
+
+func commandUCI(p *parser) statefn {
 	p.logger.Println("uci")
 
 	name, author, rest := p.handler.Identify()
@@ -126,17 +131,17 @@ func waitingForCommand(p *parser) statefn {
 		p.handler.NewGame()
 		return waitingForCommand
 	case gtePosition:
-		return positionCommand
+		return commandPosition
 	case gteGo:
-		return goCommand
+		return commandGo
 	case gteQuit:
-		return nil // no further states
+		return commandQuit
 	default:
 		return errorUnrecognized(p, text, waitingForCommand)
 	}
 }
 
-func positionCommand(p *parser) statefn {
+func commandPosition(p *parser) statefn {
 	p.logger.Println("command: position")
 
 	_ = p.scanner.Scan()
@@ -146,11 +151,12 @@ func positionCommand(p *parser) statefn {
 		p.handler.SetStartingPosition()
 	}
 	// FIXME: fen isn't a single word...
+	// regexp.FindReaderSubmatchIndex?
 	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
 	return waitingForCommand
 }
 
-func goCommand(p *parser) statefn {
+func commandGo(p *parser) statefn {
 	p.logger.Println("command: go")
 
 	_ = p.scanner.Scan()
@@ -158,16 +164,16 @@ func goCommand(p *parser) statefn {
 	text := p.scanner.Text()
 	switch text {
 	case gteGoDepth:
-		return goDepthCommand
+		return commandGoDepth
 	case gteGoInfinite:
 		p.handler.GoInfinite()
 	case gteGoNodes:
-		return goNodesCommand
+		return commandGoNodes
 	}
 	return waitingForCommand
 }
 
-func goDepthCommand(p *parser) statefn {
+func commandGoDepth(p *parser) statefn {
 	p.logger.Println("command: go depth")
 
 	_ = p.scanner.Scan()
@@ -181,7 +187,7 @@ func goDepthCommand(p *parser) statefn {
 	return waitingForCommand
 }
 
-func goNodesCommand(p *parser) statefn {
+func commandGoNodes(p *parser) statefn {
 	p.logger.Println("command: go nodes")
 
 	_ = p.scanner.Scan()
