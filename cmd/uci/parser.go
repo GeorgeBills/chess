@@ -59,11 +59,14 @@ func (p *parser) Run() {
 	for state := waitingForUCI(p); state != nil; {
 		state = state(p)
 	}
+	p.logger.Println("finished")
 }
 
 type statefn func(p *parser) statefn
 
 func waitingForUCI(p *parser) statefn {
+	p.logger.Println("waiting for uci")
+
 	_ = p.scanner.Scan()
 	if err := p.scanner.Err(); err != nil {
 		return errorScanning(p, err)
@@ -81,6 +84,8 @@ func waitingForUCI(p *parser) statefn {
 }
 
 func uci(p *parser) statefn {
+	p.logger.Println("uci")
+
 	name, author, rest := p.handler.Identify()
 
 	// print required name and author
@@ -103,6 +108,8 @@ func uci(p *parser) statefn {
 }
 
 func waitingForCommand(p *parser) statefn {
+	p.logger.Println("waiting for command")
+
 	_ = p.scanner.Scan()
 	if err := p.scanner.Err(); err != nil {
 		return errorScanning(p, err)
@@ -128,6 +135,8 @@ func waitingForCommand(p *parser) statefn {
 }
 
 func positionCommand(p *parser) statefn {
+	p.logger.Println("command: position")
+
 	_ = p.scanner.Scan()
 	_ = p.scanner.Err()
 	fen := p.scanner.Text()
@@ -140,6 +149,8 @@ func positionCommand(p *parser) statefn {
 }
 
 func goCommand(p *parser) statefn {
+	p.logger.Println("command: go")
+
 	_ = p.scanner.Scan()
 	_ = p.scanner.Err()
 	text := p.scanner.Text()
@@ -155,6 +166,8 @@ func goCommand(p *parser) statefn {
 }
 
 func goDepthCommand(p *parser) statefn {
+	p.logger.Println("command: go depth")
+
 	_ = p.scanner.Scan()
 	_ = p.scanner.Err()
 	plies, err := strconv.ParseUint(p.scanner.Text(), 10, 8)
@@ -167,6 +180,8 @@ func goDepthCommand(p *parser) statefn {
 }
 
 func goNodesCommand(p *parser) statefn {
+	p.logger.Println("command: go nodes")
+
 	_ = p.scanner.Scan()
 	_ = p.scanner.Err()
 	nodes, err := strconv.ParseUint(p.scanner.Text(), 10, 64)
