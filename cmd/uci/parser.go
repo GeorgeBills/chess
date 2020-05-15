@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -33,6 +34,17 @@ const (
 	etgBestMove = "bestmove" // engine has stopped searching and found the best move
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
+
+// NewParser returns a new parser.
+func NewParser(r io.Reader, h *handler, logw io.Writer) *parser {
+	scanner := bufio.NewScanner(r)
+	scanner.Split(bufio.ScanWords)
+	return &parser{
+		handler: h,
+		scanner: scanner,
+		logger:  log.New(logw, "parser: ", log.LstdFlags),
+	}
+}
 
 type parser struct {
 	logger  *log.Logger

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -13,20 +11,8 @@ func main() {
 		fatal(err)
 	}
 
-	logger := log.New(logf, "", 0)
-
-	h := &handler{
-		logger: logger,
-	}
-
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Split(bufio.ScanWords)
-
-	parser := &parser{
-		logger:  logger,
-		handler: h,
-		scanner: scanner,
-	}
+	h := NewHandler(logf)
+	parser := NewParser(os.Stdin, h, logf)
 
 	// we parse UCI with a func-to-func state machine as described in the talk
 	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). each
