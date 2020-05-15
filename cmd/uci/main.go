@@ -8,21 +8,6 @@ import (
 
 var logger = log.New(os.Stderr, "", 0)
 
-const (
-	etgID       = "id"       // sent to identify the engine
-	etgIDName   = "name"     // e.g. "id name Shredder X.Y\n"
-	etgIDAuthor = "author"   // e.g. "id author Stefan MK\n"
-	etgUCIOK    = "uciok"    // the engine has sent all infos and is ready
-	etgReadyOK  = "readyok"  // the engine is ready to accept new commands
-	etgBestMove = "bestmove" // engine has stopped searching and found the best move
-	etgInfo     = "info"     // engine wants to send information to the GUI
-)
-
-const (
-	name   = "github.com/GeorgeBills/chess"
-	author = "George Bills"
-)
-
 func main() {
 	h := &handler{}
 

@@ -1,18 +1,21 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
+
+// Name is the name of our engine.
+const Name = "github.com/GeorgeBills/chess"
+
+// Author is the author of our engine.
+const Author = "George Bills"
 
 type handler struct {
 	game *engine.Game
 }
 
-func (h *handler) Identify() {
-	fmt.Println(etgID, etgIDName, name)
-	fmt.Println(etgID, etgIDAuthor, author)
+func (h *handler) Identify() (name, author string, other map[string]string) {
+	return Name, Author, nil
 }
 
 func (h *handler) IsReady() {
@@ -35,12 +38,12 @@ func (h *handler) SetPosition(fen string) {
 	panic("SetPosition not implemented")
 }
 
-func (h *handler) GoDepth(plies uint8) {
+func (h *handler) GoDepth(plies uint8) string {
 	m, _ := h.game.BestMoveToDepth(plies * 2)
-	fmt.Println(etgBestMove, m.SAN())
+	return m.SAN()
 }
 
-func (h *handler) GoNodes(nodes uint64) {
+func (h *handler) GoNodes(nodes uint64) string {
 	panic("GoNodes not implemented")
 }
 

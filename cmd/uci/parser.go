@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"sort"
 	"strconv"
 )
 
@@ -22,6 +23,16 @@ const (
 	gteQuit       = "quit"       // quit the program as soon as possible
 )
 
+const (
+	etgID       = "id"       // sent to identify the engine
+	etgIDName   = "name"     // e.g. "id name Shredder X.Y\n"
+	etgIDAuthor = "author"   // e.g. "id author Stefan MK\n"
+	etgUCIOK    = "uciok"    // the engine has sent all infos and is ready
+	etgReadyOK  = "readyok"  // the engine is ready to accept new commands
+	etgBestMove = "bestmove" // engine has stopped searching and found the best move
+	etgInfo     = "info"     // engine wants to send information to the GUI
+)
+
 type statefn func(h *handler, scanner *bufio.Scanner) statefn
 
 func waitingForUCI(h *handler, scanner *bufio.Scanner) statefn {
@@ -32,15 +43,35 @@ func waitingForUCI(h *handler, scanner *bufio.Scanner) statefn {
 	text := scanner.Text()
 	switch text {
 	case gteUCI:
-		h.Identify()
-		fmt.Println(etgUCIOK)
-		return waitingForCommand
+		return uci
 	case gteQuit:
 		return nil // no further states
 	default:
 		logger.Printf("unrecognized: %s\n", text)
 		return waitingForUCI
 	}
+}
+
+func uci(h *handler, scanner *bufio.Scanner) statefn {
+	name, author, rest := h.Identify()
+
+	// print required name and author
+	fmt.Println(etgID, etgIDName, name)
+	fmt.Println(etgID, etgIDAuthor, author)
+
+	// print rest of our id information in sorted order
+	keys := make([]string, 0, len(rest))
+	for k := range rest {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		fmt.Println(etgID, k, rest[k])
+	}
+
+	fmt.Println(etgUCIOK)
+	return waitingForCommand
 }
 
 func waitingForCommand(h *handler, scanner *bufio.Scanner) statefn {
@@ -101,7 +132,8 @@ func goDepthCommand(h *handler, scanner *bufio.Scanner) statefn {
 	if err != nil {
 		return errorParsingNumber(err, waitingForCommand)
 	}
-	h.GoDepth(uint8(plies))
+	movestr := h.GoDepth(uint8(plies))
+	fmt.Println(etgBestMove, movestr)
 	return waitingForCommand
 }
 
@@ -112,7 +144,8 @@ func goNodesCommand(h *handler, scanner *bufio.Scanner) statefn {
 	if err != nil {
 		return errorParsingNumber(err, waitingForCommand)
 	}
-	h.GoNodes(nodes)
+	movestr := h.GoNodes(nodes)
+	fmt.Println(etgBestMove, movestr)
 	return waitingForCommand
 }
 
@@ -128,5 +161,5 @@ func errorParsingNumber(err error, next statefn) statefn {
 
 func errorScanning(err error) statefn {
 	logger.Printf("error scanning input: %v", err)
-	return nil
+	return nil // no further states
 }
