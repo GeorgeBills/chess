@@ -44,8 +44,12 @@ const (
 	maxDepthPlies = 40
 )
 
+// TODO: state machine
+//       http://denis.papathanasiou.org/archive/2013.02.10.post.pdf
+//       https://www.youtube.com/watch?v=HxaD_trXwRE
+
 func main() {
-	var game *engine.Game
+	h := &handler{}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanWords)
@@ -59,11 +63,11 @@ SCAN_INPUT:
 		case gteIsReady:
 			readyok()
 		case gteNewGame:
-			game = ucinewgame()
+			h.NewGame()
 		case gtePosition:
-			position(scanner, game)
+			position(scanner, h)
 		case gteGo:
-			ucigo(scanner, game)
+			ucigo(scanner, h)
 		case gteQuit:
 			break SCAN_INPUT
 		}
@@ -87,27 +91,22 @@ func readyok() {
 	fmt.Println(etgReadyOK)
 }
 
-func ucinewgame() *engine.Game {
-	logger.Println("initialised new game")
-	g := engine.NewGame(nil) // TODO: return pointer
-	return &g
+func ucinewgame(h *handler) {
+	h.NewGame()
 }
 
-func position(scanner *bufio.Scanner, game *engine.Game) {
+func position(scanner *bufio.Scanner, h *handler) {
 	_ = scanner.Scan()
 	_ = scanner.Err()
 	fen := scanner.Text()
-	var b engine.Board
 	if fen == "startpos" {
-		logger.Println("set starting position")
-		b = engine.NewBoard()
+		h.SetStartingPosition()
 	}
 	// FIXME: fen isn't a single word...
 	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
-	game.SetBoard(&b)
 }
 
-func ucigo(scanner *bufio.Scanner, game *engine.Game) {
+func ucigo(scanner *bufio.Scanner, h *handler) {
 	_ = scanner.Scan()
 	_ = scanner.Err()
 	which := scanner.Text()
@@ -115,11 +114,34 @@ func ucigo(scanner *bufio.Scanner, game *engine.Game) {
 	case "depth":
 		_ = scanner.Scan()
 		_ = scanner.Err()
-		depthPlies, _ := strconv.Atoi(scanner.Text())
-		if 0 < depthPlies && depthPlies < maxDepthPlies {
-			depthMoves := uint8(depthPlies) * 2
-			m, _ := game.BestMoveToDepth(depthMoves)
-			fmt.Println(etgBestMove, m.SAN())
+		plies, _ := strconv.Atoi(scanner.Text())
+		if 0 < plies && plies < maxDepthPlies {
+			h.GoDepth(uint8(plies))
 		}
 	}
+}
+
+type handler struct {
+	game *engine.Game
+}
+
+func (h *handler) NewGame() {
+	logger.Println("initialised new game")
+	g := engine.NewGame(nil) // TODO: return pointer
+	h.game = &g
+}
+
+func (h *handler) SetStartingPosition() {
+	logger.Println("set starting position")
+	b := engine.NewBoard()
+	h.game.SetBoard(&b)
+}
+
+func (h *handler) SetPosition(fen string) {
+	panic("SetPosition not implemented")
+}
+
+func (h *handler) GoDepth(plies uint8) {
+	m, _ := h.game.BestMoveToDepth(plies * 2)
+	fmt.Println(etgBestMove, m.SAN())
 }
