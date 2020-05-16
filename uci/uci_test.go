@@ -79,3 +79,29 @@ func TestNewGame(t *testing.T) {
 	assert.Equal(t, expected, w.String())
 	assert.True(t, calledNewGame)
 }
+
+func TestPositionStart(t *testing.T) {
+	const in = "uci\nucinewgame\nposition startpos\nquit"
+	r := strings.NewReader(in)
+	var calledNewGame bool
+	var calledSetStartingPosition bool
+	h := &mocks.Handler{
+		TB: t,
+		IdentifyFunc: func() (name, author string, rest map[string]string) {
+			return Name, Author, nil
+		},
+		NewGameFunc: func() {
+			calledNewGame = true
+		},
+		SetStartingPositionFunc: func() {
+			calledSetStartingPosition = true
+		},
+	}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	const expected = "id name test-engine\nid author George Bills\nuciok\n"
+	assert.Equal(t, expected, w.String())
+	assert.True(t, calledNewGame)
+	assert.True(t, calledSetStartingPosition)
+}
