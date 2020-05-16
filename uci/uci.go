@@ -108,35 +108,6 @@ func waitingForUCI(p *Parser) statefn {
 	}
 }
 
-func commandQuit(p *Parser) statefn {
-	p.logger.Println("quitting")
-	return nil
-}
-
-func commandUCI(p *Parser) statefn {
-	p.logger.Println("uci")
-
-	name, author, rest := p.handler.Identify()
-
-	// print required name and author
-	fmt.Fprintln(p.out, etgID, etgIDName, name)
-	fmt.Fprintln(p.out, etgID, etgIDAuthor, author)
-
-	// print rest of our id information in sorted order
-	keys := make([]string, 0, len(rest))
-	for k := range rest {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		fmt.Fprintln(p.out, etgID, k, rest[k])
-	}
-
-	fmt.Fprintln(p.out, etgUCIOK)
-	return waitingForCommand
-}
-
 func waitingForCommand(p *Parser) statefn {
 	p.logger.Println("waiting for command")
 
@@ -162,6 +133,30 @@ func waitingForCommand(p *Parser) statefn {
 	default:
 		return errorUnrecognized(p, text, waitingForCommand)
 	}
+}
+
+func commandUCI(p *Parser) statefn {
+	p.logger.Println("uci")
+
+	name, author, rest := p.handler.Identify()
+
+	// print required name and author
+	fmt.Fprintln(p.out, etgID, etgIDName, name)
+	fmt.Fprintln(p.out, etgID, etgIDAuthor, author)
+
+	// print rest of our id information in sorted order
+	keys := make([]string, 0, len(rest))
+	for k := range rest {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		fmt.Fprintln(p.out, etgID, k, rest[k])
+	}
+
+	fmt.Fprintln(p.out, etgUCIOK)
+	return waitingForCommand
 }
 
 func commandPosition(p *Parser) statefn {
@@ -222,6 +217,11 @@ func commandGoNodes(p *Parser) statefn {
 	movestr := p.handler.GoNodes(nodes)
 	fmt.Fprintln(p.out, etgBestMove, movestr)
 	return waitingForCommand
+}
+
+func commandQuit(p *Parser) statefn {
+	p.logger.Println("quitting")
+	return nil
 }
 
 func errorUnrecognized(p *Parser, text string, next statefn) statefn {
