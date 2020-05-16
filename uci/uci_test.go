@@ -39,3 +39,22 @@ func TestUCIOK(t *testing.T) {
 	const expected = "id name test-engine\nid author George Bills\nuciok\n"
 	assert.Equal(t, expected, w.String())
 }
+
+func TestExtraInformation(t *testing.T) {
+	const in = "uci\nquit"
+	r := strings.NewReader(in)
+	h := &mocks.Handler{
+		TB: t,
+		IdentifyFunc: func() (name, author string, rest map[string]string) {
+			return "super-chess", "Jane Smith", map[string]string{
+				"version":      "v1.2.3",
+				"release-date": "2020-05-16",
+			}
+		},
+	}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	const expected = "id name super-chess\nid author Jane Smith\nid release-date 2020-05-16\nid version v1.2.3\nuciok\n"
+	assert.Equal(t, expected, w.String())
+}
