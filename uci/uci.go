@@ -118,12 +118,9 @@ func waitingForCommand(p *Parser) statefn {
 	text := p.scanner.Text()
 	switch text {
 	case gteIsReady:
-		p.handler.IsReady()
-		fmt.Fprintln(p.out, etgReadyOK)
-		return waitingForCommand
+		return commandIsReady
 	case gteNewGame:
-		p.handler.NewGame()
-		return waitingForCommand
+		return commandNewGame
 	case gtePosition:
 		return commandPosition
 	case gteGo:
@@ -156,6 +153,17 @@ func commandUCI(p *Parser) statefn {
 	}
 
 	fmt.Fprintln(p.out, etgUCIOK)
+	return waitingForCommand
+}
+
+func commandIsReady(p *Parser) statefn {
+	p.handler.IsReady()
+	fmt.Fprintln(p.out, etgReadyOK)
+	return waitingForCommand
+}
+
+func commandNewGame(p *Parser) statefn {
+	p.handler.NewGame()
 	return waitingForCommand
 }
 
