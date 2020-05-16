@@ -28,7 +28,7 @@ func TestUCIOK(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
 	}
@@ -43,7 +43,7 @@ func TestExtraInformation(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return "super-chess", "Jane Smith", map[string]string{
 				"version":      "v1.2.3",
 				"release-date": "2020-05-16",
@@ -62,7 +62,7 @@ func TestNewGame(t *testing.T) {
 	r := strings.NewReader(in)
 	var calledNewGame bool
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
 		NewGameFunc: func() {
@@ -83,7 +83,7 @@ func TestPositionStart(t *testing.T) {
 	var calledNewGame bool
 	var calledSetStartingPosition bool
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
 		NewGameFunc: func() {
@@ -107,7 +107,7 @@ func TestIsReady(t *testing.T) {
 	r := strings.NewReader(in)
 	var calledIsReady bool
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
 		IsReadyFunc: func() {
@@ -129,7 +129,7 @@ func TestGoDepth(t *testing.T) {
 	var calledSetStartingPosition bool
 	var calledGoDepthWith uint8
 	h := &mocks.Handler{
-		IdentifyFunc: func() (name, author string, rest map[string]string) {
+		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
 		NewGameFunc: func() {
