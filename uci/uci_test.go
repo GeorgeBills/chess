@@ -58,3 +58,24 @@ func TestExtraInformation(t *testing.T) {
 	const expected = "id name super-chess\nid author Jane Smith\nid release-date 2020-05-16\nid version v1.2.3\nuciok\n"
 	assert.Equal(t, expected, w.String())
 }
+
+func TestNewGame(t *testing.T) {
+	const in = "uci\nucinewgame\nquit"
+	r := strings.NewReader(in)
+	var calledNewGame bool
+	h := &mocks.Handler{
+		TB: t,
+		IdentifyFunc: func() (name, author string, rest map[string]string) {
+			return Name, Author, nil
+		},
+		NewGameFunc: func() {
+			calledNewGame = true
+		},
+	}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	const expected = "id name test-engine\nid author George Bills\nuciok\n"
+	assert.Equal(t, expected, w.String())
+	assert.True(t, calledNewGame)
+}
