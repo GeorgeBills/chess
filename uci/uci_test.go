@@ -105,3 +105,24 @@ func TestPositionStart(t *testing.T) {
 	assert.True(t, calledNewGame)
 	assert.True(t, calledSetStartingPosition)
 }
+
+func TestIsReady(t *testing.T) {
+	const in = "uci\nisready\nquit"
+	r := strings.NewReader(in)
+	var calledIsReady bool
+	h := &mocks.Handler{
+		TB: t,
+		IdentifyFunc: func() (name, author string, rest map[string]string) {
+			return Name, Author, nil
+		},
+		IsReadyFunc: func() {
+			calledIsReady = true
+		},
+	}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	const expected = "id name test-engine\nid author George Bills\nuciok\nreadyok\n"
+	assert.Equal(t, expected, w.String())
+	assert.True(t, calledIsReady)
+}
