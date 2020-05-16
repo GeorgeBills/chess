@@ -11,7 +11,7 @@ func main() {
 		fatal(err)
 	}
 
-	h := NewHandler(logf)
+	h := newHandler(logf)
 	parser := NewParser(os.Stdin, h, logf)
 	parser.Run()
 }

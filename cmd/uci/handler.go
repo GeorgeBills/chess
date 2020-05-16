@@ -13,8 +13,8 @@ const Name = "github.com/GeorgeBills/chess"
 // Author is the author of our engine.
 const Author = "George Bills"
 
-// NewHandler returns a new handler.
-func NewHandler(logw io.Writer) *handler {
+// newHandler returns a new handler.
+func newHandler(logw io.Writer) *handler {
 	return &handler{
 		logger: log.New(logw, "handler: ", log.LstdFlags),
 	}
