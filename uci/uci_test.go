@@ -17,7 +17,7 @@ const Author = "George Bills"
 func TestQuitBeforeUCI(t *testing.T) {
 	const in = "quit"
 	r := strings.NewReader(in)
-	h := &mocks.Handler{TB: t}
+	h := &mocks.Handler{}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(h, r, w, ioutil.Discard)
 	p.Run()
@@ -28,7 +28,6 @@ func TestUCIOK(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return Name, Author, nil
 		},
@@ -44,7 +43,6 @@ func TestExtraInformation(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return "super-chess", "Jane Smith", map[string]string{
 				"version":      "v1.2.3",
@@ -64,7 +62,6 @@ func TestNewGame(t *testing.T) {
 	r := strings.NewReader(in)
 	var calledNewGame bool
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return Name, Author, nil
 		},
@@ -86,7 +83,6 @@ func TestPositionStart(t *testing.T) {
 	var calledNewGame bool
 	var calledSetStartingPosition bool
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return Name, Author, nil
 		},
@@ -111,7 +107,6 @@ func TestIsReady(t *testing.T) {
 	r := strings.NewReader(in)
 	var calledIsReady bool
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return Name, Author, nil
 		},
@@ -134,7 +129,6 @@ func TestGoDepth(t *testing.T) {
 	var calledSetStartingPosition bool
 	var calledGoDepthWith uint8
 	h := &mocks.Handler{
-		TB: t,
 		IdentifyFunc: func() (name, author string, rest map[string]string) {
 			return Name, Author, nil
 		},

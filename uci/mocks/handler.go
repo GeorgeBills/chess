@@ -1,11 +1,10 @@
 package mocks
 
 import (
-	"testing"
+	"errors"
 )
 
 type Handler struct {
-	TB                      testing.TB
 	IdentifyFunc            func() (name, author string, other map[string]string)
 	IsReadyFunc             func()
 	NewGameFunc             func()
@@ -17,70 +16,57 @@ type Handler struct {
 }
 
 func (h *Handler) Identify() (name, author string, other map[string]string) {
-	if h.IdentifyFunc != nil {
-		return h.IdentifyFunc()
+	if h.IdentifyFunc == nil {
+		panic(errors.New("Identify not implemented"))
 	}
-	h.TB.Fatal("Identify not implemented")
-	return "", "", nil
+	return h.IdentifyFunc()
 }
 
 func (h *Handler) IsReady() {
-	if h.IsReadyFunc != nil {
-		h.IsReadyFunc()
-		return
+	if h.IsReadyFunc == nil {
+		panic(errors.New("IsReady not implemented"))
 	}
-	h.TB.Fatal("IsReady not implemented")
-	return
+	h.IsReadyFunc()
 }
 
 func (h *Handler) NewGame() {
-	if h.NewGameFunc != nil {
-		h.NewGameFunc()
-		return
+	if h.NewGameFunc == nil {
+		panic(errors.New("NewGame not implemented"))
 	}
-	h.TB.Fatal("NewGame not implemented")
-	return
+	h.NewGameFunc()
 }
 
 func (h *Handler) SetStartingPosition() {
-	if h.SetStartingPositionFunc != nil {
-		h.SetStartingPositionFunc()
-		return
+	if h.SetStartingPositionFunc == nil {
+		panic(errors.New("SetStartingPosition not implemented"))
 	}
-	h.TB.Fatal("SetStartingPosition not implemented")
-	return
+	h.SetStartingPositionFunc()
 }
 
 func (h *Handler) SetPosition(fen string) {
-	if h.SetPositionFunc != nil {
-		h.SetPositionFunc(fen)
-		return
+	if h.SetPositionFunc == nil {
+		panic(errors.New("SetPosition not implemented"))
 	}
-	h.TB.Fatal("SetPosition not implemented")
-	return
+	h.SetPositionFunc(fen)
 }
 
 func (h *Handler) GoDepth(plies uint8) string {
-	if h.GoDepthFunc != nil {
-		return h.GoDepthFunc(plies)
+	if h.GoDepthFunc == nil {
+		panic(errors.New("GoDepth not implemented"))
 	}
-	h.TB.Fatal("GoDepth not implemented")
-	return ""
+	return h.GoDepthFunc(plies)
 }
 
 func (h *Handler) GoNodes(nodes uint64) string {
-	if h.GoNodesFunc != nil {
-		return h.GoNodesFunc(nodes)
+	if h.GoNodesFunc == nil {
+		panic(errors.New("GoNodes not implemented"))
 	}
-	h.TB.Fatal("GoNodes not implemented")
-	return ""
+	return h.GoNodesFunc(nodes)
 }
 
 func (h *Handler) GoInfinite() {
-	if h.GoInfiniteFunc != nil {
-		h.GoInfiniteFunc()
-		return
+	if h.GoInfiniteFunc == nil {
+		panic(errors.New("GoInfinite not implemented"))
 	}
-	h.TB.Fatal("GoInfinite not implemented")
-	return
+	h.GoInfiniteFunc()
 }
