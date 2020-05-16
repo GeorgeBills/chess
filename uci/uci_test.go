@@ -126,3 +126,35 @@ func TestIsReady(t *testing.T) {
 	assert.Equal(t, expected, w.String())
 	assert.True(t, calledIsReady)
 }
+
+func TestGoDepth(t *testing.T) {
+	const in = "uci\nucinewgame\nposition startpos\ngo depth 123\nquit"
+	r := strings.NewReader(in)
+	var calledNewGame bool
+	var calledSetStartingPosition bool
+	var calledGoDepthWith uint8
+	h := &mocks.Handler{
+		TB: t,
+		IdentifyFunc: func() (name, author string, rest map[string]string) {
+			return Name, Author, nil
+		},
+		NewGameFunc: func() {
+			calledNewGame = true
+		},
+		SetStartingPositionFunc: func() {
+			calledSetStartingPosition = true
+		},
+		GoDepthFunc: func(depth uint8) string {
+			calledGoDepthWith = depth
+			return "a1h8"
+		},
+	}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	const expected = "id name test-engine\nid author George Bills\nuciok\nbestmove a1h8\n"
+	assert.Equal(t, expected, w.String())
+	assert.True(t, calledNewGame)
+	assert.True(t, calledSetStartingPosition)
+	assert.EqualValues(t, 123, calledGoDepthWith)
+}
