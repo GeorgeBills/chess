@@ -1,4 +1,4 @@
-package main
+package uci
 
 import (
 	"bufio"
@@ -35,24 +35,38 @@ const (
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
 
+// Handler handles events generated from parsing UCI.
+type Handler interface {
+	Identify() (name, author string, other map[string]string)
+	IsReady()
+	NewGame()
+	SetStartingPosition()
+	SetPosition(fen string)
+	GoDepth(plies uint8) string
+	GoNodes(nodes uint64) string
+	GoInfinite()
+}
+
 // NewParser returns a new parser.
-func NewParser(r io.Reader, h *handler, logw io.Writer) *parser {
+func NewParser(r io.Reader, h Handler, logw io.Writer) *Parser {
 	scanner := bufio.NewScanner(r)
 	scanner.Split(bufio.ScanWords)
-	return &parser{
+	return &Parser{
 		handler: h,
 		scanner: scanner,
 		logger:  log.New(logw, "parser: ", log.LstdFlags),
 	}
 }
 
-type parser struct {
+// Parser parses and generates events from UCI.
+type Parser struct {
 	logger  *log.Logger
-	handler *handler
+	handler Handler
 	scanner *bufio.Scanner
 }
 
-func (p *parser) Run() {
+// Run starts the parser.
+func (p *Parser) Run() {
 	// We parse UCI with a func-to-func state machine as described in the talk
 	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). Each
 	// state func returns the next state func we are transitioning to. We start
@@ -65,9 +79,9 @@ func (p *parser) Run() {
 	p.logger.Println("finished")
 }
 
-type statefn func(p *parser) statefn
+type statefn func(p *Parser) statefn
 
-func waitingForUCI(p *parser) statefn {
+func waitingForUCI(p *Parser) statefn {
 	p.logger.Println("waiting for uci")
 
 	_ = p.scanner.Scan()
@@ -85,12 +99,12 @@ func waitingForUCI(p *parser) statefn {
 	}
 }
 
-func commandQuit(p *parser) statefn {
+func commandQuit(p *Parser) statefn {
 	p.logger.Println("quitting")
 	return nil
 }
 
-func commandUCI(p *parser) statefn {
+func commandUCI(p *Parser) statefn {
 	p.logger.Println("uci")
 
 	name, author, rest := p.handler.Identify()
@@ -114,7 +128,7 @@ func commandUCI(p *parser) statefn {
 	return waitingForCommand
 }
 
-func waitingForCommand(p *parser) statefn {
+func waitingForCommand(p *Parser) statefn {
 	p.logger.Println("waiting for command")
 
 	_ = p.scanner.Scan()
@@ -141,7 +155,7 @@ func waitingForCommand(p *parser) statefn {
 	}
 }
 
-func commandPosition(p *parser) statefn {
+func commandPosition(p *Parser) statefn {
 	p.logger.Println("command: position")
 
 	_ = p.scanner.Scan()
@@ -156,7 +170,7 @@ func commandPosition(p *parser) statefn {
 	return waitingForCommand
 }
 
-func commandGo(p *parser) statefn {
+func commandGo(p *Parser) statefn {
 	p.logger.Println("command: go")
 
 	_ = p.scanner.Scan()
@@ -173,7 +187,7 @@ func commandGo(p *parser) statefn {
 	return waitingForCommand
 }
 
-func commandGoDepth(p *parser) statefn {
+func commandGoDepth(p *Parser) statefn {
 	p.logger.Println("command: go depth")
 
 	_ = p.scanner.Scan()
@@ -187,7 +201,7 @@ func commandGoDepth(p *parser) statefn {
 	return waitingForCommand
 }
 
-func commandGoNodes(p *parser) statefn {
+func commandGoNodes(p *Parser) statefn {
 	p.logger.Println("command: go nodes")
 
 	_ = p.scanner.Scan()
@@ -201,17 +215,17 @@ func commandGoNodes(p *parser) statefn {
 	return waitingForCommand
 }
 
-func errorUnrecognized(p *parser, text string, next statefn) statefn {
+func errorUnrecognized(p *Parser, text string, next statefn) statefn {
 	p.logger.Printf("unrecognized: %s\n", text)
 	return next
 }
 
-func errorParsingNumber(p *parser, err error, next statefn) statefn {
+func errorParsingNumber(p *Parser, err error, next statefn) statefn {
 	p.logger.Printf("error parsing number: %v", err)
 	return next
 }
 
-func errorScanning(p *parser, err error) statefn {
+func errorScanning(p *Parser, err error) statefn {
 	p.logger.Printf("error scanning input: %v", err)
 	return nil // no further states
 }

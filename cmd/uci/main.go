@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/GeorgeBills/chess/m/v2/uci"
 )
 
 func main() {
@@ -12,7 +14,7 @@ func main() {
 	}
 
 	h := newHandler(logf)
-	parser := NewParser(os.Stdin, h, logf)
+	parser := uci.NewParser(os.Stdin, h, logf)
 	parser.Run()
 }
 
