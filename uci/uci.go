@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// GUI-to-engine constants are tokens sent from the GUI to the engine.
 const (
 	gteUCI        = "uci"        // tell engine to use the universal chess interface
 	gteDebug      = "debug"      // switch the debug mode of the engine on and off
@@ -25,6 +26,7 @@ const (
 	gteQuit       = "quit"       // quit the program as soon as possible
 )
 
+// Engine-to-GUI constants are tokens sent from the engine to the GUI.
 const (
 	etgID       = "id"       // sent to identify the engine
 	etgIDName   = "name"     // e.g. "id name Shredder X.Y\n"
