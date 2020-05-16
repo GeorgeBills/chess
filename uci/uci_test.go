@@ -14,6 +14,16 @@ import (
 const Name = "test-engine"
 const Author = "George Bills"
 
+func TestQuitBeforeUCI(t *testing.T) {
+	const in = "quit"
+	r := strings.NewReader(in)
+	h := &mocks.Handler{TB: t}
+	w := &bytes.Buffer{}
+	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p.Run()
+	assert.Equal(t, "", w.String())
+}
+
 func TestUCIOK(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
