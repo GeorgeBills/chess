@@ -14,7 +14,7 @@ func main() {
 	}
 
 	h := newHandler(logf)
-	parser := uci.NewParser(os.Stdin, h, logf)
+	parser := uci.NewParser(h, os.Stdin, os.Stdout, logf)
 	parser.Run()
 }
 

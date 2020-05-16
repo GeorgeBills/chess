@@ -48,13 +48,14 @@ type Handler interface {
 }
 
 // NewParser returns a new parser.
-func NewParser(r io.Reader, h Handler, logw io.Writer) *Parser {
+func NewParser(h Handler, r io.Reader, outw, logw io.Writer) *Parser {
 	scanner := bufio.NewScanner(r)
 	scanner.Split(bufio.ScanWords)
 	return &Parser{
 		handler: h,
 		scanner: scanner,
 		logger:  log.New(logw, "parser: ", log.LstdFlags),
+		out:     bufio.NewWriter(outw),
 	}
 }
 
@@ -63,10 +64,11 @@ type Parser struct {
 	logger  *log.Logger
 	handler Handler
 	scanner *bufio.Scanner
+	out     *bufio.Writer
 }
 
 // Run starts the parser.
-func (p *Parser) Run() {
+func (p *Parser) Run() error {
 	// We parse UCI with a func-to-func state machine as described in the talk
 	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). Each
 	// state func returns the next state func we are transitioning to. We start
@@ -74,9 +76,14 @@ func (p *Parser) Run() {
 	// we receive a nil (terminal) state.
 	for state := waitingForUCI(p); state != nil; {
 		state = state(p)
+		err := p.out.Flush() // flush output for each state
+		if err != nil {
+			return err
+		}
 	}
 	// TODO: give the engine a chance to cleanup here
 	p.logger.Println("finished")
+	return nil
 }
 
 type statefn func(p *Parser) statefn
@@ -110,8 +117,8 @@ func commandUCI(p *Parser) statefn {
 	name, author, rest := p.handler.Identify()
 
 	// print required name and author
-	fmt.Println(etgID, etgIDName, name)
-	fmt.Println(etgID, etgIDAuthor, author)
+	fmt.Fprintln(p.out, etgID, etgIDName, name)
+	fmt.Fprintln(p.out, etgID, etgIDAuthor, author)
 
 	// print rest of our id information in sorted order
 	keys := make([]string, 0, len(rest))
@@ -121,10 +128,10 @@ func commandUCI(p *Parser) statefn {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		fmt.Println(etgID, k, rest[k])
+		fmt.Fprintln(p.out, etgID, k, rest[k])
 	}
 
-	fmt.Println(etgUCIOK)
+	fmt.Fprintln(p.out, etgUCIOK)
 	return waitingForCommand
 }
 
@@ -139,7 +146,7 @@ func waitingForCommand(p *Parser) statefn {
 	switch text {
 	case gteIsReady:
 		p.handler.IsReady()
-		fmt.Println(etgReadyOK)
+		fmt.Fprintln(p.out, etgReadyOK)
 		return waitingForCommand
 	case gteNewGame:
 		p.handler.NewGame()
@@ -197,7 +204,7 @@ func commandGoDepth(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 	movestr := p.handler.GoDepth(uint8(plies))
-	fmt.Println(etgBestMove, movestr)
+	fmt.Fprintln(p.out, etgBestMove, movestr)
 	return waitingForCommand
 }
 
@@ -211,7 +218,7 @@ func commandGoNodes(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 	movestr := p.handler.GoNodes(nodes)
-	fmt.Println(etgBestMove, movestr)
+	fmt.Fprintln(p.out, etgBestMove, movestr)
 	return waitingForCommand
 }
 
