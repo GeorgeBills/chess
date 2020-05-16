@@ -27,6 +27,7 @@ func (h *Handler) Identify() (name, author string, other map[string]string) {
 func (h *Handler) IsReady() {
 	if h.IsReadyFunc != nil {
 		h.IsReadyFunc()
+		return
 	}
 	h.TB.Fatal("IsReady not implemented")
 	return
@@ -35,6 +36,7 @@ func (h *Handler) IsReady() {
 func (h *Handler) NewGame() {
 	if h.NewGameFunc != nil {
 		h.NewGameFunc()
+		return
 	}
 	h.TB.Fatal("NewGame not implemented")
 	return
@@ -43,6 +45,7 @@ func (h *Handler) NewGame() {
 func (h *Handler) SetStartingPosition() {
 	if h.SetStartingPositionFunc != nil {
 		h.SetStartingPositionFunc()
+		return
 	}
 	h.TB.Fatal("SetStartingPosition not implemented")
 	return
@@ -51,6 +54,7 @@ func (h *Handler) SetStartingPosition() {
 func (h *Handler) SetPosition(fen string) {
 	if h.SetPositionFunc != nil {
 		h.SetPositionFunc(fen)
+		return
 	}
 	h.TB.Fatal("SetPosition not implemented")
 	return
@@ -75,6 +79,7 @@ func (h *Handler) GoNodes(nodes uint64) string {
 func (h *Handler) GoInfinite() {
 	if h.GoInfiniteFunc != nil {
 		h.GoInfiniteFunc()
+		return
 	}
 	h.TB.Fatal("GoInfinite not implemented")
 	return
