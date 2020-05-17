@@ -2,6 +2,7 @@ package uci
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -47,15 +48,15 @@ type Handler interface {
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()
+	// TODO: Quit()
+	// TODO: most handler methods should return error
 }
 
 // NewParser returns a new parser.
 func NewParser(h Handler, r io.Reader, outw, logw io.Writer) *Parser {
-	scanner := bufio.NewScanner(r)
-	scanner.Split(bufio.ScanWords)
 	return &Parser{
 		handler: h,
-		scanner: scanner,
+		reader:  bufio.NewReader(r),
 		logger:  log.New(logw, "parser: ", log.LstdFlags),
 		out:     bufio.NewWriter(outw),
 	}
@@ -63,9 +64,10 @@ func NewParser(h Handler, r io.Reader, outw, logw io.Writer) *Parser {
 
 // Parser parses and generates events from UCI.
 type Parser struct {
+	// TODO: rename to StateMachine or similar, this isn't just a parser.
 	logger  *log.Logger
 	handler Handler
-	scanner *bufio.Scanner
+	reader  io.RuneScanner
 	out     *bufio.Writer
 }
 
@@ -76,8 +78,15 @@ func (p *Parser) Run() error {
 	// state func returns the next state func we are transitioning to. We start
 	// off in the "waiting for UCI" state. We perpetually evaluate states until
 	// we receive a nil (terminal) state.
-	for state := waitingForUCI(p); state != nil; {
+	//
+	// We manually read from the buffer in lieu of bufio.Scanner for a few
+	// reasons: one, newlines are meaningful in UCI as unambiguous command
+	// terminators, and two because of the one annoying case (FEN) where a token
+	// contains whitespace.
+	for state := waitingForUCI; state != nil; {
 		state = state(p)
+		// TODO: flush as needed
+		//       or just manually buffer so the default is synchronous?
 		err := p.out.Flush() // flush output for each state
 		if err != nil {
 			return err
@@ -93,30 +102,32 @@ type statefn func(p *Parser) statefn
 func waitingForUCI(p *Parser) statefn {
 	p.logger.Println("waiting for uci")
 
-	_ = p.scanner.Scan()
-	if err := p.scanner.Err(); err != nil {
+	token, err := nextToken(p.reader)
+	if err != nil {
 		return errorScanning(p, err)
 	}
-	text := p.scanner.Text()
-	switch text {
+
+	switch token {
 	case gteUCI:
 		return commandUCI
 	case gteQuit:
 		return commandQuit
+	case "": // newline
+		return eol(p, waitingForUCI)
 	default:
-		return errorUnrecognized(p, text, waitingForUCI)
+		return errorUnrecognized(p, token, waitingForUCI)
 	}
 }
 
 func waitingForCommand(p *Parser) statefn {
 	p.logger.Println("waiting for command")
 
-	_ = p.scanner.Scan()
-	if err := p.scanner.Err(); err != nil {
+	token, err := nextToken(p.reader)
+	if err != nil {
 		return errorScanning(p, err)
 	}
-	text := p.scanner.Text()
-	switch text {
+
+	switch token {
 	case gteIsReady:
 		return commandIsReady
 	case gteNewGame:
@@ -127,13 +138,15 @@ func waitingForCommand(p *Parser) statefn {
 		return commandGo
 	case gteQuit:
 		return commandQuit
+	case "":
+		return eol(p, waitingForCommand)
 	default:
-		return errorUnrecognized(p, text, waitingForCommand)
+		return errorUnrecognized(p, token, waitingForCommand)
 	}
 }
 
 func commandUCI(p *Parser) statefn {
-	p.logger.Println("uci")
+	p.logger.Println("command: uci")
 
 	name, author, rest := p.handler.Identify()
 
@@ -157,12 +170,16 @@ func commandUCI(p *Parser) statefn {
 }
 
 func commandIsReady(p *Parser) statefn {
+	p.logger.Println("command: isready")
+
 	p.handler.IsReady()
 	fmt.Fprintln(p.out, etgReadyOK)
 	return waitingForCommand
 }
 
 func commandNewGame(p *Parser) statefn {
+	p.logger.Println("command: new game")
+
 	p.handler.NewGame()
 	return waitingForCommand
 }
@@ -170,29 +187,52 @@ func commandNewGame(p *Parser) statefn {
 func commandPosition(p *Parser) statefn {
 	p.logger.Println("command: position")
 
-	_ = p.scanner.Scan()
-	_ = p.scanner.Err()
-	fen := p.scanner.Text()
-	if fen == "startpos" {
-		p.handler.SetStartingPosition()
+	err := consume(p.reader, isSpace)
+	if err != nil {
+		return errorScanning(p, err)
 	}
-	// FIXME: fen isn't a single word...
-	// regexp.FindReaderSubmatchIndex?
-	// b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+
+	token, err := readToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	switch token {
+	case "startpos":
+		return commandPositionStarting
+	case "fen":
+		return commandPositionFEN
+	case "": // newline
+		return eol(p, waitingForCommand)
+	default:
+		return errorUnrecognized(p, token, commandPosition)
+	}
+}
+
+func commandPositionStarting(p *Parser) statefn {
+	p.logger.Println("command: set starting position")
+
+	p.handler.SetStartingPosition()
 	return waitingForCommand
+}
+
+func commandPositionFEN(p *Parser) statefn {
+	panic("position fen not implemented")
 }
 
 func commandGo(p *Parser) statefn {
 	p.logger.Println("command: go")
 
-	_ = p.scanner.Scan()
-	_ = p.scanner.Err()
-	text := p.scanner.Text()
-	switch text {
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	switch token {
 	case gteGoDepth:
 		return commandGoDepth
 	case gteGoInfinite:
-		p.handler.GoInfinite()
+		return commandGoInfinite
 	case gteGoNodes:
 		return commandGoNodes
 	}
@@ -202,9 +242,12 @@ func commandGo(p *Parser) statefn {
 func commandGoDepth(p *Parser) statefn {
 	p.logger.Println("command: go depth")
 
-	_ = p.scanner.Scan()
-	_ = p.scanner.Err()
-	plies, err := strconv.ParseUint(p.scanner.Text(), 10, 8)
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	plies, err := strconv.ParseUint(token, 10, 8)
 	if err != nil {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
@@ -213,12 +256,22 @@ func commandGoDepth(p *Parser) statefn {
 	return waitingForCommand
 }
 
+func commandGoInfinite(p *Parser) statefn {
+	p.logger.Println("command: go infinite")
+
+	p.handler.GoInfinite()
+	return waitingForCommand
+}
+
 func commandGoNodes(p *Parser) statefn {
 	p.logger.Println("command: go nodes")
 
-	_ = p.scanner.Scan()
-	_ = p.scanner.Err()
-	nodes, err := strconv.ParseUint(p.scanner.Text(), 10, 64)
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	nodes, err := strconv.ParseUint(token, 10, 64)
 	if err != nil {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
@@ -232,6 +285,24 @@ func commandQuit(p *Parser) statefn {
 	return nil
 }
 
+// TODO: expectEOL: read spaces to EOL
+//                  error if there are any other tokens
+//                  transition to the specified next state
+
+func eol(p *Parser, next statefn) statefn {
+	// TODO: add "expected bool" param; if unexpected log a warning
+	err := consume(p.reader, isEOL) // consume all newline runes
+	if err != nil {
+		return errorScanning(p, err)
+	}
+	return next
+}
+
+// errorUnrecognized logs an "unrecognized token" error and then transitions to
+// the specified next state. In general, per the UCI specification which states
+// that unrecognized tokens should be ignored, the next state should be the
+// state we just transitioned out of (i.e. this should loop back to the
+// originating state).
 func errorUnrecognized(p *Parser, text string, next statefn) statefn {
 	p.logger.Printf("unrecognized: %s\n", text)
 	return next
@@ -245,4 +316,54 @@ func errorParsingNumber(p *Parser, err error, next statefn) statefn {
 func errorScanning(p *Parser, err error) statefn {
 	p.logger.Printf("error scanning input: %v", err)
 	return nil // no further states
+}
+
+// isSpace returns whether or not c represents a space. We do not consider end
+// of line characters to be spaces, as newlines are meaningful tokens within
+// UCI, representing the end of a command.
+func isSpace(c rune) bool {
+	return c == ' ' || c == '\t'
+}
+
+// isEOL returns whether or not c represents part of a newline.
+func isEOL(c rune) bool {
+	return c == '\r' || c == '\n'
+}
+
+// consume reads characters until the predicate returns false.
+func consume(r io.RuneScanner, pred func(rune) bool) error {
+	for {
+		c, _, err := r.ReadRune()
+		if err != nil {
+			return err
+		}
+		if !pred(c) {
+			r.UnreadRune()
+			return nil
+		}
+	}
+}
+
+func nextToken(r io.RuneScanner) (string, error) {
+	consume(r, isSpace)
+	return readToken(r)
+	// TODO: manually inline readToken in here, it's never called otherwise
+	// TODO: special case any EOL to consume the whole thing and return "\n"
+}
+
+// readToken reads runes from r until it finds a rune that terminates the token,
+// returning a buffer of runes that were read.
+func readToken(r io.RuneScanner) (string, error) {
+	var buf bytes.Buffer
+	for {
+		c, _, err := r.ReadRune()
+		if err != nil {
+			return "", err
+		}
+		if isSpace(c) || isEOL(c) {
+			r.UnreadRune()
+			return buf.String(), nil
+		}
+		buf.WriteRune(c)
+	}
 }

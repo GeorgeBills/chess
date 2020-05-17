@@ -43,6 +43,10 @@ func (h *handler) NewGame() {
 
 func (h *handler) SetStartingPosition() {
 	h.logger.Println("set starting position")
+	// TODO: nil check game on SetStartingPosition
+	// if h.game == nil {
+	// 	return errors.New("no game")
+	// }
 	b := engine.NewBoard()
 	h.game.SetBoard(&b)
 }
