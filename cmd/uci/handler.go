@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log"
+	"strings"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
@@ -43,7 +44,8 @@ func (h *handler) NewGame() {
 
 func (h *handler) SetStartingPosition() {
 	h.logger.Println("set starting position")
-	// TODO: nil check game on SetStartingPosition
+	// TODO: nil check game on SetPositionFEN
+	//       or just return a new game from SetBoard if none already?
 	// if h.game == nil {
 	// 	return errors.New("no game")
 	// }
@@ -51,9 +53,19 @@ func (h *handler) SetStartingPosition() {
 	h.game.SetBoard(&b)
 }
 
-func (h *handler) SetPosition(fen string) {
+func (h *handler) SetPositionFEN(fen string) {
 	h.logger.Println("set position")
-	panic("SetPosition not implemented")
+
+	// TODO: nil check game on SetPositionFEN
+	//       or just return a new game from SetBoard if none already?
+
+	b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
+	// TODO: return err from SetPositionFEN
+	// if err != nil {
+	// 	return err
+	// }
+
+	h.game.SetBoard(b)
 }
 
 func (h *handler) GoDepth(plies uint8) string {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // GUI-to-engine constants are tokens sent from the GUI to the engine.
@@ -44,7 +45,7 @@ type Handler interface {
 	IsReady()
 	NewGame()
 	SetStartingPosition()
-	SetPosition(fen string)
+	SetPositionFEN(fen string)
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()
@@ -210,14 +211,83 @@ func commandPosition(p *Parser) statefn {
 }
 
 func commandPositionStarting(p *Parser) statefn {
-	p.logger.Println("command: set starting position")
+	p.logger.Println("command: position startpos")
 
 	p.handler.SetStartingPosition()
 	return waitingForCommand
 }
 
 func commandPositionFEN(p *Parser) statefn {
-	panic("position fen not implemented")
+	p.logger.Println("command: position fen")
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+
+	var buf bytes.Buffer
+
+	// ranks: [/1-8BKNPQRbknpqr]
+	if err := accept(p.reader, &buf, "/12345678BKNPQRbknpqr"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN ranks: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	// to play: [wb]
+	if err := accept(p.reader, &buf, "wb"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN to play: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	// castling: [KQkq]
+	if err := accept(p.reader, &buf, "KQkq"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN castling: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	// en passant: [-A-Ha-h][1-8]
+	if err := accept(p.reader, &buf, "-ABCDEFGHabcdefgh12345678"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN en passant: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	// half moves
+	if err := accept(p.reader, &buf, "1234567890"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN half moves: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	// full moves
+	if err := accept(p.reader, &buf, "1234567890"); err != nil {
+		return errorScanning(p, fmt.Errorf("error scanning FEN full moves: %w", err))
+	}
+
+	if err := consume(p.reader, isSpace); err != nil {
+		return errorScanning(p, err)
+	}
+	buf.WriteRune(' ')
+
+	p.handler.SetPositionFEN(buf.String())
+	return waitingForCommand
 }
 
 func commandGo(p *Parser) statefn {
@@ -340,6 +410,23 @@ func consume(r io.RuneScanner, pred func(rune) bool) error {
 		if !pred(c) {
 			r.UnreadRune()
 			return nil
+		}
+	}
+}
+
+func accept(r io.RuneReader, buf *bytes.Buffer, valid string) error {
+	for {
+		c, _, err := r.ReadRune()
+		if err != nil {
+			return err
+		}
+		switch {
+		case strings.IndexRune(valid, c) != -1:
+			buf.WriteRune(c)
+		case isSpace(c) || isEOL(c):
+			return nil
+		default:
+			return fmt.Errorf("unrecognized rune: %q", c)
 		}
 	}
 }

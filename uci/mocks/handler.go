@@ -10,7 +10,7 @@ type Handler struct {
 	IsReadyFunc             func()
 	NewGameFunc             func()
 	SetStartingPositionFunc func()
-	SetPositionFunc         func(fen string)
+	SetPositionFENFunc      func(fen string)
 	GoDepthFunc             func(plies uint8) string
 	GoNodesFunc             func(nodes uint64) string
 	GoInfiniteFunc          func()
@@ -52,13 +52,13 @@ func (h *Handler) SetStartingPosition() {
 	h.SetStartingPositionFunc()
 }
 
-// SetPosition implements uci.Handler.SetPosition().
+// SetPositionFEN implements uci.Handler.SetPosition().
 // It does so by calling the SetPositionFunc explicitly added to the handler.
-func (h *Handler) SetPosition(fen string) {
-	if h.SetPositionFunc == nil {
+func (h *Handler) SetPositionFEN(fen string) {
+	if h.SetPositionFENFunc == nil {
 		panic(errors.New("SetPosition not implemented"))
 	}
-	h.SetPositionFunc(fen)
+	h.SetPositionFENFunc(fen)
 }
 
 // GoDepth implements uci.Handler.GoDepth().
