@@ -21,6 +21,9 @@ const (
 	gteSetOption  = "setoption"  // change internal parameters of the engine
 	gteNewGame    = "ucinewgame" // the next search will be from a different game
 	gtePosition   = "position"   // set up the position described on the internal board
+	gteStartPos   = "startpos"   // game was played from the start position
+	gteFEN        = "fen"        // position described in fenstring
+	gteMoves      = "moves"      // play the moves on the internal chess board
 	gteGo         = "go"         // start calculating on the current position
 	gteGoDepth    = "depth"      // search x plies only
 	gteGoNodes    = "nodes"      // search x nodes only
@@ -202,9 +205,9 @@ func commandPosition(p *Parser) statefn {
 	}
 
 	switch token {
-	case "startpos":
+	case gteStartPos:
 		return commandPositionStarting
-	case "fen":
+	case gteFEN:
 		return commandPositionFEN
 	case "": // newline
 		return eol(p, waitingForCommand)
@@ -305,7 +308,7 @@ func commandPositionMoves(p *Parser) statefn {
 
 	// could be moves, could be EOL
 	switch token {
-	case "moves":
+	case gteMoves:
 		return commandPositionMovesMove
 	case "": // newline
 		return eol(p, waitingForCommand)
