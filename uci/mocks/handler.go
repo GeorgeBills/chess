@@ -14,6 +14,7 @@ type Handler struct {
 	GoDepthFunc             func(plies uint8) string
 	GoNodesFunc             func(nodes uint64) string
 	GoInfiniteFunc          func()
+	QuitFunc                func()
 }
 
 // Identify implements uci.Handler.Identify()
@@ -86,4 +87,13 @@ func (h *Handler) GoInfinite() {
 		panic(errors.New("GoInfinite not implemented"))
 	}
 	h.GoInfiniteFunc()
+}
+
+// Quit implements uci.Handler.Quit().
+// It does so by calling the QuitFunc explicitly added to the handler.
+func (h *Handler) Quit() {
+	if h.QuitFunc == nil {
+		panic(errors.New("Quit not implemented"))
+	}
+	h.QuitFunc()
 }

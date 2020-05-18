@@ -83,3 +83,5 @@ func (h *handler) GoInfinite() {
 	h.logger.Println("go infinite")
 	panic("GoInfinite not implemented")
 }
+
+func (h *handler) Quit() { h.logger.Println("quit") } // nothing to cleanup

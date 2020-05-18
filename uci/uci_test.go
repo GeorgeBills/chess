@@ -20,7 +20,9 @@ const Author = "George Bills"
 func TestQuitBeforeUCI(t *testing.T) {
 	const in = "quit"
 	r := strings.NewReader(in)
-	h := &mocks.Handler{}
+	h := &mocks.Handler{
+		QuitFunc: func() {},
+	}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(h, r, w, ioutil.Discard)
 	p.Run()
@@ -34,6 +36,7 @@ func TestUCI(t *testing.T) {
 	var calledIsReady bool
 	var calledSetStartingPosition bool
 	var calledGoDepthWith uint8
+	var calledQuit bool
 	h := &mocks.Handler{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
@@ -50,6 +53,9 @@ func TestUCI(t *testing.T) {
 		GoDepthFunc: func(depth uint8) string {
 			calledGoDepthWith = depth
 			return "a1h8"
+		},
+		QuitFunc: func() {
+			calledQuit = true
 		},
 	}
 
@@ -100,7 +106,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("quit\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			// TODO: assert we called some cleanup routine
+			assert.True(t, calledQuit)
 		})
 
 		pipew.Close()
@@ -120,6 +126,7 @@ func TestExtraInformation(t *testing.T) {
 				"release-date": "2020-05-16",
 			}
 		},
+		QuitFunc: func() {},
 	}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(h, r, w, ioutil.Discard)

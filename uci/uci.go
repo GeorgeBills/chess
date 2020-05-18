@@ -49,7 +49,7 @@ type Handler interface {
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()
-	// TODO: Quit()
+	Quit()
 	// TODO: most handler methods should return error
 }
 
@@ -352,6 +352,7 @@ func commandGoNodes(p *Parser) statefn {
 
 func commandQuit(p *Parser) statefn {
 	p.logger.Println("quitting")
+	p.handler.Quit()
 	return nil
 }
 
