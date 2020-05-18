@@ -160,6 +160,13 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 		}
 	}
 
+	unexpectingEOF := func(err error) error {
+		if err == io.EOF {
+			return io.ErrUnexpectedEOF
+		}
+		return err
+	}
+
 	readuint8 := func() (uint8, error) {
 		var n uint8
 		seen := false
@@ -330,9 +337,9 @@ READ_CASTLING:
 
 		b.meta |= maskCanEnPassant
 
-		rank, file, err := ParseAlgebraicNotation(r)
+		square, err := ParseAlgebraicNotation(r)
 		if err != nil {
-			return nil, err
+			return nil, unexpectingEOF(err)
 		}
 
 		// We don't encode the rank into the board state, since it can be
@@ -348,17 +355,17 @@ READ_CASTLING:
 		// inconsistent.
 		switch tomove {
 		case 'w':
-			if rank != rank6 {
-				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", rank+1)
+			if square.Rank != rank6 {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", square.Rank+1)
 			}
 		case 'b':
-			if rank != rank3 {
-				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", rank+1)
+			if square.Rank != rank3 {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", square.Rank+1)
 			}
 		}
 
 		// store the zero indexed file as the last 4 bits in the board meta
-		b.meta |= file
+		b.meta |= square.File
 	}
 
 	if err = skipspace(); err != nil {

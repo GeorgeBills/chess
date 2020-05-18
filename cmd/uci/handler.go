@@ -68,6 +68,10 @@ func (h *handler) SetPositionFEN(fen string) {
 	h.game.SetBoard(b)
 }
 
+func (h *handler) PlayMove(move engine.FromTo) {
+	h.logger.Printf("playing move: %v", move)
+}
+
 func (h *handler) GoDepth(plies uint8) string {
 	h.logger.Println("go depth")
 	m, _ := h.game.BestMoveToDepth(plies * 2)

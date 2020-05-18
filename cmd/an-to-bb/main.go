@@ -19,12 +19,12 @@ func main() {
 			fatalsq(os.Args[i])
 		}
 
-		rank, file, err := engine.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
+		square, err := engine.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
 		if err != nil {
 			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
-		board |= 1 << engine.Square(rank, file)
+		board |= 1 << engine.Square(square.Rank, square.File)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)

@@ -2,6 +2,8 @@ package mocks
 
 import (
 	"errors"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 // Handler implements the uci.Handler interface in an easily mockable fashion.
@@ -11,6 +13,7 @@ type Handler struct {
 	NewGameFunc             func()
 	SetStartingPositionFunc func()
 	SetPositionFENFunc      func(fen string)
+	PlayMoveFunc            func(move engine.FromTo)
 	GoDepthFunc             func(plies uint8) string
 	GoNodesFunc             func(nodes uint64) string
 	GoInfiniteFunc          func()
@@ -60,6 +63,15 @@ func (h *Handler) SetPositionFEN(fen string) {
 		panic(errors.New("SetPosition not implemented"))
 	}
 	h.SetPositionFENFunc(fen)
+}
+
+// PlayMove implements uci.Handler.PlayMove().
+// It does so by calling the PlayMoveFunc explicitly added to the handler.
+func (h *Handler) PlayMove(move engine.FromTo) {
+	if h.PlayMoveFunc == nil {
+		panic(errors.New("PlayMove not implemented"))
+	}
+	h.PlayMoveFunc(move)
 }
 
 // GoDepth implements uci.Handler.GoDepth().

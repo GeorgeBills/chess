@@ -1,10 +1,22 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math/bits"
 )
+
+// FromTo is a tuple representing the "from" and "to" squares of a move.
+type FromTo struct {
+	From, To RankFile
+}
+
+// RankFile is a tuple representing the rank and file of a square. Both rank and
+// file are zero indexed.
+type RankFile struct {
+	Rank, File uint8
+}
 
 // ToAlgebraicNotation converts the index i to algebraic notation (e.g. A1, H8).
 // Results for indexes outside of the sane 0...63 range are undefined.
@@ -14,55 +26,95 @@ func ToAlgebraicNotation(i uint8) string {
 	return string([]byte{'a' + file, '1' + rank})
 }
 
+// ParseLongAlgebraicNotationString parses a string in Long Algebraic Notation
+// (e.g. "a1h8") as a from and to tuple.
+func ParseLongAlgebraicNotationString(str string) (FromTo, error) {
+	// FIXME: promotions... LAN might be 5 chars
+	if len(str) != 4 {
+		return FromTo{}, errors.New("invalid from to length")
+	}
+	from, err := ParseAlgebraicNotationString(str[0:2])
+	if err != nil {
+		return FromTo{}, err
+	}
+	to, err := ParseAlgebraicNotationString(str[2:4])
+	if err != nil {
+		return FromTo{}, err
+	}
+	return FromTo{from, to}, nil
+}
+
 // ParseAlgebraicNotation reads two runes from r and parses them as Algebraic
-// Notation, returning the rank and file (both zero indexed).
-func ParseAlgebraicNotation(r io.RuneReader) (rank, file uint8, err error) {
-	file, err = parseFile(r)
+// Notation, returning the rank and file tuple.
+func ParseAlgebraicNotation(r io.RuneReader) (RankFile, error) {
+	file, err := parseFile(r)
 	if err != nil {
-		return 0, 0, err
+		return RankFile{}, err
 	}
-	rank, err = parseRank(r)
+	rank, err := parseRank(r)
 	if err != nil {
-		return 0, 0, err
+		return RankFile{}, err
 	}
-	return rank, file, err
+	return RankFile{rank, file}, err
+}
+
+// ParseAlgebraicNotationString parses str as Algebraic Notation, returning the
+// rank and file tuple.
+func ParseAlgebraicNotationString(an string) (RankFile, error) {
+	if len(an) != 2 {
+		return RankFile{}, fmt.Errorf("unexpected '%s', with len %d", an, len(an))
+	}
+	file, err := parseFileChar(an[0])
+	if err != nil {
+		return RankFile{}, err
+	}
+	rank, err := parseRankChar(an[1])
+	if err != nil {
+		return RankFile{}, err
+	}
+	return RankFile{rank, file}, nil
 }
 
 func parseFile(r io.RuneReader) (uint8, error) {
-	ch, _, err := r.ReadRune() // read file
+	ch, n, err := r.ReadRune() // read file
 	if err != nil {
-		return 0, unexpectingEOF(err)
+		return 0, err
 	}
+	if n != 1 {
+		return 0, fmt.Errorf("unexpected '%c', expecting single byte rune", ch)
+	}
+	return parseFileChar(byte(ch))
+}
 
+func parseFileChar(ch byte) (uint8, error) {
 	switch ch {
 	case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h':
-		return uint8(ch - 'a'), nil
+		return ch - 'a', nil
 	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H':
-		return uint8(ch - 'A'), nil
+		return ch - 'A', nil
 	default:
 		return 0, fmt.Errorf("unexpected '%c', expecting [a-hA-H]", ch)
 	}
 }
 
 func parseRank(r io.RuneReader) (uint8, error) {
-	ch, _, err := r.ReadRune() // read rank
+	ch, n, err := r.ReadRune() // read rank
 	if err != nil {
-		return 0, unexpectingEOF(err)
+		return 0, err
 	}
+	if n != 1 {
+		return 0, fmt.Errorf("unexpected '%c', expecting single byte rune", ch)
+	}
+	return parseRankChar(byte(ch))
+}
 
+func parseRankChar(ch byte) (uint8, error) {
 	switch ch {
 	case '1', '2', '3', '4', '5', '6', '7', '8':
 		return uint8(ch - '1'), nil
 	default:
 		return 0, fmt.Errorf("unexpected '%c', expecting [1-8]", ch)
 	}
-}
-
-func unexpectingEOF(err error) error {
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
-	return err
 }
 
 // Rank returns the rank index (0...7) for a given square index.

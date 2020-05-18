@@ -208,17 +208,20 @@ const (
 // move is a capture (can be inferred from the "to" AN and the current state of
 // the board).
 func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
-	fromRank, fromFile, err := ParseAlgebraicNotation(r)
-	if err != nil {
-		return 0, err
-	}
-	fromSq := Square(fromRank, fromFile)
+	// TODO: we should take an engine.FromTo and call this "HydrateMove" or similar
+	//       (i.e. put the responsibility for string parsing on the client)
 
-	toRank, toFile, err := ParseAlgebraicNotation(r)
+	from, err := ParseAlgebraicNotation(r)
 	if err != nil {
 		return 0, err
 	}
-	toSq := Square(toRank, toFile)
+	fromSq := Square(from.Rank, from.File)
+
+	to, err := ParseAlgebraicNotation(r)
+	if err != nil {
+		return 0, err
+	}
+	toSq := Square(to.Rank, to.File)
 
 	isCapture := !b.isEmptyAt(toSq)
 
@@ -235,7 +238,7 @@ func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 			return NewEnPassant(fromSq, toSq), nil
 		}
 
-		if toRank == rank1 || toRank == rank8 {
+		if to.Rank == rank1 || to.Rank == rank8 {
 			// pawn moving to rank 1 or 8; must be a promotion
 			ch, _, err := r.ReadRune()
 			if err != nil {

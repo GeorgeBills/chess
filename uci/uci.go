@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 // GUI-to-engine constants are tokens sent from the GUI to the engine.
@@ -46,6 +48,7 @@ type Handler interface {
 	NewGame()
 	SetStartingPosition()
 	SetPositionFEN(fen string)
+	PlayMove(moves engine.FromTo)
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()
@@ -214,7 +217,8 @@ func commandPositionStarting(p *Parser) statefn {
 	p.logger.Println("command: position startpos")
 
 	p.handler.SetStartingPosition()
-	return waitingForCommand
+
+	return commandPositionMoves
 }
 
 func commandPositionFEN(p *Parser) statefn {
@@ -287,6 +291,51 @@ func commandPositionFEN(p *Parser) statefn {
 	buf.WriteRune(' ')
 
 	p.handler.SetPositionFEN(buf.String())
+
+	return commandPositionMoves
+}
+
+func commandPositionMoves(p *Parser) statefn {
+	p.logger.Println("command: position moves")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	// could be moves, could be EOL
+	switch token {
+	case "moves":
+		return commandPositionMovesMove
+	case "": // newline
+		return eol(p, waitingForCommand)
+	default:
+		return errorUnrecognized(p, token, commandPositionMoves)
+	}
+}
+
+func commandPositionMovesMove(p *Parser) statefn {
+	p.logger.Println("command: position moves move")
+
+	// loop over all moves
+	for {
+		token, err := nextToken(p.reader)
+		if err != nil {
+			return errorScanning(p, err)
+		}
+
+		if token == "" {
+			break // newline
+		}
+
+		move, err := engine.ParseLongAlgebraicNotationString(token)
+		if err != nil {
+			return errorUnrecognized(p, token, commandPositionMoves) // TODO: pass along err so we get decent logs
+		}
+
+		p.handler.PlayMove(move)
+	}
+
 	return waitingForCommand
 }
 
@@ -359,6 +408,7 @@ func commandQuit(p *Parser) statefn {
 // TODO: expectEOL: read spaces to EOL
 //                  error if there are any other tokens
 //                  transition to the specified next state
+//       most states should finish with expectEOL(expectCommand)
 
 func eol(p *Parser, next statefn) statefn {
 	// TODO: add "expected bool" param; if unexpected log a warning
@@ -368,6 +418,10 @@ func eol(p *Parser, next statefn) statefn {
 	}
 	return next
 }
+
+// TODO: define known types for various errors and pass to generic error handler
+// e.g. some methods might return diff errors, some fatal, some not
+// should use errors.Is() and similar to inspect the error
 
 // errorUnrecognized logs an "unrecognized token" error and then transitions to
 // the specified next state. In general, per the UCI specification which states
