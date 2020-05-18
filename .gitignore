@@ -4,3 +4,4 @@
 *.out
 *.prof
 *.test
+uci/engine-interface.txt
