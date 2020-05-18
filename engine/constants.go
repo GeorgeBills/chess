@@ -77,6 +77,9 @@ const (
 	H8
 )
 
+// Rank constants index the ranks ("rows") of the chess board. Rank 1 is closest
+// to the white player; rank 8 is closest to the black player. Ranks are zero
+// indexed.
 const (
 	rank1 = iota
 	rank2
@@ -88,6 +91,9 @@ const (
 	rank8
 )
 
+// File constants index the files ("columns") of the chess board. File A is to
+// the white players left; file H is to the white players right. Files are zero
+// indexed.
 const (
 	fileA = iota
 	fileB
