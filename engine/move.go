@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -202,26 +201,12 @@ const (
 	uciBlackQueensideCastle = "e8c8"
 )
 
-// ParseNewMoveFromUCIN parses a new move from Universal Chess Interface
-// Notation. UCIN is very similar to Long Algebraic Notation, but omits the
-// hyphen, the moving piece (can be inferred from the "from" AN) and whether the
-// move is a capture (can be inferred from the "to" AN and the current state of
-// the board).
-func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
-	// TODO: we should take an engine.FromTo and call this "HydrateMove" or similar
-	//       (i.e. put the responsibility for string parsing on the client)
-
-	from, err := ParseAlgebraicNotation(r)
-	if err != nil {
-		return 0, err
-	}
-	fromSq := Square(from.Rank, from.File)
-
-	to, err := ParseAlgebraicNotation(r)
-	if err != nil {
-		return 0, err
-	}
-	toSq := Square(to.Rank, to.File)
+// HydrateMove takes a minimal move (likely parsed from Long Algebraic Notation
+// or similar), checks it against the board for sanity, and returns the engines
+// internal representation of a move.
+func (b *Board) HydrateMove(m FromTo) (Move, error) {
+	fromSq := Square(m.From.Rank, m.From.File)
+	toSq := Square(m.To.Rank, m.To.File)
 
 	isCapture := !b.isEmptyAt(toSq)
 
@@ -238,23 +223,19 @@ func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 			return NewEnPassant(fromSq, toSq), nil
 		}
 
-		if to.Rank == rank1 || to.Rank == rank8 {
+		if m.To.Rank == rank1 || m.To.Rank == rank8 {
 			// pawn moving to rank 1 or 8; must be a promotion
-			ch, _, err := r.ReadRune()
-			if err != nil {
-				return 0, err
-			}
-			switch ch {
-			case 'q':
+			switch m.PromoteTo {
+			case PieceQueen:
 				return NewQueenPromotion(fromSq, toSq, isCapture), nil
-			case 'r':
+			case PieceRook:
 				return NewRookPromotion(fromSq, toSq, isCapture), nil
-			case 'n':
+			case PieceKnight:
 				return NewKnightPromotion(fromSq, toSq, isCapture), nil
-			case 'b':
+			case PieceBishop:
 				return NewBishopPromotion(fromSq, toSq, isCapture), nil
 			default:
-				return 0, fmt.Errorf("unexpected promotion '%c', expecting [qrnb]", ch)
+				return 0, fmt.Errorf("invalid piece to promote to: %v", m.PromoteTo)
 			}
 		}
 	}

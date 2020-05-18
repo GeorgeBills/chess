@@ -1,15 +1,16 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"math/bits"
 )
 
 // FromTo is a tuple representing the "from" and "to" squares of a move.
+// TODO: rename to Move and move up to chess pkg
 type FromTo struct {
-	From, To RankFile
+	From, To  RankFile
+	PromoteTo Piece
 }
 
 // RankFile is a tuple representing the rank and file of a square. Both rank and
@@ -28,20 +29,35 @@ func ToAlgebraicNotation(i uint8) string {
 
 // ParseLongAlgebraicNotationString parses a string in Long Algebraic Notation
 // (e.g. "a1h8") as a from and to tuple.
-func ParseLongAlgebraicNotationString(str string) (FromTo, error) {
+func ParseLongAlgebraicNotationString(lan string) (FromTo, error) {
 	// FIXME: promotions... LAN might be 5 chars
-	if len(str) != 4 {
-		return FromTo{}, errors.New("invalid from to length")
+	if len(lan) != 4 && len(lan) != 5 {
+		return FromTo{}, fmt.Errorf("invalid length for LAN: %d", len(lan))
 	}
-	from, err := ParseAlgebraicNotationString(str[0:2])
+	from, err := ParseAlgebraicNotationString(lan[0:2])
 	if err != nil {
 		return FromTo{}, err
 	}
-	to, err := ParseAlgebraicNotationString(str[2:4])
+	to, err := ParseAlgebraicNotationString(lan[2:4])
 	if err != nil {
 		return FromTo{}, err
 	}
-	return FromTo{from, to}, nil
+
+	promoteTo := PieceNone
+	if len(lan) == 5 {
+		switch lan[4] {
+		case 'q':
+			promoteTo = PieceQueen
+		case 'n':
+			promoteTo = PieceKnight
+		case 'r':
+			promoteTo = PieceRook
+		case 'b':
+			promoteTo = PieceBishop
+		}
+	}
+
+	return FromTo{from, to, promoteTo}, nil
 }
 
 // ParseAlgebraicNotation reads two runes from r and parses them as Algebraic

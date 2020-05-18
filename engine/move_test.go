@@ -63,8 +63,11 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 
 			g := NewGame(b)
 
+			parsed, err := ParseLongAlgebraicNotationString(tt.Move)
+			require.NoError(t, err)
+
 			// parse the move
-			move, err := b.ParseNewMoveFromUCIN(strings.NewReader(tt.Move))
+			move, err := b.HydrateMove(parsed)
 			require.NoError(t, err)
 			require.NotNil(t, move)
 
@@ -103,9 +106,11 @@ func TestMakeUnmakeMoveHistory(t *testing.T) {
 	b := engine.NewBoard()
 	g := engine.NewGame(&b)
 	for _, ucin := range opera {
-		m, err := b.ParseNewMoveFromUCIN(strings.NewReader(ucin))
+		parsed, err := ParseLongAlgebraicNotationString(ucin)
 		require.NoError(t, err)
-		g.MakeMove(m)
+		move, err := b.HydrateMove(parsed)
+		require.NoError(t, err)
+		g.MakeMove(move)
 	}
 	for i := 0; i < len(opera); i++ {
 		g.UnmakeMove()

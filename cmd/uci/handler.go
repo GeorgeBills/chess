@@ -70,6 +70,11 @@ func (h *handler) SetPositionFEN(fen string) {
 
 func (h *handler) PlayMove(move engine.FromTo) {
 	h.logger.Printf("playing move: %v", move)
+	m, err := h.game.HydrateMove(move)
+	if err != nil {
+		panic(err) // FIXME: return errors from most handler methods...
+	}
+	h.game.MakeMove(m)
 }
 
 func (h *handler) GoDepth(plies uint8) string {
