@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 )
 
 // Move is a 3-tuple representing the "from" and "to" squares of a move, as well

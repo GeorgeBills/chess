@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 )
 
 // https://www.chessprogramming.org/Forsyth-Edwards_Notation

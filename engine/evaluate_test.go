@@ -3,12 +3,13 @@ package engine_test
 import (
 	"encoding/json"
 	"flag"
-	"github.com/GeorgeBills/chess/m/v2/engine"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/GeorgeBills/chess/engine"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var update = flag.Bool("update", false, "update golden files")

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
-	. "github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/engine"
+	. "github.com/GeorgeBills/chess/engine"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

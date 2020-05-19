@@ -3,7 +3,7 @@ package engine_test
 import (
 	"testing"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/engine"
 	"github.com/stretchr/testify/assert"
 )
 
