@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
 )
@@ -29,6 +30,10 @@ const (
 	gteGoNodes    = "nodes"      // search x nodes only
 	gteGoMoveTime = "movetime"   // search exactly x mseconds
 	gteGoInfinite = "infinite"   // search until the stop command
+	gteWhiteTime  = "wtime"      // white has x msec left on the clock
+	gteBlackTime  = "btime"      // black has x msec left on the clock
+	gteWhiteInc   = "winc"       // white increment per move in mseconds
+	gteBlackInc   = "binc"       //	black increment per move in mseconds
 	gteStop       = "stop"       // stop calculating as soon as possible
 	gteQuit       = "quit"       // quit the program as soon as possible
 )
@@ -55,8 +60,12 @@ type Handler interface {
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()
+	GoTime(tc TimeControl) string
 	Quit()
 	// TODO: most handler methods should return error
+	// TODO: is "adapter" a better name for this?
+	// TODO: return proper type instead of string for moves?
+	//       handler shouldn't need to understand UCI format
 }
 
 // NewParser returns a new parser.
@@ -342,6 +351,11 @@ func commandPositionMovesMove(p *Parser) statefn {
 	return waitingForCommand
 }
 
+type TimeControl struct {
+	WhiteTime, BlackTime           time.Duration
+	WhiteIncrement, BlackIncrement time.Duration
+}
+
 func commandGo(p *Parser) statefn {
 	p.logger.Println("command: go")
 
@@ -357,8 +371,116 @@ func commandGo(p *Parser) statefn {
 		return commandGoInfinite
 	case gteGoNodes:
 		return commandGoNodes
+	case gteBlackTime:
+		return commandGoTimeBlackTime(p, TimeControl{})
+	case gteWhiteTime:
+		return commandGoTimeWhiteTime(p, TimeControl{})
+	case gteBlackInc:
+		return commandGoTimeBlackIncrement(p, TimeControl{})
+	case gteWhiteInc:
+		return commandGoTimeWhiteIncrement(p, TimeControl{})
+	case "": // newline
+		return eol(p, waitingForCommand)
+	default:
+		return errorUnrecognized(p, token, commandGo)
 	}
-	return waitingForCommand
+}
+
+func commandGoTime(p *Parser, accumulator TimeControl) statefn {
+	p.logger.Println("command: go time")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	switch token {
+	case gteBlackTime:
+		return commandGoTimeBlackTime(p, accumulator)
+	case gteWhiteTime:
+		return commandGoTimeWhiteTime(p, accumulator)
+	case gteBlackInc:
+		return commandGoTimeBlackIncrement(p, accumulator)
+	case gteWhiteInc:
+		return commandGoTimeWhiteIncrement(p, accumulator)
+	case "": // newline
+		// command finished, so run it
+		// TODO: check we have at least white and black time set
+		movestr := p.handler.GoTime(accumulator)
+		fmt.Fprintln(p.out, etgBestMove, movestr)
+		p.out.Flush() // FIXME: flushing is gross and complicated...
+		return eol(p, waitingForCommand)
+	default:
+		return errorUnrecognized(p, token, commandGoTime(p, accumulator))
+	}
+}
+
+func commandGoTimeWhiteTime(p *Parser, accumulator TimeControl) statefn {
+	p.logger.Println("command: go time white time")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	t, err := strconv.ParseUint(token, 10, 64)
+	if err != nil {
+		return errorParsingNumber(p, err, waitingForCommand)
+	}
+
+	accumulator.WhiteTime = time.Duration(t) * time.Millisecond
+	return commandGoTime(p, accumulator)
+}
+
+func commandGoTimeBlackTime(p *Parser, accumulator TimeControl) statefn {
+	p.logger.Println("command: go time black time")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	t, err := strconv.ParseUint(token, 10, 64)
+	if err != nil {
+		return errorParsingNumber(p, err, waitingForCommand)
+	}
+
+	accumulator.BlackTime = time.Duration(t) * time.Millisecond
+	return commandGoTime(p, accumulator)
+}
+
+func commandGoTimeWhiteIncrement(p *Parser, accumulator TimeControl) statefn {
+	p.logger.Println("command: go time white increment")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	t, err := strconv.ParseUint(token, 10, 64)
+	if err != nil {
+		return errorParsingNumber(p, err, waitingForCommand)
+	}
+
+	accumulator.WhiteIncrement = time.Duration(t) * time.Millisecond
+	return commandGoTime(p, accumulator)
+}
+
+func commandGoTimeBlackIncrement(p *Parser, accumulator TimeControl) statefn {
+	p.logger.Println("command: go time black increment")
+
+	token, err := nextToken(p.reader)
+	if err != nil {
+		return errorScanning(p, err)
+	}
+
+	t, err := strconv.ParseUint(token, 10, 64)
+	if err != nil {
+		return errorParsingNumber(p, err, waitingForCommand)
+	}
+
+	accumulator.BlackIncrement = time.Duration(t) * time.Millisecond
+	return commandGoTime(p, accumulator)
 }
 
 func commandGoDepth(p *Parser) statefn {
@@ -373,6 +495,7 @@ func commandGoDepth(p *Parser) statefn {
 	if err != nil {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
+
 	movestr := p.handler.GoDepth(uint8(plies))
 	fmt.Fprintln(p.out, etgBestMove, movestr)
 	return waitingForCommand
@@ -397,6 +520,7 @@ func commandGoNodes(p *Parser) statefn {
 	if err != nil {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
+
 	movestr := p.handler.GoNodes(nodes)
 	fmt.Fprintln(p.out, etgBestMove, movestr)
 	return waitingForCommand

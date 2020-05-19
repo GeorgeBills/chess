@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 // https://www.chessprogramming.org/Search
@@ -12,6 +13,26 @@ const (
 	minimizing = -1
 	infinity   = math.MaxInt16
 )
+
+func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncrement time.Duration) (Move, int16) {
+	return g.BestMoveToDepth(4)
+	// TODO: properly implement basic time controls
+	//
+	// http://www.chessgames.com/chessstats.html
+	// average game is 40 full moves (80 half moves) long
+	//
+	// asymptote from some max towards 0 for flat time controls
+	// asymptote from some max towards increment if incremented
+	//
+	// expected average game length, based on number of moves played
+	// games that go for 10 moves, on average go for another X moves...
+	// games that go for 20 moves, on average go for another Y moves...
+	// games that go for 30 moves, on average go for another Z moves...
+	// https://chess.stackexchange.com/a/4899:
+	//     59.3 + (72830 - 2330 k)/(2644 + k (10 + k))
+	//
+	// bump time if evaluations are unstable, the opposite if they're stable
+}
 
 // BestMoveToDepth returns the best move (with its score) to the given depth.
 func (g *Game) BestMoveToDepth(depth uint8) (Move, int16) {

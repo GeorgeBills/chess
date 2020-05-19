@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/m/v2/uci"
 )
 
 // Name is the name of our engine.
@@ -91,6 +92,12 @@ func (h *handler) GoNodes(nodes uint64) string {
 func (h *handler) GoInfinite() {
 	h.logger.Println("go infinite")
 	panic("GoInfinite not implemented")
+}
+
+func (h *handler) GoTime(tc uci.TimeControl) string {
+	h.logger.Println("go time")
+	m, _ := h.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
+	return m.SAN()
 }
 
 func (h *handler) Quit() { h.logger.Println("quit") } // nothing to cleanup

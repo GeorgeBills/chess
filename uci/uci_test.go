@@ -36,6 +36,7 @@ func TestUCI(t *testing.T) {
 	var calledIsReady bool
 	var calledSetStartingPosition bool
 	var calledGoDepthWith uint8
+	var calledGoTimeWith uci.TimeControl
 	var calledQuit bool
 	h := &mocks.Handler{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
@@ -53,6 +54,10 @@ func TestUCI(t *testing.T) {
 		GoDepthFunc: func(depth uint8) string {
 			calledGoDepthWith = depth
 			return "a1h8"
+		},
+		GoTimeFunc: func(tc uci.TimeControl) string {
+			calledGoTimeWith = tc
+			return "a8h1"
 		},
 		QuitFunc: func() {
 			calledQuit = true
@@ -93,12 +98,24 @@ func TestUCI(t *testing.T) {
 			assert.True(t, calledSetStartingPosition)
 		})
 
+		// TODO: test "position fen"
+		// TODO: test "position startpos moves e2e4"
+
 		t.Run("go depth", func(t *testing.T) {
 			buf.Reset()
 			pipew.Write([]byte("go depth 123\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a1h8\n", buf.String())
 			assert.EqualValues(t, 123, calledGoDepthWith)
+		})
+
+		t.Run("go wtime btime winc binc", func(t *testing.T) {
+			buf.Reset()
+			pipew.Write([]byte("go wtime 300000 btime 300000 winc 0 binc 0\n"))
+			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
+			assert.Equal(t, "bestmove a8h1\n", buf.String())
+			expected := uci.TimeControl{WhiteTime: 5 * time.Minute, BlackTime: 5 * time.Minute}
+			assert.EqualValues(t, expected, calledGoTimeWith)
 		})
 
 		t.Run("quit", func(t *testing.T) {

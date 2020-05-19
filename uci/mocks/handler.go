@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/m/v2/uci"
 )
 
 // Handler implements the uci.Handler interface in an easily mockable fashion.
@@ -17,6 +18,7 @@ type Handler struct {
 	GoDepthFunc             func(plies uint8) string
 	GoNodesFunc             func(nodes uint64) string
 	GoInfiniteFunc          func()
+	GoTimeFunc              func(tc uci.TimeControl) string
 	QuitFunc                func()
 }
 
@@ -99,6 +101,15 @@ func (h *Handler) GoInfinite() {
 		panic(errors.New("GoInfinite not implemented"))
 	}
 	h.GoInfiniteFunc()
+}
+
+// GoTime implements uci.Handler.GoTime().
+// It does so by calling the GoTimeFunc explicitly added to the handler.
+func (h *Handler) GoTime(tc uci.TimeControl) string {
+	if h.GoTimeFunc == nil {
+		panic(errors.New("GoTime not implemented"))
+	}
+	return h.GoTimeFunc(tc)
 }
 
 // Quit implements uci.Handler.Quit().
