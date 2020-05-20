@@ -69,7 +69,7 @@ func (h *handler) SetPositionFEN(fen string) {
 	h.game.SetBoard(b)
 }
 
-func (h *handler) PlayMove(move engine.FromTo) {
+func (h *handler) PlayMove(move engine.FromToPromote) {
 	h.logger.Printf("playing move: %v", move)
 	m, err := h.game.HydrateMove(move)
 	if err != nil {
@@ -81,7 +81,7 @@ func (h *handler) PlayMove(move engine.FromTo) {
 func (h *handler) GoDepth(plies uint8) string {
 	h.logger.Println("go depth")
 	m, _ := h.game.BestMoveToDepth(plies * 2)
-	return m.UCIN()
+	return engine.UCIN(m)
 }
 
 func (h *handler) GoNodes(nodes uint64) string {
@@ -97,7 +97,7 @@ func (h *handler) GoInfinite() {
 func (h *handler) GoTime(tc uci.TimeControl) string {
 	h.logger.Println("go time")
 	m, _ := h.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
-	return m.UCIN()
+	return engine.UCIN(m)
 }
 
 func (h *handler) Quit() { h.logger.Println("quit") } // nothing to cleanup

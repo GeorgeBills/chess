@@ -58,7 +58,7 @@ type Handler interface {
 	NewGame()
 	SetStartingPosition()
 	SetPositionFEN(fen string)
-	PlayMove(moves engine.FromTo)
+	PlayMove(move engine.FromToPromote)
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite()

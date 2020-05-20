@@ -8,6 +8,11 @@ import (
 // https://www.chessprogramming.org/Encoding_Moves
 
 // Move represents a chess move.
+//
+// This type unambiguously represents any chess move, and also encodes some meta
+// information such as whether the move is a capture, en passant, castling, etc.
+// This meta information is redundant (it can be recalculated from the move plus
+// the current board state) but can be useful for ordering moves.
 type Move uint16
 
 // NewMove returns a new move which is not a capture, promotion or castling.
@@ -114,38 +119,6 @@ func (m Move) SAN() string {
 	return san.String()
 }
 
-// UCIN returns the move in Universal Chess Interface Notation (e.g. "a7a8q").
-// UCIN is very similar to, but not exactly the same as, Long Algebraic
-// Notation.
-func (m Move) UCIN() string {
-	if m == 0 {
-		return "0000"
-	}
-
-	ucin := [5]byte{
-		'a' + File(m.From()), // a...h
-		'1' + Rank(m.From()), // 1...8
-		'a' + File(m.To()),   // a...h
-		'1' + Rank(m.To()),   // 1...8
-	}
-
-	if m.IsPromotion() {
-		switch {
-		case m&moveIsQueenPromotion == moveIsQueenPromotion:
-			ucin[4] = 'q'
-		case m&moveIsKnightPromotion == moveIsKnightPromotion:
-			ucin[4] = 'n'
-		case m&moveIsRookPromotion == moveIsRookPromotion:
-			ucin[4] = 'r'
-		case m&moveIsBishopPromotion == moveIsBishopPromotion:
-			ucin[4] = 'b'
-		}
-		return string(ucin[0:5])
-	}
-
-	return string(ucin[0:4])
-}
-
 // FIXME: en passant overlaps with promotion | capture, so ordering of evaluation matters...
 
 const (
@@ -204,6 +177,25 @@ func (m Move) To() uint8 {
 	return uint8((m & moveToMask) >> 0)
 }
 
+// PromoteTo returns which piece the move should promote to, or PieceNone.
+func (m Move) PromoteTo() Piece {
+	if !m.IsPromotion() {
+		return PieceNone
+	}
+	switch {
+	case m&moveIsQueenPromotion == moveIsQueenPromotion:
+		return PieceQueen
+	case m&moveIsKnightPromotion == moveIsKnightPromotion:
+		return PieceKnight
+	case m&moveIsRookPromotion == moveIsRookPromotion:
+		return PieceRook
+	case m&moveIsBishopPromotion == moveIsBishopPromotion:
+		return PieceBishop
+	default:
+		panic(fmt.Errorf("invalid promotion; %#v", m))
+	}
+}
+
 type Game struct {
 	*Board  // TODO: rename to BoardWithHistory or similar
 	history []moveCapture
@@ -213,9 +205,13 @@ func (g *Game) SetBoard(b *Board) {
 	g.Board = b
 }
 
+// moveCapture represents a chess move (including meta information such as
+// whether the move is a capture, en passant, castling, etc) along with the
+// information required to reverse the move.
 type moveCapture struct {
 	// NOTE: "reversible algebraic notation" is a standard for serializing this
 	//       https://en.wikipedia.org/wiki/Chess_notation
+	// TODO: rename to ReversibleMove
 	Move
 	capture      Piece
 	previousMeta byte
@@ -231,9 +227,8 @@ func NewGame(b *Board) Game {
 // HydrateMove takes a minimal move (likely parsed from Long Algebraic Notation
 // or similar), checks it against the board for sanity, and returns the engines
 // internal representation of a move.
-func (b *Board) HydrateMove(m FromTo) (Move, error) {
-	fromSq := Square(m.From.Rank, m.From.File)
-	toSq := Square(m.To.Rank, m.To.File)
+func (b *Board) HydrateMove(m FromToPromoter) (Move, error) {
+	fromSq, toSq := m.From(), m.To()
 
 	isCapture := !b.isEmptyAt(toSq)
 
@@ -250,20 +245,16 @@ func (b *Board) HydrateMove(m FromTo) (Move, error) {
 			return NewEnPassant(fromSq, toSq), nil
 		}
 
-		if m.To.Rank == rank1 || m.To.Rank == rank8 {
-			// pawn moving to rank 1 or 8; must be a promotion
-			switch m.PromoteTo {
-			case PieceQueen:
-				return NewQueenPromotion(fromSq, toSq, isCapture), nil
-			case PieceRook:
-				return NewRookPromotion(fromSq, toSq, isCapture), nil
-			case PieceKnight:
-				return NewKnightPromotion(fromSq, toSq, isCapture), nil
-			case PieceBishop:
-				return NewBishopPromotion(fromSq, toSq, isCapture), nil
-			default:
-				return 0, fmt.Errorf("invalid piece to promote to: %v", m.PromoteTo)
-			}
+		promoteTo := m.PromoteTo()
+		switch promoteTo {
+		case PieceQueen:
+			return NewQueenPromotion(fromSq, toSq, isCapture), nil
+		case PieceRook:
+			return NewRookPromotion(fromSq, toSq, isCapture), nil
+		case PieceKnight:
+			return NewKnightPromotion(fromSq, toSq, isCapture), nil
+		case PieceBishop:
+			return NewBishopPromotion(fromSq, toSq, isCapture), nil
 		}
 	}
 

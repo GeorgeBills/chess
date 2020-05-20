@@ -6,13 +6,56 @@ import (
 	"math/bits"
 )
 
-// FromTo is a tuple representing the "from" and "to" squares of a move.
+// FromToPromote is a tuple representing the "from" and "to" squares of a move,
+// as well as which piece the moving piece will promote to (if any). This is the
+// absolute minimum information required to unambiguously represent a chess
+// move.
+//
 // TODO: rename to Move and move up to chess pkg
-// TODO: provide From(), To(), UCIN(), methods as per other move types
-//       so that they all share the same interface if needed
-type FromTo struct {
-	From, To  RankFile
-	PromoteTo Piece
+type FromToPromote struct {
+	from, to  RankFile
+	promoteTo Piece
+}
+
+func (ftp FromToPromote) From() uint8      { return Square(ftp.from.Rank, ftp.from.File) }
+func (ftp FromToPromote) To() uint8        { return Square(ftp.to.Rank, ftp.to.File) }
+func (ftp FromToPromote) PromoteTo() Piece { return ftp.promoteTo }
+
+type FromToPromoter interface {
+	From() uint8
+	To() uint8
+	PromoteTo() Piece
+}
+
+// UCIN returns the move in Universal Chess Interface Notation (e.g. "a7a8q").
+// UCIN is very similar to, but not exactly the same as, Long Algebraic
+// Notation.
+func UCIN(ftp FromToPromoter) string {
+	from, to := ftp.From(), ftp.To()
+
+	ucin := [5]byte{
+		'a' + File(from), // a...h
+		'1' + Rank(from), // 1...8
+		'a' + File(to),   // a...h
+		'1' + Rank(to),   // 1...8
+	}
+
+	promoteTo := ftp.PromoteTo()
+	if promoteTo != PieceNone {
+		switch promoteTo {
+		case PieceQueen:
+			ucin[4] = 'q'
+		case PieceKnight:
+			ucin[4] = 'n'
+		case PieceRook:
+			ucin[4] = 'r'
+		case PieceBishop:
+			ucin[4] = 'b'
+		}
+		return string(ucin[0:5])
+	}
+
+	return string(ucin[0:4])
 }
 
 // RankFile is a tuple representing the rank and file of a square. Both rank and
@@ -31,18 +74,18 @@ func ToAlgebraicNotation(i uint8) string {
 
 // ParseLongAlgebraicNotationString parses a string in Long Algebraic Notation
 // (e.g. "a1h8") as a from and to tuple.
-func ParseLongAlgebraicNotationString(lan string) (FromTo, error) {
+func ParseLongAlgebraicNotationString(lan string) (FromToPromote, error) {
 	// FIXME: promotions... LAN might be 5 chars
 	if len(lan) != 4 && len(lan) != 5 {
-		return FromTo{}, fmt.Errorf("invalid length for LAN: %d", len(lan))
+		return FromToPromote{}, fmt.Errorf("invalid length for LAN: %d", len(lan))
 	}
 	from, err := ParseAlgebraicNotationString(lan[0:2])
 	if err != nil {
-		return FromTo{}, err
+		return FromToPromote{}, err
 	}
 	to, err := ParseAlgebraicNotationString(lan[2:4])
 	if err != nil {
-		return FromTo{}, err
+		return FromToPromote{}, err
 	}
 
 	promoteTo := PieceNone
@@ -59,7 +102,7 @@ func ParseLongAlgebraicNotationString(lan string) (FromTo, error) {
 		}
 	}
 
-	return FromTo{from, to, promoteTo}, nil
+	return FromToPromote{from, to, promoteTo}, nil
 }
 
 // ParseAlgebraicNotation reads two runes from r and parses them as Algebraic
