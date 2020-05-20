@@ -66,7 +66,7 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s > best.score {
+			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s >= best.score {
 				best.score = s
 				best.move = m
 			}
@@ -79,7 +79,7 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s < best.score {
+			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s <= best.score {
 				best.score = s
 				best.move = m
 			}

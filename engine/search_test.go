@@ -48,6 +48,12 @@ func TestBestMoveToDepth(t *testing.T) {
 			"d7h7",
 		},
 		{
+			"depth 3: must move even if checkmate is guaranteed",
+			"4k3/8/8/8/3Pn3/8/5K2/3b3q w - - 1 15",
+			3,
+			"f2e3",
+		},
+		{
 			"depth 4: mate in two",
 			"r3k3/r5Q1/8/8/8/8/5PPR/7K b - - 0 1",
 			4,
