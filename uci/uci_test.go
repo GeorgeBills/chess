@@ -40,6 +40,7 @@ func TestUCI(t *testing.T) {
 		NewGameFunc:             func() {},
 		IsReadyFunc:             func() {},
 		SetStartingPositionFunc: func() {},
+		SetPositionFENFunc:      func(fen string) {},
 		PlayMoveFunc:            func(ft engine.FromToPromote) {},
 		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
 		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
@@ -79,10 +80,11 @@ func TestUCI(t *testing.T) {
 			assert.Equal(t, "", buf.String())
 			assert.Len(t, h.SetStartingPositionCalls(), 1)
 			calls := h.PlayMoveCalls()
-			assert.Len(t, calls, 3)
-			assert.Equal(t, "e2e4", engine.UCIN(calls[0].Move))
-			assert.Equal(t, "e7e5", engine.UCIN(calls[1].Move))
-			assert.Equal(t, "f1c4", engine.UCIN(calls[2].Move))
+			if assert.Len(t, calls, 3) {
+				assert.Equal(t, "e2e4", engine.UCIN(calls[0].Move))
+				assert.Equal(t, "e7e5", engine.UCIN(calls[1].Move))
+				assert.Equal(t, "f1c4", engine.UCIN(calls[2].Move))
+			}
 		})
 
 		// TODO: test "position fen"
@@ -92,8 +94,9 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("go depth 123\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a1h8\n", buf.String())
-			assert.Len(t, h.GoDepthCalls(), 1)
-			assert.EqualValues(t, 123, h.GoDepthCalls()[0].Plies)
+			if assert.Len(t, h.GoDepthCalls(), 1) {
+				assert.EqualValues(t, 123, h.GoDepthCalls()[0].Plies)
+			}
 		})
 
 		t.Run("go wtime btime winc binc", func(t *testing.T) {
@@ -102,8 +105,9 @@ func TestUCI(t *testing.T) {
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a8h1\n", buf.String())
 			expected := uci.TimeControl{WhiteTime: 5 * time.Minute, BlackTime: 5 * time.Minute}
-			assert.Len(t, h.GoTimeCalls(), 1)
-			assert.Equal(t, expected, h.GoTimeCalls()[0].Tc)
+			if assert.Len(t, h.GoTimeCalls(), 1) {
+				assert.Equal(t, expected, h.GoTimeCalls()[0].Tc)
+			}
 		})
 
 		t.Run("quit", func(t *testing.T) {
