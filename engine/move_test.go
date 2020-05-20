@@ -39,6 +39,29 @@ func TestMove_SAN(t *testing.T) {
 	}
 }
 
+func TestMoveUCIN(t *testing.T) {
+	tests := []struct {
+		name     string
+		move     engine.Move
+		expected string
+	}{
+		{"quiet move", engine.NewMove(C3, E5), "c3e5"},
+		{"capture", engine.NewCapture(A1, A3), "a1a3"},
+		{"en passant", engine.NewEnPassant(D5, C6), "d5c6"},
+		{"kingside castling", engine.WhiteKingsideCastle, "e1g1"},
+		{"queenside castling", engine.BlackQueensideCastle, "e8c8"},
+		{"promotion to queen", engine.NewQueenPromotion(A7, A8, false), "a7a8q"},
+		{"promotion to bishop with capture", engine.NewBishopPromotion(B2, B1, true), "b2b1b"},
+		{"promotion to rook", engine.NewRookPromotion(C2, C1, false), "c2c1r"},
+		{"promotion to knight with capture", engine.NewKnightPromotion(D7, D8, true), "d7d8n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.move.UCIN())
+		})
+	}
+}
+
 // FIXME: better tests for parsing
 //        including parsing and attempting to play invalid moves
 

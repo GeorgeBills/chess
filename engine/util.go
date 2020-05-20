@@ -8,6 +8,8 @@ import (
 
 // FromTo is a tuple representing the "from" and "to" squares of a move.
 // TODO: rename to Move and move up to chess pkg
+// TODO: provide From(), To(), UCIN(), methods as per other move types
+//       so that they all share the same interface if needed
 type FromTo struct {
 	From, To  RankFile
 	PromoteTo Piece

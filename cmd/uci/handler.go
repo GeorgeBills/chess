@@ -81,7 +81,7 @@ func (h *handler) PlayMove(move engine.FromTo) {
 func (h *handler) GoDepth(plies uint8) string {
 	h.logger.Println("go depth")
 	m, _ := h.game.BestMoveToDepth(plies * 2)
-	return m.SAN()
+	return m.UCIN()
 }
 
 func (h *handler) GoNodes(nodes uint64) string {
@@ -97,7 +97,7 @@ func (h *handler) GoInfinite() {
 func (h *handler) GoTime(tc uci.TimeControl) string {
 	h.logger.Println("go time")
 	m, _ := h.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
-	return m.SAN()
+	return m.UCIN()
 }
 
 func (h *handler) Quit() { h.logger.Println("quit") } // nothing to cleanup

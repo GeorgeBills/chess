@@ -83,7 +83,7 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // type. Piece type can be unambiguously determined from the source square and
 // the current state of the board.
 func (m Move) SAN() string {
-	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
+	// TODO: convert to proper SAN e.g. "Nf3", "e4"; will need the board
 	if m == 0 {
 		return "-" // TODO: 0000 in UCI
 	}
@@ -112,6 +112,38 @@ func (m Move) SAN() string {
 		san.WriteString("=B")
 	}
 	return san.String()
+}
+
+// UCIN returns the move in Universal Chess Interface Notation (e.g. "a7a8q").
+// UCIN is very similar to, but not exactly the same as, Long Algebraic
+// Notation.
+func (m Move) UCIN() string {
+	if m == 0 {
+		return "0000"
+	}
+
+	ucin := [5]byte{
+		'a' + File(m.From()), // a...h
+		'1' + Rank(m.From()), // 1...8
+		'a' + File(m.To()),   // a...h
+		'1' + Rank(m.To()),   // 1...8
+	}
+
+	if m.IsPromotion() {
+		switch {
+		case m&moveIsQueenPromotion == moveIsQueenPromotion:
+			ucin[4] = 'q'
+		case m&moveIsKnightPromotion == moveIsKnightPromotion:
+			ucin[4] = 'n'
+		case m&moveIsRookPromotion == moveIsRookPromotion:
+			ucin[4] = 'r'
+		case m&moveIsBishopPromotion == moveIsBishopPromotion:
+			ucin[4] = 'b'
+		}
+		return string(ucin[0:5])
+	}
+
+	return string(ucin[0:4])
 }
 
 // FIXME: en passant overlaps with promotion | capture, so ordering of evaluation matters...
@@ -182,6 +214,8 @@ func (g *Game) SetBoard(b *Board) {
 }
 
 type moveCapture struct {
+	// NOTE: "reversible algebraic notation" is a standard for serializing this
+	//       https://en.wikipedia.org/wiki/Chess_notation
 	Move
 	capture      Piece
 	previousMeta byte
@@ -193,13 +227,6 @@ func NewGame(b *Board) Game {
 		history: make([]moveCapture, 0, 128),
 	}
 }
-
-const (
-	uciWhiteKingsideCastle  = "e1g1"
-	uciWhiteQueensideCastle = "e1c1"
-	uciBlackKingsideCastle  = "e8g8"
-	uciBlackQueensideCastle = "e8c8"
-)
 
 // HydrateMove takes a minimal move (likely parsed from Long Algebraic Notation
 // or similar), checks it against the board for sanity, and returns the engines
