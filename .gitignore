@@ -4,4 +4,9 @@
 *.out
 *.prof
 *.test
+
+# mocks generated with go generate
+**/mocks/*.go
+
+# uci specification document
 uci/engine-interface.txt

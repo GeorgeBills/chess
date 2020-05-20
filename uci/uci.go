@@ -49,6 +49,8 @@ const (
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
 
+//go:generate moq -out mocks/handler.go -pkg mocks . Handler
+
 // Handler handles events generated from parsing UCI.
 type Handler interface {
 	Identify() (name, author string, other map[string]string)

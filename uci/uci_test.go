@@ -20,7 +20,7 @@ const Author = "George Bills"
 func TestQuitBeforeUCI(t *testing.T) {
 	const in = "quit"
 	r := strings.NewReader(in)
-	h := &mocks.Handler{
+	h := &mocks.HandlerMock{
 		QuitFunc: func() {},
 	}
 	w := &bytes.Buffer{}
@@ -32,36 +32,16 @@ func TestQuitBeforeUCI(t *testing.T) {
 func TestUCI(t *testing.T) {
 	piper, pipew := io.Pipe()
 
-	var calledNewGame bool
-	var calledIsReady bool
-	var calledSetStartingPosition bool
-	var calledGoDepthWith uint8
-	var calledGoTimeWith uci.TimeControl
-	var calledQuit bool
-	h := &mocks.Handler{
+	h := &mocks.HandlerMock{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
-		NewGameFunc: func() {
-			calledNewGame = true
-		},
-		IsReadyFunc: func() {
-			calledIsReady = true
-		},
-		SetStartingPositionFunc: func() {
-			calledSetStartingPosition = true
-		},
-		GoDepthFunc: func(depth uint8) string {
-			calledGoDepthWith = depth
-			return "a1h8"
-		},
-		GoTimeFunc: func(tc uci.TimeControl) string {
-			calledGoTimeWith = tc
-			return "a8h1"
-		},
-		QuitFunc: func() {
-			calledQuit = true
-		},
+		NewGameFunc:             func() {},
+		IsReadyFunc:             func() {},
+		SetStartingPositionFunc: func() {},
+		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
+		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
+		QuitFunc:                func() {},
 	}
 
 	buf := &bytes.Buffer{}
@@ -79,7 +59,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("isready\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "readyok\n", buf.String())
-			assert.True(t, calledIsReady)
+			assert.Len(t, h.IsReadyCalls(), 1)
 		})
 
 		t.Run("ucinewgame", func(t *testing.T) {
@@ -87,7 +67,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("ucinewgame\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.True(t, calledNewGame)
+			assert.Len(t, h.NewGameCalls(), 1)
 		})
 
 		t.Run("position startpos", func(t *testing.T) {
@@ -95,7 +75,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("position startpos\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.True(t, calledSetStartingPosition)
+			assert.Len(t, h.SetStartingPositionCalls(), 1)
 		})
 
 		// TODO: test "position fen"
@@ -106,7 +86,8 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("go depth 123\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a1h8\n", buf.String())
-			assert.EqualValues(t, 123, calledGoDepthWith)
+			assert.Len(t, h.GoDepthCalls(), 1)
+			assert.EqualValues(t, 123, h.GoDepthCalls()[0].Plies)
 		})
 
 		t.Run("go wtime btime winc binc", func(t *testing.T) {
@@ -115,7 +96,8 @@ func TestUCI(t *testing.T) {
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a8h1\n", buf.String())
 			expected := uci.TimeControl{WhiteTime: 5 * time.Minute, BlackTime: 5 * time.Minute}
-			assert.EqualValues(t, expected, calledGoTimeWith)
+			assert.Len(t, h.GoTimeCalls(), 1)
+			assert.Equal(t, expected, h.GoTimeCalls()[0].Tc)
 		})
 
 		t.Run("quit", func(t *testing.T) {
@@ -123,7 +105,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("quit\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.True(t, calledQuit)
+			assert.Len(t, h.QuitCalls(), 1)
 		})
 
 		pipew.Close()
@@ -136,7 +118,7 @@ func TestUCI(t *testing.T) {
 func TestExtraInformation(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
-	h := &mocks.Handler{
+	h := &mocks.HandlerMock{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return "super-chess", "Jane Smith", map[string]string{
 				"version":      "v1.2.3",
