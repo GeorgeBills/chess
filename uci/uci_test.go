@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/GeorgeBills/chess/m/v2/uci"
 	"github.com/GeorgeBills/chess/m/v2/uci/mocks"
 	"github.com/stretchr/testify/assert"
@@ -39,6 +40,7 @@ func TestUCI(t *testing.T) {
 		NewGameFunc:             func() {},
 		IsReadyFunc:             func() {},
 		SetStartingPositionFunc: func() {},
+		PlayMoveFunc:            func(ft engine.FromToPromote) {},
 		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
 		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
 		QuitFunc:                func() {},
@@ -70,16 +72,20 @@ func TestUCI(t *testing.T) {
 			assert.Len(t, h.NewGameCalls(), 1)
 		})
 
-		t.Run("position startpos", func(t *testing.T) {
+		t.Run("position startpos moves", func(t *testing.T) {
 			buf.Reset()
-			pipew.Write([]byte("position startpos\n"))
+			pipew.Write([]byte("position startpos moves e2e4 e7e5 f1c4\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
 			assert.Len(t, h.SetStartingPositionCalls(), 1)
+			calls := h.PlayMoveCalls()
+			assert.Len(t, calls, 3)
+			assert.Equal(t, "e2e4", engine.UCIN(calls[0].Move))
+			assert.Equal(t, "e7e5", engine.UCIN(calls[1].Move))
+			assert.Equal(t, "f1c4", engine.UCIN(calls[2].Move))
 		})
 
 		// TODO: test "position fen"
-		// TODO: test "position startpos moves e2e4"
 
 		t.Run("go depth", func(t *testing.T) {
 			buf.Reset()
