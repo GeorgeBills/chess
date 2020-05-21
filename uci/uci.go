@@ -302,7 +302,6 @@ func commandPositionFEN(p *Parser) statefn {
 	if err := consume(p.reader, isSpace); err != nil {
 		return errorScanning(p, err)
 	}
-	buf.WriteRune(' ')
 
 	p.handler.SetPositionFEN(buf.String())
 
