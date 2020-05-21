@@ -598,7 +598,7 @@ func consume(r io.RuneScanner, pred func(rune) bool) error {
 	}
 }
 
-func accept(r io.RuneReader, buf *bytes.Buffer, valid string) error {
+func accept(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 	for {
 		c, _, err := r.ReadRune()
 		if err != nil {
@@ -608,6 +608,7 @@ func accept(r io.RuneReader, buf *bytes.Buffer, valid string) error {
 		case strings.IndexRune(valid, c) != -1:
 			buf.WriteRune(c)
 		case isSpace(c) || isEOL(c):
+			r.UnreadRune()
 			return nil
 		default:
 			return fmt.Errorf("unrecognized rune: %q", c)
