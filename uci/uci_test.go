@@ -44,6 +44,7 @@ func TestUCI(t *testing.T) {
 		PlayMoveFunc:            func(ft engine.FromToPromote) {},
 		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
 		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
+		GoNodesFunc:             func(nodes uint64) string { return "a1h1" },
 		QuitFunc:                func() {},
 	}
 
@@ -105,6 +106,16 @@ func TestUCI(t *testing.T) {
 			assert.Equal(t, "bestmove a1h8\n", buf.String())
 			if assert.Len(t, h.GoDepthCalls(), 1) {
 				assert.EqualValues(t, 123, h.GoDepthCalls()[0].Plies)
+			}
+		})
+
+		t.Run("go nodes", func(t *testing.T) {
+			buf.Reset()
+			pipew.Write([]byte("go nodes 456\n"))
+			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
+			assert.Equal(t, "bestmove a1h1\n", buf.String())
+			if assert.Len(t, h.GoNodesCalls(), 1) {
+				assert.EqualValues(t, 456, h.GoNodesCalls()[0].Nodes)
 			}
 		})
 
