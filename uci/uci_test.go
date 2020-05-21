@@ -87,7 +87,16 @@ func TestUCI(t *testing.T) {
 			}
 		})
 
-		// TODO: test "position fen"
+		t.Run("position fen", func(t *testing.T) {
+			buf.Reset()
+			pipew.Write([]byte("position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\n"))
+			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
+			assert.Equal(t, "", buf.String())
+			const expected = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+			if assert.Len(t, h.SetPositionFENCalls(), 1) {
+				assert.Equal(t, expected, h.SetPositionFENCalls()[0].Fen)
+			}
+		})
 
 		t.Run("go depth", func(t *testing.T) {
 			buf.Reset()
