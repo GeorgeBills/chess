@@ -41,7 +41,7 @@ func TestUCI(t *testing.T) {
 		IsReadyFunc:             func() {},
 		SetStartingPositionFunc: func() {},
 		SetPositionFENFunc:      func(fen string) {},
-		ApplyMoveFunc:           func(ft chess.Move) {},
+		ApplyMoveFunc:           func(ft chess.FromToPromoter) {},
 		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
 		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
 		GoNodesFunc:             func(nodes uint64) string { return "a1h1" },

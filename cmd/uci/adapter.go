@@ -70,7 +70,7 @@ func (a *adapter) SetPositionFEN(fen string) {
 	a.game.SetBoard(b)
 }
 
-func (a *adapter) ApplyMove(move chess.Move) {
+func (a *adapter) ApplyMove(move chess.FromToPromoter) {
 	a.logger.Printf("playing move: %v", move)
 	m, err := a.game.HydrateMove(move)
 	if err != nil {

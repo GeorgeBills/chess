@@ -11,7 +11,7 @@ type Adapter interface {
 	NewGame()
 	SetStartingPosition()
 	SetPositionFEN(fen string)
-	ApplyMove(move chess.Move) // TODO: can take FromToPromoter
+	ApplyMove(move chess.FromToPromoter)
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite(stopch <-chan struct{})
