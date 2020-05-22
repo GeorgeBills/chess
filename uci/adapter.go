@@ -1,6 +1,6 @@
 package uci
 
-import "github.com/GeorgeBills/chess/m/v2/engine"
+import chess "github.com/GeorgeBills/chess/m/v2"
 
 //go:generate moq -out mocks/adapter.go -pkg mocks . Adapter
 
@@ -11,7 +11,7 @@ type Adapter interface {
 	NewGame()
 	SetStartingPosition()
 	SetPositionFEN(fen string)
-	ApplyMove(move engine.FromToPromote)
+	ApplyMove(move chess.Move) // TODO: can take FromToPromoter
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
 	GoInfinite(stopch <-chan struct{})

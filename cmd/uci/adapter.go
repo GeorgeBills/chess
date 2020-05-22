@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	chess "github.com/GeorgeBills/chess/m/v2"
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	"github.com/GeorgeBills/chess/m/v2/uci"
 )
@@ -69,7 +70,7 @@ func (a *adapter) SetPositionFEN(fen string) {
 	a.game.SetBoard(b)
 }
 
-func (a *adapter) ApplyMove(move engine.FromToPromote) {
+func (a *adapter) ApplyMove(move chess.Move) {
 	a.logger.Printf("playing move: %v", move)
 	m, err := a.game.HydrateMove(move)
 	if err != nil {
@@ -81,7 +82,7 @@ func (a *adapter) ApplyMove(move engine.FromToPromote) {
 func (a *adapter) GoDepth(plies uint8) string {
 	a.logger.Println("go depth")
 	m, _ := a.game.BestMoveToDepth(plies * 2)
-	return engine.UCIN(m)
+	return uci.ToUCIN(m)
 }
 
 func (a *adapter) GoNodes(nodes uint64) string {
@@ -97,7 +98,7 @@ func (a *adapter) GoInfinite(stopch <-chan struct{}) {
 func (a *adapter) GoTime(tc uci.TimeControl) string {
 	a.logger.Println("go time")
 	m, _ := a.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
-	return engine.UCIN(m)
+	return uci.ToUCIN(m)
 }
 
 func (a *adapter) Quit() { a.logger.Println("quit") } // nothing to cleanup

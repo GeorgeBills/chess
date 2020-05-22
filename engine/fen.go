@@ -8,6 +8,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // https://www.chessprogramming.org/Forsyth-Edwards_Notation
@@ -32,7 +34,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 	var i uint8
 
 	for i = 0; i < 64; i++ {
-		poi := PrintOrderedIndex(i)
+		poi := chess.PrintOrderedIndex(i)
 		p := b.PieceAt(poi)
 
 		// sequences of empty squares are indicated with their count
@@ -115,7 +117,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 
 	ep := b.EnPassant()
 	if ep != math.MaxUint8 {
-		sb.WriteString(ToAlgebraicNotation(ep))
+		sb.WriteString(chess.ToAlgebraicNotation(ep))
 	} else {
 		sb.WriteRune('-')
 	}
@@ -221,7 +223,7 @@ READ_SQUARES:
 			}
 		}
 
-		var mask uint64 = 1 << PrintOrderedIndex(i)
+		var mask uint64 = 1 << chess.PrintOrderedIndex(i)
 
 		switch ch {
 		case 'P':
@@ -337,7 +339,7 @@ READ_CASTLING:
 
 		b.meta |= maskCanEnPassant
 
-		square, err := ParseAlgebraicNotation(r)
+		square, err := chess.ParseAlgebraicNotation(r)
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}

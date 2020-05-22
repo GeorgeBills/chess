@@ -7,7 +7,7 @@ import (
 	"log"
 	"sort"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // NewExecutor returns a new executor.
@@ -99,7 +99,7 @@ func (c cmdSetPositionFEN) Exec(a Adapter, responsech chan<- fmt.Stringer, stopc
 }
 
 type cmdApplyMove struct {
-	move engine.FromToPromote
+	move chess.Move
 }
 
 func (c cmdApplyMove) Exec(a Adapter, responsech chan<- fmt.Stringer, stopch <-chan struct{}) {

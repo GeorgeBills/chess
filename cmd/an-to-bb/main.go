@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 func main() {
@@ -19,12 +19,12 @@ func main() {
 			fatalsq(os.Args[i])
 		}
 
-		square, err := engine.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
+		square, err := chess.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
 		if err != nil {
 			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
-		board |= 1 << engine.Square(square.Rank, square.File)
+		board |= 1 << chess.Square(square.Rank, square.File)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)

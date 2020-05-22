@@ -3,6 +3,8 @@ package engine
 import (
 	"fmt"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // https://www.chessprogramming.org/Encoding_Moves
@@ -99,11 +101,11 @@ func (m Move) SAN() string {
 		return "O-O-O"
 	}
 	var san strings.Builder
-	san.WriteString(ToAlgebraicNotation(m.From()))
+	san.WriteString(chess.ToAlgebraicNotation(m.From()))
 	if m.IsCapture() {
 		san.WriteByte('x')
 	}
-	san.WriteString(ToAlgebraicNotation(m.To()))
+	san.WriteString(chess.ToAlgebraicNotation(m.To()))
 	switch {
 	case m&moveMetaMask == moveIsEnPassant:
 		san.WriteString("e.p.")
@@ -178,19 +180,19 @@ func (m Move) To() uint8 {
 }
 
 // PromoteTo returns which piece the move should promote to, or PieceNone.
-func (m Move) PromoteTo() Piece {
+func (m Move) PromoteTo() chess.PromoteTo {
 	if !m.IsPromotion() {
-		return PieceNone
+		return chess.PromoteToNone
 	}
 	switch {
 	case m&moveIsQueenPromotion == moveIsQueenPromotion:
-		return PieceQueen
+		return chess.PromoteToQueen
 	case m&moveIsKnightPromotion == moveIsKnightPromotion:
-		return PieceKnight
+		return chess.PromoteToKnight
 	case m&moveIsRookPromotion == moveIsRookPromotion:
-		return PieceRook
+		return chess.PromoteToRook
 	case m&moveIsBishopPromotion == moveIsBishopPromotion:
-		return PieceBishop
+		return chess.PromoteToBishop
 	default:
 		panic(fmt.Errorf("invalid promotion; %#v", m))
 	}
@@ -227,7 +229,7 @@ func NewGame(b *Board) Game {
 // HydrateMove takes a minimal move (likely parsed from Long Algebraic Notation
 // or similar), checks it against the board for sanity, and returns the engines
 // internal representation of a move.
-func (b *Board) HydrateMove(m FromToPromoter) (Move, error) {
+func (b *Board) HydrateMove(m chess.FromToPromoter) (Move, error) {
 	fromSq, toSq := m.From(), m.To()
 
 	isCapture := !b.isEmptyAt(toSq)
@@ -247,13 +249,13 @@ func (b *Board) HydrateMove(m FromToPromoter) (Move, error) {
 
 		promoteTo := m.PromoteTo()
 		switch promoteTo {
-		case PieceQueen:
+		case chess.PromoteToQueen:
 			return NewQueenPromotion(fromSq, toSq, isCapture), nil
-		case PieceRook:
+		case chess.PromoteToRook:
 			return NewRookPromotion(fromSq, toSq, isCapture), nil
-		case PieceKnight:
+		case chess.PromoteToKnight:
 			return NewKnightPromotion(fromSq, toSq, isCapture), nil
-		case PieceBishop:
+		case chess.PromoteToBishop:
 			return NewBishopPromotion(fromSq, toSq, isCapture), nil
 		}
 	}
@@ -332,7 +334,7 @@ func (g *Game) MakeMove(move Move) {
 	switch {
 	case move.IsPawnDoublePush():
 		g.meta |= maskCanEnPassant
-		g.meta |= File(from)
+		g.meta |= chess.File(from)
 	case move.IsKingsideCastling():
 		switch tomove {
 		case White:

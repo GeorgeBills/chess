@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	chess "github.com/GeorgeBills/chess/m/v2"
 	"github.com/GeorgeBills/chess/m/v2/uci"
 	"github.com/GeorgeBills/chess/m/v2/uci/mocks"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +41,7 @@ func TestUCI(t *testing.T) {
 		IsReadyFunc:             func() {},
 		SetStartingPositionFunc: func() {},
 		SetPositionFENFunc:      func(fen string) {},
-		ApplyMoveFunc:           func(ft engine.FromToPromote) {},
+		ApplyMoveFunc:           func(ft chess.Move) {},
 		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
 		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
 		GoNodesFunc:             func(nodes uint64) string { return "a1h1" },
@@ -82,9 +82,9 @@ func TestUCI(t *testing.T) {
 			assert.Len(t, a.SetStartingPositionCalls(), 1)
 			calls := a.ApplyMoveCalls()
 			if assert.Len(t, calls, 3) {
-				assert.Equal(t, "e2e4", engine.UCIN(calls[0].Move))
-				assert.Equal(t, "e7e5", engine.UCIN(calls[1].Move))
-				assert.Equal(t, "f1c4", engine.UCIN(calls[2].Move))
+				assert.Equal(t, "e2e4", uci.ToUCIN(calls[0].Move))
+				assert.Equal(t, "e7e5", uci.ToUCIN(calls[1].Move))
+				assert.Equal(t, "f1c4", uci.ToUCIN(calls[2].Move))
 			}
 		})
 

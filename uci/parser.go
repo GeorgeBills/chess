@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/GeorgeBills/chess/m/v2/engine"
 )
 
 // GUI-to-engine constants are tokens sent from the GUI to the engine.
@@ -280,7 +278,7 @@ func commandPositionMovesMove(p *Parser) statefn {
 			break // newline
 		}
 
-		move, err := engine.ParseLongAlgebraicNotationString(token)
+		move, err := ParseUCIN(token)
 		if err != nil {
 			return errorUnrecognized(p, token, commandPositionMoves) // TODO: pass along err so we get decent logs
 		}

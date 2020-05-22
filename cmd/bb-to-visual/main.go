@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		if i != 0 && i%8 == 0 {
 			f.WriteRune('\n')
 		}
-		idx := engine.PrintOrderedIndex(i) // reverse ranks as we print
+		idx := chess.PrintOrderedIndex(i) // reverse ranks as we print
 		if board&(1<<idx) != 0 {
 			f.WriteRune('■')
 		} else {
