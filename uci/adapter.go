@@ -12,12 +12,10 @@ type Adapter interface {
 	SetStartingPosition()
 	SetPositionFEN(fen string)
 	ApplyMove(move chess.FromToPromoter)
-	GoDepth(plies uint8) string
-	GoNodes(nodes uint64) string
+	GoDepth(plies uint8) chess.FromToPromoter
+	GoNodes(nodes uint64) chess.FromToPromoter
 	GoInfinite(stopch <-chan struct{})
-	GoTime(tc TimeControl) string
+	GoTime(tc TimeControl) chess.FromToPromoter
 	Quit()
 	// TODO: most adapter methods should return error
-	// TODO: return proper type instead of string for moves?
-	//       adapter shouldn't need to understand UCI format
 }

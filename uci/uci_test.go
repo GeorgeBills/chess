@@ -30,6 +30,14 @@ func TestQuitBeforeUCI(t *testing.T) {
 	assert.Equal(t, "", w.String())
 }
 
+func mustParseMove(ucin string) chess.Move {
+	m, err := uci.ParseUCIN(ucin)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
 func TestUCI(t *testing.T) {
 	piper, pipew := io.Pipe()
 
@@ -42,9 +50,9 @@ func TestUCI(t *testing.T) {
 		SetStartingPositionFunc: func() {},
 		SetPositionFENFunc:      func(fen string) {},
 		ApplyMoveFunc:           func(ft chess.FromToPromoter) {},
-		GoDepthFunc:             func(depth uint8) string { return "a1h8" },
-		GoTimeFunc:              func(tc uci.TimeControl) string { return "a8h1" },
-		GoNodesFunc:             func(nodes uint64) string { return "a1h1" },
+		GoDepthFunc:             func(depth uint8) chess.FromToPromoter { return mustParseMove("a1h8") },
+		GoTimeFunc:              func(tc uci.TimeControl) chess.FromToPromoter { return mustParseMove("a8h1") },
+		GoNodesFunc:             func(nodes uint64) chess.FromToPromoter { return mustParseMove("a1h1") },
 		QuitFunc:                func() {},
 	}
 

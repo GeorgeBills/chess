@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // Engine-to-GUI constants are tokens sent from the engine to the GUI.
@@ -55,9 +57,10 @@ type responseIsReady struct{}
 func (r responseIsReady) String() string { return etgReadyOK }
 
 type responseBestMove struct {
-	movestr string // TODO: un stringly-type this
+	move chess.FromToPromoter
 }
 
 func (r responseBestMove) String() string {
-	return strings.Join([]string{etgBestMove, r.movestr}, " ")
+	movestr := ToUCIN(r.move)
+	return strings.Join([]string{etgBestMove, movestr}, " ")
 }

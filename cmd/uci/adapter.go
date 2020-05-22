@@ -79,13 +79,13 @@ func (a *adapter) ApplyMove(move chess.FromToPromoter) {
 	a.game.MakeMove(m)
 }
 
-func (a *adapter) GoDepth(plies uint8) string {
+func (a *adapter) GoDepth(plies uint8) chess.FromToPromoter {
 	a.logger.Println("go depth")
 	m, _ := a.game.BestMoveToDepth(plies * 2)
-	return uci.ToUCIN(m)
+	return m
 }
 
-func (a *adapter) GoNodes(nodes uint64) string {
+func (a *adapter) GoNodes(nodes uint64) chess.FromToPromoter {
 	a.logger.Println("go nodes")
 	panic("GoNodes not implemented")
 }
@@ -95,10 +95,10 @@ func (a *adapter) GoInfinite(stopch <-chan struct{}) {
 	panic("GoInfinite not implemented")
 }
 
-func (a *adapter) GoTime(tc uci.TimeControl) string {
+func (a *adapter) GoTime(tc uci.TimeControl) chess.FromToPromoter {
 	a.logger.Println("go time")
 	m, _ := a.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
-	return uci.ToUCIN(m)
+	return m
 }
 
 func (a *adapter) Quit() { a.logger.Println("quit") } // nothing to cleanup
