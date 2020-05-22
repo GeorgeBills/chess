@@ -21,11 +21,11 @@ const Author = "George Bills"
 func TestQuitBeforeUCI(t *testing.T) {
 	const in = "quit"
 	r := strings.NewReader(in)
-	h := &mocks.HandlerMock{
+	a := &mocks.AdapterMock{
 		QuitFunc: func() {},
 	}
 	w := &bytes.Buffer{}
-	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p := uci.NewParser(a, r, w, ioutil.Discard)
 	p.Run()
 	assert.Equal(t, "", w.String())
 }
@@ -33,7 +33,7 @@ func TestQuitBeforeUCI(t *testing.T) {
 func TestUCI(t *testing.T) {
 	piper, pipew := io.Pipe()
 
-	h := &mocks.HandlerMock{
+	a := &mocks.AdapterMock{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return Name, Author, nil
 		},
@@ -63,7 +63,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("isready\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "readyok\n", buf.String())
-			assert.Len(t, h.IsReadyCalls(), 1)
+			assert.Len(t, a.IsReadyCalls(), 1)
 		})
 
 		t.Run("ucinewgame", func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("ucinewgame\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.Len(t, h.NewGameCalls(), 1)
+			assert.Len(t, a.NewGameCalls(), 1)
 		})
 
 		t.Run("position startpos moves", func(t *testing.T) {
@@ -79,8 +79,8 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("position startpos moves e2e4 e7e5 f1c4\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.Len(t, h.SetStartingPositionCalls(), 1)
-			calls := h.ApplyMoveCalls()
+			assert.Len(t, a.SetStartingPositionCalls(), 1)
+			calls := a.ApplyMoveCalls()
 			if assert.Len(t, calls, 3) {
 				assert.Equal(t, "e2e4", engine.UCIN(calls[0].Move))
 				assert.Equal(t, "e7e5", engine.UCIN(calls[1].Move))
@@ -94,8 +94,8 @@ func TestUCI(t *testing.T) {
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
 			const expected = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-			if assert.Len(t, h.SetPositionFENCalls(), 1) {
-				assert.Equal(t, expected, h.SetPositionFENCalls()[0].Fen)
+			if assert.Len(t, a.SetPositionFENCalls(), 1) {
+				assert.Equal(t, expected, a.SetPositionFENCalls()[0].Fen)
 			}
 		})
 
@@ -104,8 +104,8 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("go depth 123\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a1h8\n", buf.String())
-			if assert.Len(t, h.GoDepthCalls(), 1) {
-				assert.EqualValues(t, 123, h.GoDepthCalls()[0].Plies)
+			if assert.Len(t, a.GoDepthCalls(), 1) {
+				assert.EqualValues(t, 123, a.GoDepthCalls()[0].Plies)
 			}
 		})
 
@@ -114,8 +114,8 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("go nodes 456\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a1h1\n", buf.String())
-			if assert.Len(t, h.GoNodesCalls(), 1) {
-				assert.EqualValues(t, 456, h.GoNodesCalls()[0].Nodes)
+			if assert.Len(t, a.GoNodesCalls(), 1) {
+				assert.EqualValues(t, 456, a.GoNodesCalls()[0].Nodes)
 			}
 		})
 
@@ -125,8 +125,8 @@ func TestUCI(t *testing.T) {
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "bestmove a8h1\n", buf.String())
 			expected := uci.TimeControl{WhiteTime: 5 * time.Minute, BlackTime: 5 * time.Minute}
-			if assert.Len(t, h.GoTimeCalls(), 1) {
-				assert.Equal(t, expected, h.GoTimeCalls()[0].Tc)
+			if assert.Len(t, a.GoTimeCalls(), 1) {
+				assert.Equal(t, expected, a.GoTimeCalls()[0].Tc)
 			}
 		})
 
@@ -135,20 +135,20 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("quit\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.Len(t, h.QuitCalls(), 1)
+			assert.Len(t, a.QuitCalls(), 1)
 		})
 
 		pipew.Close()
 	}()
 
-	p := uci.NewParser(h, piper, buf, os.Stderr)
+	p := uci.NewParser(a, piper, buf, os.Stderr)
 	p.Run()
 }
 
 func TestExtraInformation(t *testing.T) {
 	const in = "uci\nquit"
 	r := strings.NewReader(in)
-	h := &mocks.HandlerMock{
+	a := &mocks.AdapterMock{
 		IdentifyFunc: func() (name, author string, other map[string]string) {
 			return "super-chess", "Jane Smith", map[string]string{
 				"version":      "v1.2.3",
@@ -158,7 +158,7 @@ func TestExtraInformation(t *testing.T) {
 		QuitFunc: func() {},
 	}
 	w := &bytes.Buffer{}
-	p := uci.NewParser(h, r, w, ioutil.Discard)
+	p := uci.NewParser(a, r, w, ioutil.Discard)
 	p.Run()
 	const expected = "id name super-chess\nid author Jane Smith\nid release-date 2020-05-16\nid version v1.2.3\nuciok\n"
 	assert.Equal(t, expected, w.String())

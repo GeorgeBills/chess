@@ -13,8 +13,8 @@ func main() {
 		fatal(err)
 	}
 
-	h := newHandler(logf)
-	parser := uci.NewParser(h, os.Stdin, os.Stdout, logf)
+	a := newAdapter(logf)
+	parser := uci.NewParser(a, os.Stdin, os.Stdout, logf)
 	parser.Run()
 }
 

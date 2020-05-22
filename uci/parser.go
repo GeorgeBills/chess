@@ -39,11 +39,11 @@ const (
 )
 
 // NewParser returns a new parser.
-func NewParser(h Handler, r io.Reader, outw, logw io.Writer) *Parser {
+func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 	commandch := make(chan execer, 0) // unbuffered
 	responsech := make(chan fmt.Stringer, 100)
 	resp := NewResponder(responsech, outw)
-	exec := NewExecutor(commandch, h, responsech, logw)
+	exec := NewExecutor(commandch, a, responsech, logw)
 	return &Parser{
 		resp:      resp,
 		exec:      exec,

@@ -2,10 +2,10 @@ package uci
 
 import "github.com/GeorgeBills/chess/m/v2/engine"
 
-//go:generate moq -out mocks/handler.go -pkg mocks . Handler
+//go:generate moq -out mocks/adapter.go -pkg mocks . Adapter
 
-// Handler handles events generated from parsing UCI.
-type Handler interface {
+// Adapter handles events generated from parsing UCI.
+type Adapter interface {
 	Identify() (name, author string, other map[string]string)
 	IsReady()
 	NewGame()
@@ -17,8 +17,7 @@ type Handler interface {
 	GoInfinite()
 	GoTime(tc TimeControl) string
 	Quit()
-	// TODO: most handler methods should return error
-	// TODO: is "adapter" a better name for this?
+	// TODO: most adapter methods should return error
 	// TODO: return proper type instead of string for moves?
-	//       handler shouldn't need to understand UCI format
+	//       adapter shouldn't need to understand UCI format
 }
