@@ -42,12 +42,16 @@ const (
 func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 	commandch := make(chan execer, 0) // unbuffered
 	responsech := make(chan fmt.Stringer, 100)
+	stopch := make(chan struct{}, 1)
+	quitch := make(chan struct{}, 1)
 	resp := NewResponder(responsech, outw)
-	exec := NewExecutor(commandch, a, responsech, logw)
+	exec := NewExecutor(commandch, stopch, quitch, a, responsech, logw)
 	return &Parser{
 		resp:      resp,
 		exec:      exec,
 		commandch: commandch,
+		stopch:    stopch,
+		quitch:    quitch,
 		reader:    bufio.NewReader(r),
 		logger:    log.New(logw, "parser: ", log.LstdFlags),
 	}
@@ -55,11 +59,12 @@ func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 
 // Parser parses and generates events from UCI.
 type Parser struct {
-	resp      *Responder // TODO: decouple Responder off Parser struct
-	exec      *Executor  // TODO: decouple Executor off Parser struct
-	logger    *log.Logger
-	commandch chan<- execer
-	reader    io.RuneScanner
+	resp           *Responder // TODO: decouple Responder off Parser struct
+	exec           *Executor  // TODO: decouple Executor off Parser struct
+	logger         *log.Logger
+	commandch      chan<- execer
+	stopch, quitch chan<- struct{}
+	reader         io.RuneScanner
 }
 
 // Run starts the parser.
@@ -126,6 +131,8 @@ func waitingForCommand(p *Parser) statefn { // TODO: "running"
 		return commandGo
 	case gteQuit:
 		return commandQuit
+	case gteStop:
+		return p.emitStop(waitingForCommand)
 	case "":
 		return eol(p, waitingForCommand)
 	default:
@@ -456,6 +463,12 @@ func commandQuit(p *Parser) statefn {
 	p.logger.Println("quitting")
 	panic(errors.New("quit not implemented"))
 	return nil
+}
+
+func (p *Parser) emitStop(next statefn) statefn {
+	p.logger.Println("stopping current command")
+	p.stopch <- struct{}{}
+	return next
 }
 
 // TODO: expectEOL: read spaces to EOL

@@ -14,7 +14,7 @@ type Adapter interface {
 	ApplyMove(move engine.FromToPromote)
 	GoDepth(plies uint8) string
 	GoNodes(nodes uint64) string
-	GoInfinite()
+	GoInfinite(stopch <-chan struct{})
 	GoTime(tc TimeControl) string
 	Quit()
 	// TODO: most adapter methods should return error

@@ -89,7 +89,7 @@ func (a *adapter) GoNodes(nodes uint64) string {
 	panic("GoNodes not implemented")
 }
 
-func (a *adapter) GoInfinite() {
+func (a *adapter) GoInfinite(stopch <-chan struct{}) {
 	a.logger.Println("go infinite")
 	panic("GoInfinite not implemented")
 }
