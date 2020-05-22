@@ -339,7 +339,7 @@ READ_CASTLING:
 
 		b.meta |= maskCanEnPassant
 
-		square, err := chess.ParseAlgebraicNotation(r)
+		epRank, epFile, err := chess.ParseAlgebraicNotation(r)
 		if err != nil {
 			return nil, unexpectingEOF(err)
 		}
@@ -357,17 +357,17 @@ READ_CASTLING:
 		// inconsistent.
 		switch tomove {
 		case 'w':
-			if square.Rank != rank6 {
-				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", square.Rank+1)
+			if epRank != rank6 {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", epRank+1)
 			}
 		case 'b':
-			if square.Rank != rank3 {
-				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", square.Rank+1)
+			if epRank != rank3 {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", epRank+1)
 			}
 		}
 
 		// store the zero indexed file as the last 4 bits in the board meta
-		b.meta |= square.File
+		b.meta |= epFile
 	}
 
 	if err = skipspace(); err != nil {

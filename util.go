@@ -5,29 +5,6 @@ import (
 	"io"
 )
 
-// Move is a 3-tuple representing the "from" and "to" squares of a move, as well
-// as which piece the moving piece will promote to (if any). This is the
-// absolute minimum information required to unambiguously represent a chess
-// move.
-type Move struct {
-	from, to  RankFile
-	promoteTo PromoteTo
-}
-
-// NewMove returns a new chess move.
-func NewMove(from, to RankFile, promoteTo PromoteTo) Move {
-	return Move{from, to, promoteTo}
-}
-
-// From returns the square index the move is coming from.
-func (m Move) From() uint8 { return SquareIndex(m.from.Rank, m.from.File) }
-
-// To returns the square index the move is going to.
-func (m Move) To() uint8 { return SquareIndex(m.to.Rank, m.to.File) }
-
-// PromoteTo returns the piece the move will promote to, or PromoteToNone.
-func (m Move) PromoteTo() PromoteTo { return m.promoteTo }
-
 // PromoteTo represents the piece that a move will promote to.
 type PromoteTo byte
 
@@ -47,12 +24,6 @@ type FromToPromoter interface {
 	PromoteTo() PromoteTo
 }
 
-// RankFile is a tuple representing the rank and file of a square. Both rank and
-// file are zero indexed.
-type RankFile struct {
-	Rank, File uint8
-}
-
 // SquareIndexToAlgebraicNotation converts the square index i to algebraic
 // notation (e.g. A1, H8). Results for indexes outside of the sane 0...63 range
 // are undefined.
@@ -63,34 +34,34 @@ func SquareIndexToAlgebraicNotation(sq uint8) string {
 }
 
 // ParseAlgebraicNotation reads two runes from r and parses them as Algebraic
-// Notation, returning the rank and file tuple.
-func ParseAlgebraicNotation(r io.RuneReader) (RankFile, error) {
-	file, err := parseFile(r)
+// Notation, returning the rank and file.
+func ParseAlgebraicNotation(r io.RuneReader) (rank, file uint8, err error) {
+	file, err = parseFile(r)
 	if err != nil {
-		return RankFile{}, err
+		return 0, 0, err
 	}
-	rank, err := parseRank(r)
+	rank, err = parseRank(r)
 	if err != nil {
-		return RankFile{}, err
+		return 0, 0, err
 	}
-	return RankFile{rank, file}, err
+	return rank, file, err
 }
 
 // ParseAlgebraicNotationString parses an as Algebraic Notation, returning the
-// rank and file tuple.
-func ParseAlgebraicNotationString(an string) (RankFile, error) {
+// rank and file.
+func ParseAlgebraicNotationString(an string) (rank, file uint8, err error) {
 	if len(an) != 2 {
-		return RankFile{}, fmt.Errorf("unexpected '%s', with len %d", an, len(an))
+		return 0, 0, fmt.Errorf("unexpected '%s', with len %d", an, len(an))
 	}
-	file, err := parseFileChar(an[0])
+	file, err = parseFileChar(an[0])
 	if err != nil {
-		return RankFile{}, err
+		return 0, 0, err
 	}
-	rank, err := parseRankChar(an[1])
+	rank, err = parseRankChar(an[1])
 	if err != nil {
-		return RankFile{}, err
+		return 0, 0, err
 	}
-	return RankFile{rank, file}, nil
+	return rank, file, nil
 }
 
 func parseFile(r io.RuneReader) (uint8, error) {

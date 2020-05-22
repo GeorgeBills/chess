@@ -19,12 +19,12 @@ func main() {
 			fatalsq(os.Args[i])
 		}
 
-		square, err := chess.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
+		rank, file, err := chess.ParseAlgebraicNotation(strings.NewReader(os.Args[i]))
 		if err != nil {
 			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
-		board |= 1 << chess.SquareIndex(square.Rank, square.File)
+		board |= 1 << chess.SquareIndex(rank, file)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)

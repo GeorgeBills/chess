@@ -5,8 +5,6 @@ import (
 	"io"
 	"log"
 	"sort"
-
-	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // NewExecutor returns a new executor.
@@ -98,7 +96,7 @@ func (c cmdSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <
 }
 
 type cmdApplyMove struct {
-	move chess.Move
+	move Move
 }
 
 func (c cmdApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
