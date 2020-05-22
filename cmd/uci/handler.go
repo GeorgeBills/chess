@@ -69,7 +69,7 @@ func (h *handler) SetPositionFEN(fen string) {
 	h.game.SetBoard(b)
 }
 
-func (h *handler) PlayMove(move engine.FromToPromote) {
+func (h *handler) ApplyMove(move engine.FromToPromote) {
 	h.logger.Printf("playing move: %v", move)
 	m, err := h.game.HydrateMove(move)
 	if err != nil {

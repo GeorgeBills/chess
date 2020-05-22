@@ -92,12 +92,12 @@ func (c cmdSetPositionFEN) Exec(h Handler, responsech chan<- fmt.Stringer) {
 	h.SetPositionFEN(c.fen)
 }
 
-type cmdPlayMove struct {
+type cmdApplyMove struct {
 	move engine.FromToPromote
 }
 
-func (c cmdPlayMove) Exec(h Handler, responsech chan<- fmt.Stringer) {
-	h.PlayMove(c.move)
+func (c cmdApplyMove) Exec(h Handler, responsech chan<- fmt.Stringer) {
+	h.ApplyMove(c.move)
 }
 
 type cmdGoNodes struct {

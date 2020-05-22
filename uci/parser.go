@@ -293,7 +293,7 @@ func commandPositionMovesMove(p *Parser) statefn {
 			return errorUnrecognized(p, token, commandPositionMoves) // TODO: pass along err so we get decent logs
 		}
 
-		p.commandch <- cmdPlayMove{move}
+		p.commandch <- cmdApplyMove{move}
 	}
 
 	return waitingForCommand
