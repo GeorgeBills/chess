@@ -3,10 +3,10 @@ package uci
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -38,59 +38,35 @@ const (
 	gteQuit       = "quit"       // quit the program as soon as possible
 )
 
-// Engine-to-GUI constants are tokens sent from the engine to the GUI.
-const (
-	etgID       = "id"       // sent to identify the engine
-	etgIDName   = "name"     // e.g. "id name Shredder X.Y\n"
-	etgIDAuthor = "author"   // e.g. "id author Stefan MK\n"
-	etgUCIOK    = "uciok"    // the engine has sent all infos and is ready
-	etgReadyOK  = "readyok"  // the engine is ready to accept new commands
-	etgBestMove = "bestmove" // engine has stopped searching and found the best move
-	etgInfo     = "info"     // engine wants to send information to the GUI
-)
-
-//go:generate moq -out mocks/handler.go -pkg mocks . Handler
-
-// Handler handles events generated from parsing UCI.
-type Handler interface {
-	Identify() (name, author string, other map[string]string)
-	IsReady()
-	NewGame()
-	SetStartingPosition()
-	SetPositionFEN(fen string)
-	PlayMove(move engine.FromToPromote)
-	GoDepth(plies uint8) string
-	GoNodes(nodes uint64) string
-	GoInfinite()
-	GoTime(tc TimeControl) string
-	Quit()
-	// TODO: most handler methods should return error
-	// TODO: is "adapter" a better name for this?
-	// TODO: return proper type instead of string for moves?
-	//       handler shouldn't need to understand UCI format
-}
-
 // NewParser returns a new parser.
 func NewParser(h Handler, r io.Reader, outw, logw io.Writer) *Parser {
+	commandch := make(chan execer, 0) // unbuffered
+	responsech := make(chan fmt.Stringer, 100)
+	resp := NewResponder(responsech, outw)
+	exec := NewExecutor(commandch, h, responsech, logw)
 	return &Parser{
-		handler: h,
-		reader:  bufio.NewReader(r),
-		logger:  log.New(logw, "parser: ", log.LstdFlags),
-		out:     bufio.NewWriter(outw),
+		resp:      resp,
+		exec:      exec,
+		commandch: commandch,
+		reader:    bufio.NewReader(r),
+		logger:    log.New(logw, "parser: ", log.LstdFlags),
 	}
 }
 
 // Parser parses and generates events from UCI.
 type Parser struct {
-	// TODO: rename to StateMachine or similar, this isn't just a parser.
-	logger  *log.Logger
-	handler Handler
-	reader  io.RuneScanner
-	out     *bufio.Writer
+	resp      *Responder // TODO: decouple Responder off Parser struct
+	exec      *Executor  // TODO: decouple Executor off Parser struct
+	logger    *log.Logger
+	commandch chan<- execer
+	reader    io.RuneScanner
 }
 
 // Run starts the parser.
 func (p *Parser) Run() error {
+	go p.exec.ExecuteCommands()
+	go p.resp.WriteResponses()
+
 	// We parse UCI with a func-to-func state machine as described in the talk
 	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). Each
 	// state func returns the next state func we are transitioning to. We start
@@ -103,12 +79,6 @@ func (p *Parser) Run() error {
 	// contains whitespace.
 	for state := waitingForUCI; state != nil; {
 		state = state(p)
-		// TODO: flush as needed
-		//       or just manually buffer so the default is synchronous?
-		err := p.out.Flush() // flush output for each state
-		if err != nil {
-			return err
-		}
 	}
 	// TODO: give the engine a chance to cleanup here
 	p.logger.Println("finished")
@@ -117,7 +87,7 @@ func (p *Parser) Run() error {
 
 type statefn func(p *Parser) statefn
 
-func waitingForUCI(p *Parser) statefn {
+func waitingForUCI(p *Parser) statefn { // TODO: "init"
 	p.logger.Println("waiting for uci")
 
 	token, err := nextToken(p.reader)
@@ -137,7 +107,7 @@ func waitingForUCI(p *Parser) statefn {
 	}
 }
 
-func waitingForCommand(p *Parser) statefn {
+func waitingForCommand(p *Parser) statefn { // TODO: "running"
 	p.logger.Println("waiting for command")
 
 	token, err := nextToken(p.reader)
@@ -165,40 +135,19 @@ func waitingForCommand(p *Parser) statefn {
 
 func commandUCI(p *Parser) statefn {
 	p.logger.Println("command: uci")
-
-	name, author, rest := p.handler.Identify()
-
-	// print required name and author
-	fmt.Fprintln(p.out, etgID, etgIDName, name)
-	fmt.Fprintln(p.out, etgID, etgIDAuthor, author)
-
-	// print rest of our id information in sorted order
-	keys := make([]string, 0, len(rest))
-	for k := range rest {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		fmt.Fprintln(p.out, etgID, k, rest[k])
-	}
-
-	fmt.Fprintln(p.out, etgUCIOK)
+	p.commandch <- cmdUCI{}
 	return waitingForCommand
 }
 
 func commandIsReady(p *Parser) statefn {
 	p.logger.Println("command: isready")
-
-	p.handler.IsReady()
-	fmt.Fprintln(p.out, etgReadyOK)
+	p.commandch <- cmdIsReady{}
 	return waitingForCommand
 }
 
 func commandNewGame(p *Parser) statefn {
 	p.logger.Println("command: new game")
-
-	p.handler.NewGame()
+	p.commandch <- cmdNewGame{}
 	return waitingForCommand
 }
 
@@ -229,9 +178,7 @@ func commandPosition(p *Parser) statefn {
 
 func commandPositionStarting(p *Parser) statefn {
 	p.logger.Println("command: position startpos")
-
-	p.handler.SetStartingPosition()
-
+	p.commandch <- cmdSetStartingPosition{}
 	return commandPositionMoves
 }
 
@@ -303,7 +250,7 @@ func commandPositionFEN(p *Parser) statefn {
 		return errorScanning(p, err)
 	}
 
-	p.handler.SetPositionFEN(buf.String())
+	p.commandch <- cmdSetPositionFEN{fen: buf.String()}
 
 	return commandPositionMoves
 }
@@ -346,12 +293,13 @@ func commandPositionMovesMove(p *Parser) statefn {
 			return errorUnrecognized(p, token, commandPositionMoves) // TODO: pass along err so we get decent logs
 		}
 
-		p.handler.PlayMove(move)
+		p.commandch <- cmdPlayMove{move}
 	}
 
 	return waitingForCommand
 }
 
+// TimeControl represents time controls for playing a chess move.
 type TimeControl struct {
 	WhiteTime, BlackTime           time.Duration
 	WhiteIncrement, BlackIncrement time.Duration
@@ -407,9 +355,7 @@ func commandGoTime(p *Parser, accumulator TimeControl) statefn {
 	case "": // newline
 		// command finished, so run it
 		// TODO: check we have at least white and black time set
-		movestr := p.handler.GoTime(accumulator)
-		fmt.Fprintln(p.out, etgBestMove, movestr)
-		p.out.Flush() // FIXME: flushing is gross and complicated...
+		p.commandch <- cmdGoTime{accumulator}
 		return eol(p, waitingForCommand)
 	default:
 		return errorUnrecognized(p, token, commandGoTime(p, accumulator))
@@ -497,15 +443,13 @@ func commandGoDepth(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 
-	movestr := p.handler.GoDepth(uint8(plies))
-	fmt.Fprintln(p.out, etgBestMove, movestr)
+	p.commandch <- cmdGoDepth{uint8(plies)}
 	return waitingForCommand
 }
 
 func commandGoInfinite(p *Parser) statefn {
 	p.logger.Println("command: go infinite")
-
-	p.handler.GoInfinite()
+	p.commandch <- cmdGoInfinite{}
 	return waitingForCommand
 }
 
@@ -522,14 +466,13 @@ func commandGoNodes(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 
-	movestr := p.handler.GoNodes(nodes)
-	fmt.Fprintln(p.out, etgBestMove, movestr)
+	p.commandch <- cmdGoNodes{nodes}
 	return waitingForCommand
 }
 
 func commandQuit(p *Parser) statefn {
 	p.logger.Println("quitting")
-	p.handler.Quit()
+	panic(errors.New("quit not implemented"))
 	return nil
 }
 
