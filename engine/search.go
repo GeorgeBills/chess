@@ -14,6 +14,46 @@ const (
 	infinity   = math.MaxInt16
 )
 
+func (g *Game) getMaximizingMinimizing() int8 {
+	switch g.ToMove() {
+	case White:
+		return maximizing
+	case Black:
+		return minimizing
+	default:
+		panic(fmt.Errorf("invalid to move; %#v", g))
+	}
+}
+
+type moveScore struct {
+	move  Move
+	score int16
+}
+
+type SearchInformation struct {
+	depth              uint8
+	time               time.Duration
+	principalVariation []Move
+	nodesPerSecond     uint64
+}
+
+func (g *Game) BestMoveInfinite(stopch <-chan struct{}, infoch chan<- SearchInformation) (Move, int16) {
+	mm := g.getMaximizingMinimizing()
+	var best moveScore
+	var depth uint8
+DEEPEN:
+	for depth = 0; ; depth++ {
+		select {
+		case <-stopch:
+			break DEEPEN
+		default:
+			// spiral out, keep going.
+			best = g.bestMoveToDepth(depth, mm)
+		}
+	}
+	return best.move, best.score
+}
+
 func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncrement time.Duration) (Move, int16) {
 	return g.BestMoveToDepth(4)
 	// TODO: properly implement basic time controls
@@ -36,52 +76,43 @@ func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncreme
 
 // BestMoveToDepth returns the best move (with its score) to the given depth.
 func (g *Game) BestMoveToDepth(depth uint8) (Move, int16) {
-	switch g.ToMove() {
-	case White:
-		return g.bestMoveToDepth(depth, maximizing)
-	case Black:
-		return g.bestMoveToDepth(depth, minimizing)
-	default:
-		panic(fmt.Errorf("invalid to move; %#v", g))
-	}
+	mm := g.getMaximizingMinimizing()
+	best := g.bestMoveToDepth(depth, mm)
+	return best.move, best.score
 }
 
-func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
+func (g *Game) bestMoveToDepth(depth uint8, mm int8) moveScore {
 	if depth == 0 {
-		return 0, g.Evaluate()
+		score := g.Evaluate()
+		return moveScore{score: score}
 	}
 
 	moves, isCheck := g.GenerateLegalMoves(nil)
 
-	var best struct {
-		score int16
-		move  Move
-	}
+	var best moveScore
 
 	switch mm {
 	case maximizing:
 		best.score = -1 * infinity
 		if len(moves) == 0 && !isCheck {
-			return 0, 0 // stalemate
+			return moveScore{score: 0} // stalemate
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s >= best.score {
-				best.score = s
-				best.move = m
+			if child := g.bestMoveToDepth(depth-1, mm*-1); child.score >= best.score {
+				best = moveScore{m, child.score}
 			}
 			g.UnmakeMove()
 		}
 	case minimizing:
 		best.score = +1 * infinity
 		if len(moves) == 0 && !isCheck {
-			return 0, 0 // stalemate
+			return moveScore{score: 0} // stalemate
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if _, s := g.bestMoveToDepth(depth-1, mm*-1); s <= best.score {
-				best.score = s
-				best.move = m
+			if child := g.bestMoveToDepth(depth-1, mm*-1); child.score <= best.score {
+				best = moveScore{m, child.score}
 			}
 			g.UnmakeMove()
 		}
@@ -89,5 +120,5 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) (Move, int16) {
 		panic("mm neither minimizing nor maximizing")
 	}
 
-	return best.move, best.score
+	return best
 }
