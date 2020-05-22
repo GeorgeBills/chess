@@ -101,11 +101,11 @@ func (m Move) SAN() string {
 		return "O-O-O"
 	}
 	var san strings.Builder
-	san.WriteString(chess.ToAlgebraicNotation(m.From()))
+	san.WriteString(chess.SquareIndexToAlgebraicNotation(m.From()))
 	if m.IsCapture() {
 		san.WriteByte('x')
 	}
-	san.WriteString(chess.ToAlgebraicNotation(m.To()))
+	san.WriteString(chess.SquareIndexToAlgebraicNotation(m.To()))
 	switch {
 	case m&moveMetaMask == moveIsEnPassant:
 		san.WriteString("e.p.")
@@ -334,7 +334,7 @@ func (g *Game) MakeMove(move Move) {
 	switch {
 	case move.IsPawnDoublePush():
 		g.meta |= maskCanEnPassant
-		g.meta |= chess.File(from)
+		g.meta |= chess.FileIndex(from)
 	case move.IsKingsideCastling():
 		switch tomove {
 		case White:

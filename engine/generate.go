@@ -43,8 +43,8 @@ func init() {
 
 	var from uint8
 	for from = 0; from < 64; from++ {
-		rank := chess.Rank(from)
-		file := chess.File(from)
+		rank := chess.RankIndex(from)
+		file := chess.FileIndex(from)
 
 		// horizontal: rooks, queens
 		for n := from + 8; n < 64; n += 8 {
@@ -61,16 +61,16 @@ func init() {
 		}
 
 		// diagonal: bishops, queens
-		for ne := from + 9; ne < 64 && chess.File(ne) != fileA; ne += 9 {
+		for ne := from + 9; ne < 64 && chess.FileIndex(ne) != fileA; ne += 9 {
 			movesNorthEast[from] |= 1 << ne
 		}
-		for se := from - 7; se < 64 && chess.File(se) != fileA; se -= 7 {
+		for se := from - 7; se < 64 && chess.FileIndex(se) != fileA; se -= 7 {
 			movesSouthEast[from] |= 1 << se
 		}
-		for sw := from - 9; sw < 64 && chess.File(sw) != fileH; sw -= 9 {
+		for sw := from - 9; sw < 64 && chess.FileIndex(sw) != fileH; sw -= 9 {
 			movesSouthWest[from] |= 1 << sw
 		}
-		for nw := from + 7; nw < 64 && chess.File(nw) != fileH; nw += 7 {
+		for nw := from + 7; nw < 64 && chess.FileIndex(nw) != fileH; nw += 7 {
 			movesNorthWest[from] |= 1 << nw
 		}
 
@@ -472,8 +472,8 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 	EN_PASSANT:
 		switch tomove {
 		case White:
-			epSquare := chess.Square(rank6, epFile)
-			epCaptureSq := chess.Square(rank5, epFile)
+			epSquare := chess.SquareIndex(rank6, epFile)
+			epCaptureSq := chess.SquareIndex(rank5, epFile)
 
 			// either capture or block, two diff sqs
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {
@@ -489,8 +489,8 @@ func (b *Board) GenerateLegalMoves(moves []Move) ([]Move, bool) {
 				moves = append(moves, NewEnPassant(from, from+9)) // nw
 			}
 		case Black:
-			epSquare := chess.Square(rank3, epFile)
-			epCaptureSq := chess.Square(rank4, epFile)
+			epSquare := chess.SquareIndex(rank3, epFile)
+			epCaptureSq := chess.SquareIndex(rank4, epFile)
 
 			// either capture or block, two diff sqs
 			if maskMayMoveTo&(1<<epCaptureSq) == 0 && maskMayMoveTo&(1<<epSquare) == 0 {

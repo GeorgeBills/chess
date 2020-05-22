@@ -24,7 +24,7 @@ func main() {
 			fatal(fmt.Errorf("error parsing '%s' as algebraic notation: %w", os.Args[i], err))
 		}
 
-		board |= 1 << chess.Square(square.Rank, square.File)
+		board |= 1 << chess.SquareIndex(square.Rank, square.File)
 	}
 
 	bitstr := fmt.Sprintf("%064b", board)

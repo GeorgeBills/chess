@@ -20,10 +20,10 @@ func NewMove(from, to RankFile, promoteTo PromoteTo) Move {
 }
 
 // From returns the square index the move is coming from.
-func (m Move) From() uint8 { return Square(m.from.Rank, m.from.File) }
+func (m Move) From() uint8 { return SquareIndex(m.from.Rank, m.from.File) }
 
 // To returns the square index the move is going to.
-func (m Move) To() uint8 { return Square(m.to.Rank, m.to.File) }
+func (m Move) To() uint8 { return SquareIndex(m.to.Rank, m.to.File) }
 
 // PromoteTo returns the piece the move will promote to, or PromoteToNone.
 func (m Move) PromoteTo() PromoteTo { return m.promoteTo }
@@ -53,11 +53,12 @@ type RankFile struct {
 	Rank, File uint8
 }
 
-// ToAlgebraicNotation converts the square index i to algebraic notation (e.g.
-// A1, H8). Results for indexes outside of the sane 0...63 range are undefined.
-func ToAlgebraicNotation(i uint8) string {
-	file := File(i)
-	rank := Rank(i)
+// SquareIndexToAlgebraicNotation converts the square index i to algebraic
+// notation (e.g. A1, H8). Results for indexes outside of the sane 0...63 range
+// are undefined.
+func SquareIndexToAlgebraicNotation(sq uint8) string {
+	file := FileIndex(sq)
+	rank := RankIndex(sq)
 	return string([]byte{'a' + file, '1' + rank})
 }
 
@@ -134,18 +135,20 @@ func parseRankChar(ch byte) (uint8, error) {
 	}
 }
 
-// Rank returns the rank index (0...7) for a given square index.
-func Rank(i uint8) uint8 {
-	return i / 8
+// RankIndex returns the rank index (0...7) for a given square index.
+func RankIndex(sq uint8) uint8 {
+	return sq / 8
 }
 
-// File returns the file index (0 for A, ..., 7 for H) for a given square index.
-func File(i uint8) uint8 {
-	return i % 8
+// FileIndex returns the file index (0 for A, ..., 7 for H) for a given square
+// index.
+func FileIndex(sq uint8) uint8 {
+	return sq % 8
 }
 
-// Square returns the square index (0 for A1, 63 for H8) for a rank and file.
-func Square(rank, file uint8) uint8 {
+// SquareIndex returns the square index (0 for A1, 63 for H8) for a rank and
+// file.
+func SquareIndex(rank, file uint8) uint8 {
 	return rank*8 + file
 }
 

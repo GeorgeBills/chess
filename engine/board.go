@@ -124,9 +124,9 @@ func (b Board) EnPassant() uint8 {
 	file := uint8(b.meta & maskEnPassantFile)
 	switch b.ToMove() {
 	case White:
-		return chess.Square(rank6, file)
+		return chess.SquareIndex(rank6, file)
 	case Black:
-		return chess.Square(rank3, file)
+		return chess.SquareIndex(rank3, file)
 	default:
 		panic(fmt.Errorf("invalid to move; %#v", b))
 	}

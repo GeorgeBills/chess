@@ -47,10 +47,10 @@ func ToUCIN(move chess.FromToPromoter) string {
 	from, to := move.From(), move.To()
 
 	ucin := [5]byte{
-		'a' + chess.File(from), // a...h
-		'1' + chess.Rank(from), // 1...8
-		'a' + chess.File(to),   // a...h
-		'1' + chess.Rank(to),   // 1...8
+		'a' + chess.FileIndex(from), // a...h
+		'1' + chess.RankIndex(from), // 1...8
+		'a' + chess.FileIndex(to),   // a...h
+		'1' + chess.RankIndex(to),   // 1...8
 	}
 
 	promoteTo := move.PromoteTo()

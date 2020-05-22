@@ -19,7 +19,7 @@ func TestToAlgebraicNotation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.expected, func(t *testing.T) {
-			an := chess.ToAlgebraicNotation(tt.i)
+			an := chess.SquareIndexToAlgebraicNotation(tt.i)
 			assert.Equal(t, tt.expected, an)
 		})
 	}

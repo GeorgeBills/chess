@@ -117,7 +117,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 
 	ep := b.EnPassant()
 	if ep != math.MaxUint8 {
-		sb.WriteString(chess.ToAlgebraicNotation(ep))
+		sb.WriteString(chess.SquareIndexToAlgebraicNotation(ep))
 	} else {
 		sb.WriteRune('-')
 	}
