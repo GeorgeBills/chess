@@ -37,9 +37,9 @@ type execer interface {
 func (e *Executor) ExecuteCommands() {
 	for {
 		cmd := <-e.commandch
-		e.logger.Printf("running command %v", cmd)
+		e.logger.Printf("running command: %T; %+v", cmd, cmd)
 		cmd.Exec(e.adapter, e.responsech)
-		e.logger.Printf("finished command %v", cmd)
+		e.logger.Printf("finished command: %T", cmd)
 	}
 }
 
