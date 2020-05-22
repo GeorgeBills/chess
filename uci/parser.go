@@ -39,7 +39,7 @@ const (
 // NewParser returns a new parser.
 func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 	commandch := make(chan execer, 0) // unbuffered
-	responsech := make(chan fmt.Stringer, 100)
+	responsech := make(chan Responser, 100)
 	stopch := make(chan struct{}, 1)
 	quitch := make(chan struct{}, 1)
 	resp := NewResponder(responsech, outw)

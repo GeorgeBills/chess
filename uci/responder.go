@@ -19,8 +19,12 @@ const (
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
 
+type Responser interface {
+	Response() string
+}
+
 // NewResponder returns a new responder.
-func NewResponder(responsech <-chan fmt.Stringer, out io.Writer) *Responder {
+func NewResponder(responsech <-chan Responser, out io.Writer) *Responder {
 	return &Responder{
 		responsech,
 		out,
@@ -29,7 +33,7 @@ func NewResponder(responsech <-chan fmt.Stringer, out io.Writer) *Responder {
 
 // Responder pulls responses off a channel and writes them to the writer.
 type Responder struct {
-	responsech <-chan fmt.Stringer
+	responsech <-chan Responser
 	out        io.Writer
 }
 
@@ -38,29 +42,29 @@ type Responder struct {
 func (r Responder) WriteResponses() {
 	for {
 		response := <-r.responsech
-		fmt.Fprintln(r.out, response.String())
+		fmt.Fprintln(r.out, response.Response())
 	}
 }
 
 type responseID struct{ key, value string }
 
-func (r responseID) String() string {
+func (r responseID) Response() string {
 	return strings.Join([]string{etgID, r.key, r.value}, " ")
 }
 
 type responseOK struct{}
 
-func (r responseOK) String() string { return etgUCIOK }
+func (r responseOK) Response() string { return etgUCIOK }
 
 type responseIsReady struct{}
 
-func (r responseIsReady) String() string { return etgReadyOK }
+func (r responseIsReady) Response() string { return etgReadyOK }
 
 type responseBestMove struct {
 	move chess.FromToPromoter
 }
 
-func (r responseBestMove) String() string {
+func (r responseBestMove) Response() string {
 	movestr := ToUCIN(r.move)
 	return strings.Join([]string{etgBestMove, movestr}, " ")
 }
