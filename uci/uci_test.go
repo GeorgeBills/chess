@@ -26,7 +26,7 @@ func TestQuitBeforeUCI(t *testing.T) {
 	}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(a, r, w, ioutil.Discard)
-	p.Run()
+	p.Parse()
 	assert.Equal(t, "", w.String())
 }
 
@@ -150,7 +150,7 @@ func TestUCI(t *testing.T) {
 	}()
 
 	p := uci.NewParser(a, piper, buf, os.Stderr)
-	p.Run()
+	p.Parse()
 }
 
 func TestExtraInformation(t *testing.T) {
@@ -167,7 +167,7 @@ func TestExtraInformation(t *testing.T) {
 	}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(a, r, w, ioutil.Discard)
-	p.Run()
+	p.Parse()
 	const expected = "id name super-chess\nid author Jane Smith\nid release-date 2020-05-16\nid version v1.2.3\nuciok\n"
 	assert.Equal(t, expected, w.String())
 }

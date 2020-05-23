@@ -62,8 +62,8 @@ type Parser struct {
 	reader    io.RuneScanner
 }
 
-// Run starts the parser.
-func (p *Parser) Run() error {
+// Parse starts the parser.
+func (p *Parser) Parse() error {
 	go p.exec.ExecuteCommands()
 	go p.resp.WriteResponses()
 
