@@ -3,7 +3,6 @@ package uci
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -41,15 +40,13 @@ func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 	commandch := make(chan execer, 0) // unbuffered
 	responsech := make(chan Responser, 100)
 	stopch := make(chan struct{}, 1)
-	quitch := make(chan struct{}, 1)
-	resp := NewResponder(responsech, outw)
-	exec := NewExecutor(commandch, stopch, quitch, a, responsech, logw)
+	resp := NewResponder(responsech, outw, logw)
+	exec := NewExecutor(commandch, stopch, a, responsech, logw)
 	return &Parser{
 		resp:      resp,
 		exec:      exec,
 		commandch: commandch,
 		stopch:    stopch,
-		quitch:    quitch,
 		reader:    bufio.NewReader(r),
 		logger:    log.New(logw, "parser: ", log.LstdFlags),
 	}
@@ -57,18 +54,21 @@ func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
 
 // Parser parses and generates events from UCI.
 type Parser struct {
-	resp           *Responder // TODO: decouple Responder off Parser struct
-	exec           *Executor  // TODO: decouple Executor off Parser struct
-	logger         *log.Logger
-	commandch      chan<- execer
-	stopch, quitch chan<- struct{}
-	reader         io.RuneScanner
+	resp      *Responder // TODO: decouple Responder off Parser struct
+	exec      *Executor  // TODO: decouple Executor off Parser struct
+	logger    *log.Logger
+	commandch chan<- execer
+	stopch    chan<- struct{}
+	reader    io.RuneScanner
 }
 
 // Run starts the parser.
 func (p *Parser) Run() error {
 	go p.exec.ExecuteCommands()
 	go p.resp.WriteResponses()
+
+	defer close(p.stopch)
+	defer close(p.commandch)
 
 	// We parse UCI with a func-to-func state machine as described in the talk
 	// "Lexical Scanning in Go" by Rob Pike (https://youtu.be/HxaD_trXwRE). Each
@@ -459,7 +459,6 @@ func commandGoNodes(p *Parser) statefn {
 
 func commandQuit(p *Parser) statefn {
 	p.logger.Println("quitting")
-	panic(errors.New("quit not implemented"))
 	return nil
 }
 

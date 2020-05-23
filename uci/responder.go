@@ -3,6 +3,7 @@ package uci
 import (
 	"fmt"
 	"io"
+	"log"
 	"strings"
 
 	chess "github.com/GeorgeBills/chess/m/v2"
@@ -24,10 +25,11 @@ type Responser interface {
 }
 
 // NewResponder returns a new responder.
-func NewResponder(responsech <-chan Responser, out io.Writer) *Responder {
+func NewResponder(responsech <-chan Responser, out io.Writer, logw io.Writer) *Responder {
 	return &Responder{
 		responsech,
 		out,
+		log.New(logw, "responder:", log.LstdFlags),
 	}
 }
 
@@ -35,6 +37,7 @@ func NewResponder(responsech <-chan Responser, out io.Writer) *Responder {
 type Responder struct {
 	responsech <-chan Responser
 	out        io.Writer
+	logger     *log.Logger
 }
 
 // WriteResponses pulls responses off the responsech and writes them to the
@@ -43,6 +46,7 @@ func (r Responder) WriteResponses() {
 	for response := range r.responsech {
 		fmt.Fprintln(r.out, response.Response())
 	}
+	r.logger.Println("finished")
 }
 
 type responseID struct{ key, value string }
