@@ -36,8 +36,7 @@ type execer interface {
 // ExecuteCommands takes commands off commandch, executes them, and sends
 // responses to responsech.
 func (e *Executor) ExecuteCommands() {
-	for {
-		cmd := <-e.commandch
+	for cmd := range e.commandch {
 		e.logger.Printf("running command: %T; %+v", cmd, cmd)
 		// TODO: can we fan-in both stopch and quitch into one ch for exec?
 		//       simplifies life for callees
