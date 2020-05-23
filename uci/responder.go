@@ -43,6 +43,7 @@ type Responder struct {
 // WriteResponses pulls responses off the responsech and writes them to the
 // writer.
 func (r Responder) WriteResponses() {
+	r.logger.Println("starting")
 	for response := range r.responsech {
 		fmt.Fprintln(r.out, response.Response())
 	}

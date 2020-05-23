@@ -36,37 +36,28 @@ const (
 )
 
 // NewParser returns a new parser.
-func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) *Parser {
-	commandch := make(chan execer, 0) // unbuffered
-	responsech := make(chan Responser, 100)
+func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) (*Parser, <-chan Execer, <-chan struct{}) {
+	commandch := make(chan Execer, 0) // unbuffered
 	stopch := make(chan struct{}, 1)
-	resp := NewResponder(responsech, outw, logw)
-	exec := NewExecutor(commandch, stopch, a, responsech, logw)
-	return &Parser{
-		resp:      resp,
-		exec:      exec,
+	parser := &Parser{
 		commandch: commandch,
 		stopch:    stopch,
 		reader:    bufio.NewReader(r),
 		logger:    log.New(logw, "parser: ", log.LstdFlags),
 	}
+	return parser, commandch, stopch
 }
 
 // Parser parses and generates events from UCI.
 type Parser struct {
-	resp      *Responder // TODO: decouple Responder off Parser struct
-	exec      *Executor  // TODO: decouple Executor off Parser struct
 	logger    *log.Logger
-	commandch chan<- execer
+	commandch chan<- Execer
 	stopch    chan<- struct{}
 	reader    io.RuneScanner
 }
 
 // Parse starts the parser.
 func (p *Parser) Parse() error {
-	go p.exec.ExecuteCommands()
-	go p.resp.WriteResponses()
-
 	defer close(p.stopch)
 	defer close(p.commandch)
 
@@ -80,6 +71,8 @@ func (p *Parser) Parse() error {
 	// reasons: one, newlines are meaningful in UCI as unambiguous command
 	// terminators, and two because of the one annoying case (FEN) where a token
 	// contains whitespace.
+
+	p.logger.Println("starting")
 	for state := waitingForUCI; state != nil; {
 		state = state(p)
 	}
@@ -138,7 +131,7 @@ func waitingForCommand(p *Parser) statefn { // TODO: "running"
 	}
 }
 
-func (p *Parser) emit(cmd execer, next statefn) statefn {
+func (p *Parser) emit(cmd Execer, next statefn) statefn {
 	select {
 	case p.commandch <- cmd:
 		p.logger.Printf("emitted %T command", cmd)

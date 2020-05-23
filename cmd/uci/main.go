@@ -14,8 +14,9 @@ func main() {
 	}
 
 	a := newAdapter(logf)
-	parser := uci.NewParser(a, os.Stdin, os.Stdout, logf)
-	parser.Parse()
+	u := uci.New(a, os.Stdin, os.Stdout, logf)
+	wg := u.ParseExecuteRespond()
+	wg.Wait()
 }
 
 func fatal(v error) {

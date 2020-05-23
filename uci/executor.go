@@ -8,26 +8,28 @@ import (
 )
 
 // NewExecutor returns a new executor.
-func NewExecutor(commandch <-chan execer, stopch <-chan struct{}, a Adapter, responsech chan<- Responser, logw io.Writer) *Executor {
-	return &Executor{
+func NewExecutor(commandch <-chan Execer, stopch <-chan struct{}, a Adapter, logw io.Writer) (*Executor, <-chan Responser) {
+	responsech := make(chan Responser, 100)
+	executor := &Executor{
 		commandch,
 		stopch,
 		log.New(logw, "executor:", log.LstdFlags),
 		responsech,
 		a,
 	}
+	return executor, responsech
 }
 
 // Executor takes UCI commands from a channel and executes them.
 type Executor struct {
-	commandch  <-chan execer
+	commandch  <-chan Execer
 	stopch     <-chan struct{}
 	logger     *log.Logger
 	responsech chan<- Responser
 	adapter    Adapter
 }
 
-type execer interface {
+type Execer interface {
 	Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{})
 }
 
@@ -35,6 +37,8 @@ type execer interface {
 // responses to responsech.
 func (e *Executor) ExecuteCommands() {
 	defer close(e.responsech)
+
+	e.logger.Println("starting")
 	for cmd := range e.commandch {
 		e.logger.Printf("running command: %T; %+v", cmd, cmd)
 		// TODO: can we fan-in both stopch and quitch into one ch for exec?
@@ -123,7 +127,7 @@ func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan s
 type cmdGoInfinite struct{}
 
 func (c cmdGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.GoInfinite(stopch, responsech)
+	a.GoInfinite(stopch)
 }
 
 type cmdGoTime struct {
