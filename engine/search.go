@@ -30,17 +30,20 @@ type moveScore struct {
 	score int16
 }
 
-type SearchInformation struct {
-	depth              uint8
-	time               time.Duration
-	principalVariation []Move
-	nodesPerSecond     uint64
+type SearchStatus struct {
+	Depth              uint8
+	Time               time.Duration
+	PrincipalVariation []Move
+	NodesPerSecond     uint64
 }
 
-func (g *Game) BestMoveInfinite(stopch <-chan struct{}, infoch chan<- SearchInformation) (Move, int16) {
+func (g *Game) BestMoveInfinite(stopch <-chan struct{}, statusch chan<- SearchStatus) (Move, int16) {
+	defer close(statusch)
+
 	mm := g.getMaximizingMinimizing()
 	var best moveScore
 	var depth uint8
+
 DEEPEN:
 	for depth = 0; ; depth++ {
 		select {
@@ -48,9 +51,11 @@ DEEPEN:
 			break DEEPEN
 		default:
 			// spiral out, keep going.
+			statusch <- SearchStatus{Depth: depth}
 			best = g.bestMoveToDepth(depth, mm)
 		}
 	}
+
 	return best.move, best.score
 }
 

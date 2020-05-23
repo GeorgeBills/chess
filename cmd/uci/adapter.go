@@ -90,9 +90,18 @@ func (a *adapter) GoNodes(nodes uint64) chess.FromToPromoter {
 	panic("GoNodes not implemented")
 }
 
-func (a *adapter) GoInfinite(stopch <-chan struct{}) {
+func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Responser) chess.FromToPromoter {
 	a.logger.Println("go infinite")
-	panic("GoInfinite not implemented")
+
+	statusch := make(chan engine.SearchStatus, 100)
+	go func() {
+		for info := range statusch {
+			responsech <- uci.ResponseSearchInformation{Depth: info.Depth}
+		}
+	}()
+
+	m, _ := a.game.BestMoveInfinite(stopch, statusch)
+	return m
 }
 
 func (a *adapter) GoTime(tc uci.TimeControl) chess.FromToPromoter {

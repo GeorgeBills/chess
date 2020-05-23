@@ -14,7 +14,7 @@ type Adapter interface {
 	ApplyMove(move chess.FromToPromoter)
 	GoDepth(plies uint8) chess.FromToPromoter
 	GoNodes(nodes uint64) chess.FromToPromoter
-	GoInfinite(stopch <-chan struct{})
+	GoInfinite(stopch <-chan struct{}, infoch chan<- Responser) chess.FromToPromoter
 	GoTime(tc TimeControl) chess.FromToPromoter
 	Quit()
 	// TODO: most adapter methods should return error

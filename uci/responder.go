@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 
 	chess "github.com/GeorgeBills/chess/m/v2"
@@ -71,4 +72,12 @@ type responseBestMove struct {
 func (r responseBestMove) Response() string {
 	movestr := ToUCIN(r.move)
 	return strings.Join([]string{etgBestMove, movestr}, " ")
+}
+
+type ResponseSearchInformation struct {
+	Depth uint8
+}
+
+func (r ResponseSearchInformation) Response() string {
+	return strings.Join([]string{etgInfo, "depth", strconv.Itoa(int(r.Depth))}, " ")
 }

@@ -127,7 +127,7 @@ func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan s
 type cmdGoInfinite struct{}
 
 func (c cmdGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.GoInfinite(stopch)
+	a.GoInfinite(stopch, responsech)
 }
 
 type cmdGoTime struct {
