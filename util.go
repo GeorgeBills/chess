@@ -11,7 +11,7 @@ type PromoteTo byte
 // PromoteTo constants are returned from FromToPromoter.PromoteTo()
 // implementations.
 const (
-	PromoteToNone   PromoteTo = '0'
+	PromoteToNone   PromoteTo = 0
 	PromoteToQueen  PromoteTo = 'q'
 	PromoteToBishop PromoteTo = 'b'
 	PromoteToKnight PromoteTo = 'k'
