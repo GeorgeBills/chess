@@ -33,11 +33,6 @@ func (a *adapter) Identify() (name, author string, other map[string]string) {
 	return Name, Author, nil
 }
 
-func (a *adapter) IsReady() {
-	a.logger.Println("is ready")
-	// TODO: block on mutex in engine if we're waiting on anything slow?
-}
-
 func (a *adapter) NewGame() {
 	a.logger.Println("initialised new game")
 	g := engine.NewGame(nil) // TODO: return pointer
@@ -109,5 +104,3 @@ func (a *adapter) GoTime(tc uci.TimeControl) chess.FromToPromoter {
 	m, _ := a.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
 	return m
 }
-
-func (a *adapter) Quit() { a.logger.Println("quit") } // nothing to cleanup

@@ -7,7 +7,6 @@ import chess "github.com/GeorgeBills/chess/m/v2"
 // Adapter handles events generated from parsing UCI.
 type Adapter interface {
 	Identify() (name, author string, other map[string]string)
-	IsReady()
 	NewGame()
 	SetStartingPosition()
 	SetPositionFEN(fen string)
@@ -16,6 +15,5 @@ type Adapter interface {
 	GoNodes(nodes uint64) chess.FromToPromoter
 	GoInfinite(stopch <-chan struct{}, infoch chan<- Responser) chess.FromToPromoter
 	GoTime(tc TimeControl) chess.FromToPromoter
-	Quit()
 	// TODO: most adapter methods should return error
 }

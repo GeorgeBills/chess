@@ -1,7 +1,6 @@
 package uci
 
 import (
-	"errors"
 	"io"
 	"log"
 	"sort"
@@ -80,7 +79,6 @@ func (c cmdNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan s
 type cmdIsReady struct{}
 
 func (c cmdIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.IsReady() // block on adapter
 	responsech <- responseIsReady{}
 }
 
@@ -138,16 +136,4 @@ type cmdGoTime struct {
 func (c cmdGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
 	move := a.GoTime(c.tc)
 	responsech <- responseBestMove{move}
-}
-
-type stopCommand struct{}
-
-func (c stopCommand) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	panic(errors.New("stop not implemented"))
-}
-
-type quitCommand struct{}
-
-func (c quitCommand) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	panic(errors.New("quit not implemented"))
 }

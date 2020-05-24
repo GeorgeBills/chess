@@ -21,9 +21,7 @@ const Author = "George Bills"
 func TestQuitBeforeUCI(t *testing.T) {
 	const in = "quit"
 	r := strings.NewReader(in)
-	a := &mocks.AdapterMock{
-		QuitFunc: func() {},
-	}
+	a := &mocks.AdapterMock{}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(a, r, w, ioutil.Discard)
 	p.Parse()
@@ -46,14 +44,12 @@ func TestUCI(t *testing.T) {
 			return Name, Author, nil
 		},
 		NewGameFunc:             func() {},
-		IsReadyFunc:             func() {},
 		SetStartingPositionFunc: func() {},
 		SetPositionFENFunc:      func(fen string) {},
 		ApplyMoveFunc:           func(ft chess.FromToPromoter) {},
 		GoDepthFunc:             func(depth uint8) chess.FromToPromoter { return mustParseMove("a1h8") },
 		GoTimeFunc:              func(tc uci.TimeControl) chess.FromToPromoter { return mustParseMove("a8h1") },
 		GoNodesFunc:             func(nodes uint64) chess.FromToPromoter { return mustParseMove("a1h1") },
-		QuitFunc:                func() {},
 	}
 
 	buf := &bytes.Buffer{}
@@ -143,7 +139,6 @@ func TestUCI(t *testing.T) {
 			pipew.Write([]byte("quit\n"))
 			time.Sleep(1 * time.Millisecond) // GROSS... need to be sure parser has done the work
 			assert.Equal(t, "", buf.String())
-			assert.Len(t, a.QuitCalls(), 1)
 		})
 
 		pipew.Close()
@@ -163,7 +158,6 @@ func TestExtraInformation(t *testing.T) {
 				"release-date": "2020-05-16",
 			}
 		},
-		QuitFunc: func() {},
 	}
 	w := &bytes.Buffer{}
 	p := uci.NewParser(a, r, w, ioutil.Discard)
