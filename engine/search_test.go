@@ -66,7 +66,7 @@ func TestBestMoveToDepth(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, b)
 			g := engine.NewGame(b)
-			move, _ := g.BestMoveToDepth(tt.depth)
+			move, _ := g.BestMoveToDepth(tt.depth, nil, nil)
 			assert.Equal(t, tt.expected, move.SAN())
 		})
 	}
@@ -79,7 +79,7 @@ func BenchmarkBestMoveToDepth(b *testing.B) {
 
 	var move engine.Move
 	for i := 0; i < b.N; i++ {
-		move, _ = g.BestMoveToDepth(depth)
+		move, _ = g.BestMoveToDepth(depth, nil, nil)
 	}
 	b.StopTimer()
 

@@ -61,8 +61,8 @@ DEEPEN:
 	return best.move, best.score
 }
 
-func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncrement time.Duration) (Move, int16) {
-	return g.BestMoveToDepth(4)
+func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncrement time.Duration, stopch <-chan struct{}, statusch chan<- SearchStatus) (Move, int16) {
+	return g.BestMoveToDepth(4, stopch, statusch)
 	// TODO: properly implement basic time controls
 	//
 	// http://www.chessgames.com/chessstats.html
@@ -82,7 +82,7 @@ func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncreme
 }
 
 // BestMoveToDepth returns the best move (with its score) to the given depth.
-func (g *Game) BestMoveToDepth(depth uint8) (Move, int16) {
+func (g *Game) BestMoveToDepth(depth uint8, stopch <-chan struct{}, statusch chan<- SearchStatus) (Move, int16) {
 	mm := g.getMaximizingMinimizing()
 	best := g.bestMoveToDepth(depth, mm)
 	return best.move, best.score
