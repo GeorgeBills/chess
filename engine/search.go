@@ -7,6 +7,8 @@ import (
 )
 
 // https://www.chessprogramming.org/Search
+// https://www.chessprogramming.org/Iterative_Deepening
+// https://www.chessprogramming.org/Alpha-Beta
 
 const (
 	maximizing = +1
