@@ -199,7 +199,7 @@ func (m Move) PromoteTo() chess.PromoteTo {
 }
 
 type Game struct {
-	*Board  // TODO: rename to BoardWithHistory or similar
+	*Board  // TODO: Board (no ref), to embed mem and avoid lots of pointer lookups?
 	history []moveCapture
 }
 
