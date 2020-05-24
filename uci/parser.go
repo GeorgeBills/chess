@@ -176,65 +176,51 @@ func commandPositionFEN(p *Parser) statefn {
 	var buf bytes.Buffer
 
 	// ranks: [/1-8BKNPQRbknpqr]
-	if err := accept(p.reader, &buf, "/12345678BKNPQRbknpqr"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "/12345678BKNPQRbknpqr"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN ranks: %w", err))
-	}
-
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
 	}
 	buf.WriteRune(' ')
 
 	// to play: [wb]
-	if err := accept(p.reader, &buf, "wb"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "wb"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN to play: %w", err))
-	}
-
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
 	}
 	buf.WriteRune(' ')
 
 	// castling: [KQkq]
-	if err := accept(p.reader, &buf, "KQkq"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "KQkq"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN castling: %w", err))
-	}
-
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
 	}
 	buf.WriteRune(' ')
 
 	// en passant: [-A-Ha-h][1-8]
-	if err := accept(p.reader, &buf, "-ABCDEFGHabcdefgh12345678"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "-ABCDEFGHabcdefgh12345678"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN en passant: %w", err))
-	}
-
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
 	}
 	buf.WriteRune(' ')
 
 	// half moves
-	if err := accept(p.reader, &buf, "1234567890"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "1234567890"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN half moves: %w", err))
-	}
-
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
 	}
 	buf.WriteRune(' ')
 
 	// full moves
-	if err := accept(p.reader, &buf, "1234567890"); err != nil {
+	if err := acceptThenSpace(p.reader, &buf, "1234567890"); err != nil {
 		return errorScanning(p, fmt.Errorf("error scanning FEN full moves: %w", err))
 	}
 
-	if err := consume(p.reader, isSpace); err != nil {
-		return errorScanning(p, err)
-	}
-
 	return p.emit(CommandSetPositionFEN{FEN: buf.String()}, commandPositionMoves)
+}
+
+func acceptThenSpace(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
+	if err := accept(r, buf, valid); err != nil {
+		return err
+	}
+	if err := consume(r, isSpace); err != nil {
+		return err
+	}
+	return nil
 }
 
 func commandPositionMoves(p *Parser) statefn {
