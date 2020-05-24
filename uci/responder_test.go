@@ -51,4 +51,6 @@ func TestWriteResponses(t *testing.T) {
 		assert.Equal(t, "info depth 123\n", buf.String())
 		buf.Reset()
 	})
+
+	close(responsech)
 }

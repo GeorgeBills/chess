@@ -64,6 +64,9 @@ func TestExecuteCommands(t *testing.T) {
 		time.Sleep(processing)
 		assert.Len(t, a.SetStartingPositionCalls(), 1)
 	})
+
+	close(stopch)
+	close(commandch)
 }
 
 func timeoutReadResponse(t *testing.T, responsech <-chan uci.Responser) uci.Responser {
