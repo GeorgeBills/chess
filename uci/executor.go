@@ -115,7 +115,7 @@ type cmdGoNodes struct {
 }
 
 func (c cmdGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	movestr, err := a.GoNodes(c.nodes)
+	movestr, err := a.GoNodes(c.nodes, stopch, responsech)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ type cmdGoDepth struct {
 }
 
 func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	movestr, err := a.GoDepth(c.plies)
+	movestr, err := a.GoDepth(c.plies, stopch, responsech)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ type cmdGoTime struct {
 }
 
 func (c cmdGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	move, err := a.GoTime(c.tc)
+	move, err := a.GoTime(c.tc, stopch, responsech)
 	if err != nil {
 		return err
 	}

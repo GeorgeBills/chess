@@ -11,8 +11,8 @@ type Adapter interface {
 	SetStartingPosition() error
 	SetPositionFEN(fen string) error
 	ApplyMove(move chess.FromToPromoter) error
-	GoDepth(plies uint8) (chess.FromToPromoter, error)
-	GoNodes(nodes uint64) (chess.FromToPromoter, error)
+	GoDepth(plies uint8, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
+	GoNodes(nodes uint64, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
+	GoTime(tc TimeControl, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
 	GoInfinite(stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
-	GoTime(tc TimeControl) (chess.FromToPromoter, error)
 }

@@ -87,7 +87,7 @@ func (a *adapter) ApplyMove(move chess.FromToPromoter) error {
 	return nil
 }
 
-func (a *adapter) GoDepth(plies uint8) (chess.FromToPromoter, error) {
+func (a *adapter) GoDepth(plies uint8, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
 	a.logger.Println("go depth")
 
 	if a.game == nil {
@@ -98,7 +98,7 @@ func (a *adapter) GoDepth(plies uint8) (chess.FromToPromoter, error) {
 	return m, nil
 }
 
-func (a *adapter) GoNodes(nodes uint64) (chess.FromToPromoter, error) {
+func (a *adapter) GoNodes(nodes uint64, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
 	a.logger.Println("go nodes")
 
 	if a.game == nil {
@@ -126,7 +126,7 @@ func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Respo
 	return m, nil
 }
 
-func (a *adapter) GoTime(tc uci.TimeControl) (chess.FromToPromoter, error) {
+func (a *adapter) GoTime(tc uci.TimeControl, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
 	a.logger.Println("go time")
 
 	if a.game == nil {
