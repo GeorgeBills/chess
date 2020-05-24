@@ -54,7 +54,7 @@ DEEPEN:
 		default:
 			// spiral out, keep going.
 			statusch <- SearchStatus{Depth: depth}
-			best = g.bestMoveToDepth(depth, mm)
+			best = g.bestMoveToDepth(depth, mm, stopch, statusch)
 		}
 	}
 
@@ -84,14 +84,21 @@ func (g *Game) BestMoveToTime(whiteTime, blackTime, whiteIncrement, blackIncreme
 // BestMoveToDepth returns the best move (with its score) to the given depth.
 func (g *Game) BestMoveToDepth(depth uint8, stopch <-chan struct{}, statusch chan<- SearchStatus) (Move, int16) {
 	mm := g.getMaximizingMinimizing()
-	best := g.bestMoveToDepth(depth, mm)
+	best := g.bestMoveToDepth(depth, mm, stopch, statusch)
 	return best.move, best.score
 }
 
-func (g *Game) bestMoveToDepth(depth uint8, mm int8) moveScore {
+func (g *Game) bestMoveToDepth(depth uint8, mm int8, stopch <-chan struct{}, statusch chan<- SearchStatus) moveScore {
 	if depth == 0 {
 		score := g.Evaluate()
 		return moveScore{score: score}
+	}
+
+	select {
+	case <-stopch:
+		score := g.Evaluate()
+		return moveScore{score: score}
+	default:
 	}
 
 	moves, isCheck := g.GenerateLegalMoves(nil)
@@ -106,7 +113,7 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) moveScore {
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if child := g.bestMoveToDepth(depth-1, mm*-1); child.score >= best.score {
+			if child := g.bestMoveToDepth(depth-1, mm*-1, stopch, statusch); child.score >= best.score {
 				best = moveScore{m, child.score}
 			}
 			g.UnmakeMove()
@@ -118,7 +125,7 @@ func (g *Game) bestMoveToDepth(depth uint8, mm int8) moveScore {
 		}
 		for _, m := range moves {
 			g.MakeMove(m)
-			if child := g.bestMoveToDepth(depth-1, mm*-1); child.score <= best.score {
+			if child := g.bestMoveToDepth(depth-1, mm*-1, stopch, statusch); child.score <= best.score {
 				best = moveScore{m, child.score}
 			}
 			g.UnmakeMove()

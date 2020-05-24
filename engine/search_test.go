@@ -77,9 +77,12 @@ func BenchmarkBestMoveToDepth(b *testing.B) {
 
 	g := engine.NewGame(engine.NewBoard())
 
+	stopch := make(chan struct{})
+	statusch := make(chan engine.SearchStatus)
+
 	var move engine.Move
 	for i := 0; i < b.N; i++ {
-		move, _ = g.BestMoveToDepth(depth, nil, nil)
+		move, _ = g.BestMoveToDepth(depth, stopch, statusch)
 	}
 	b.StopTimer()
 
