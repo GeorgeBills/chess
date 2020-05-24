@@ -51,26 +51,26 @@ func (r Responder) WriteResponses() {
 	r.logger.Println("finished")
 }
 
-type responseID struct{ key, value string }
+type ResponseID struct{ Key, Value string }
 
-func (r responseID) Response() string {
-	return strings.Join([]string{etgID, r.key, r.value}, " ")
+func (r ResponseID) Response() string {
+	return strings.Join([]string{etgID, r.Key, r.Value}, " ")
 }
 
-type responseOK struct{}
+type ResponseOK struct{}
 
-func (r responseOK) Response() string { return etgUCIOK }
+func (r ResponseOK) Response() string { return etgUCIOK }
 
-type responseIsReady struct{}
+type ResponseIsReady struct{}
 
-func (r responseIsReady) Response() string { return etgReadyOK }
+func (r ResponseIsReady) Response() string { return etgReadyOK }
 
-type responseBestMove struct {
-	move chess.FromToPromoter
+type ResponseBestMove struct {
+	Move chess.FromToPromoter
 }
 
-func (r responseBestMove) Response() string {
-	movestr := ToUCIN(r.move)
+func (r ResponseBestMove) Response() string {
+	movestr := ToUCIN(r.Move)
 	return strings.Join([]string{etgBestMove, movestr}, " ")
 }
 

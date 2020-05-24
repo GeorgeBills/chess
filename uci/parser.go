@@ -57,7 +57,7 @@ type Parser struct {
 }
 
 // Parse starts the parser.
-func (p *Parser) Parse() error {
+func (p *Parser) Parse() {
 	defer close(p.stopch)
 	defer close(p.commandch)
 
@@ -78,7 +78,6 @@ func (p *Parser) Parse() error {
 	}
 	// TODO: give the engine a chance to cleanup here
 	p.logger.Println("finished")
-	return nil
 }
 
 type statefn func(p *Parser) statefn
@@ -93,7 +92,7 @@ func waitingForUCI(p *Parser) statefn { // TODO: "init"
 
 	switch token {
 	case gteUCI:
-		return p.emit(cmdUCI{}, waitingForCommand)
+		return p.emit(CommandUCI{}, waitingForCommand)
 	case gteQuit:
 		return commandQuit
 	case "": // newline
@@ -113,9 +112,9 @@ func waitingForCommand(p *Parser) statefn { // TODO: "running"
 
 	switch token {
 	case gteIsReady:
-		return p.emit(cmdIsReady{}, waitingForCommand)
+		return p.emit(CommandIsReady{}, waitingForCommand)
 	case gteNewGame:
-		return p.emit(cmdNewGame{}, waitingForCommand)
+		return p.emit(CommandNewGame{}, waitingForCommand)
 	case gtePosition:
 		return commandPosition
 	case gteGo:
@@ -157,7 +156,7 @@ func commandPosition(p *Parser) statefn {
 
 	switch token {
 	case gteStartPos:
-		return p.emit(cmdSetStartingPosition{}, eol(p, waitingForCommand))
+		return p.emit(CommandSetStartingPosition{}, eol(p, waitingForCommand))
 	case gteFEN:
 		return commandPositionFEN
 	case "": // newline
@@ -235,7 +234,7 @@ func commandPositionFEN(p *Parser) statefn {
 		return errorScanning(p, err)
 	}
 
-	return p.emit(cmdSetPositionFEN{fen: buf.String()}, commandPositionMoves)
+	return p.emit(CommandSetPositionFEN{FEN: buf.String()}, commandPositionMoves)
 }
 
 func commandPositionMoves(p *Parser) statefn {
@@ -279,7 +278,7 @@ func commandPositionMovesMove(p *Parser) statefn {
 		// block on apply move, since we'll likely pass them through faster than
 		// executor can take them off the channel
 		// TODO: or use the accumulator pattern to make it one big command?
-		p.commandch <- cmdApplyMove{move}
+		p.commandch <- CommandApplyMove{move}
 	}
 
 	return waitingForCommand
@@ -303,7 +302,7 @@ func commandGo(p *Parser) statefn {
 	case gteGoDepth:
 		return commandGoDepth
 	case gteGoInfinite:
-		return p.emit(cmdGoInfinite{}, eol(p, waitingForCommand))
+		return p.emit(CommandGoInfinite{}, eol(p, waitingForCommand))
 	case gteGoNodes:
 		return commandGoNodes
 	case gteBlackTime:
@@ -341,7 +340,7 @@ func commandGoTime(p *Parser, accumulator TimeControl) statefn {
 	case "": // newline
 		// command finished, so run it
 		// TODO: check we have at least white and black time set
-		p.commandch <- cmdGoTime{accumulator}
+		p.commandch <- CommandGoTime{accumulator}
 		return eol(p, waitingForCommand)
 	default:
 		return errorUnrecognized(p, token, commandGoTime(p, accumulator))
@@ -429,7 +428,7 @@ func commandGoDepth(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 
-	p.commandch <- cmdGoDepth{uint8(plies)}
+	p.commandch <- CommandGoDepth{uint8(plies)}
 	return waitingForCommand
 }
 
@@ -446,7 +445,7 @@ func commandGoNodes(p *Parser) statefn {
 		return errorParsingNumber(p, err, waitingForCommand)
 	}
 
-	p.commandch <- cmdGoNodes{nodes}
+	p.commandch <- CommandGoNodes{nodes}
 	return waitingForCommand
 }
 

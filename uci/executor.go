@@ -51,14 +51,14 @@ func (e *Executor) ExecuteCommands() {
 	e.logger.Println("finished")
 }
 
-type cmdUCI struct{}
+type CommandUCI struct{}
 
-func (c cmdUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	name, author, rest := a.Identify()
 
 	// respond with required name and author
-	responsech <- responseID{etgIDName, name}
-	responsech <- responseID{etgIDAuthor, author}
+	responsech <- ResponseID{etgIDName, name}
+	responsech <- ResponseID{etgIDAuthor, author}
 
 	// respond with rest of our id information in sorted order
 	keys := make([]string, 0, len(rest))
@@ -67,95 +67,95 @@ func (c cmdUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struc
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		responsech <- responseID{k, rest[k]}
+		responsech <- ResponseID{k, rest[k]}
 	}
 
-	responsech <- responseOK{}
+	responsech <- ResponseOK{}
 
 	return nil
 }
 
-type cmdNewGame struct{}
+type CommandNewGame struct{}
 
-func (c cmdNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	return a.NewGame()
 }
 
-type cmdIsReady struct{}
+type CommandIsReady struct{}
 
-func (c cmdIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	responsech <- responseIsReady{}
+func (c CommandIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	responsech <- ResponseIsReady{}
 	return nil
 }
 
-type cmdSetStartingPosition struct{}
+type CommandSetStartingPosition struct{}
 
-func (c cmdSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	return a.SetStartingPosition()
 }
 
-type cmdSetPositionFEN struct {
-	fen string
+type CommandSetPositionFEN struct {
+	FEN string
 }
 
-func (c cmdSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	return a.SetPositionFEN(c.fen)
+func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	return a.SetPositionFEN(c.FEN)
 }
 
-type cmdApplyMove struct {
+type CommandApplyMove struct {
 	move Move
 }
 
-func (c cmdApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	return a.ApplyMove(c.move)
 }
 
-type cmdGoNodes struct {
-	nodes uint64
+type CommandGoNodes struct {
+	Nodes uint64
 }
 
-func (c cmdGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	movestr, err := a.GoNodes(c.nodes, stopch, responsech)
+func (c CommandGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	movestr, err := a.GoNodes(c.Nodes, stopch, responsech)
 	if err != nil {
 		return err
 	}
-	responsech <- responseBestMove{movestr}
+	responsech <- ResponseBestMove{movestr}
 	return nil
 }
 
-type cmdGoDepth struct {
-	plies uint8
+type CommandGoDepth struct {
+	Plies uint8
 }
 
-func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	movestr, err := a.GoDepth(c.plies, stopch, responsech)
+func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	movestr, err := a.GoDepth(c.Plies, stopch, responsech)
 	if err != nil {
 		return err
 	}
-	responsech <- responseBestMove{movestr}
+	responsech <- ResponseBestMove{movestr}
 	return nil
 }
 
-type cmdGoInfinite struct{}
+type CommandGoInfinite struct{}
 
-func (c cmdGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	move, err := a.GoInfinite(stopch, responsech)
 	if err != nil {
 		return err
 	}
-	responsech <- responseBestMove{move}
+	responsech <- ResponseBestMove{move}
 	return nil
 }
 
-type cmdGoTime struct {
-	tc TimeControl
+type CommandGoTime struct {
+	TimeControl
 }
 
-func (c cmdGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	move, err := a.GoTime(c.tc, stopch, responsech)
+func (c CommandGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	move, err := a.GoTime(c.TimeControl, stopch, responsech)
 	if err != nil {
 		return err
 	}
-	responsech <- responseBestMove{move}
+	responsech <- ResponseBestMove{move}
 	return nil
 }
