@@ -71,8 +71,8 @@ const (
 )
 
 // NewBoard returns a board in the initial state.
-func NewBoard() Board {
-	return Board{
+func NewBoard() *Board {
+	return &Board{
 		white:   maskRank1 | maskRank2,
 		black:   maskRank7 | maskRank8,
 		pawns:   maskRank2 | maskRank7,

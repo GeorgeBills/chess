@@ -75,8 +75,7 @@ func TestBestMoveToDepth(t *testing.T) {
 func BenchmarkBestMoveToDepth(b *testing.B) {
 	const depth = 6
 
-	board := engine.NewBoard()
-	g := engine.NewGame(&board)
+	g := engine.NewGame(engine.NewBoard())
 
 	var move engine.Move
 	for i := 0; i < b.N; i++ {

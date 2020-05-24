@@ -129,7 +129,7 @@ func TestMakeUnmakeMoveHistory(t *testing.T) {
 		"d1d8",
 	}
 	b := engine.NewBoard()
-	g := engine.NewGame(&b)
+	g := engine.NewGame(b)
 	for _, ucin := range opera {
 		parsed, err := uci.ParseUCIN(ucin)
 		require.NoError(t, err)

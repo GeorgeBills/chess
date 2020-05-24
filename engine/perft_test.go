@@ -11,7 +11,7 @@ import (
 
 // https://www.chessprogramming.org/Perft
 
-func perft(g engine.Game, depth uint8) uint64 {
+func perft(g *engine.Game, depth uint8) uint64 {
 	moves := make([]engine.Move, 0, 96)
 	moves, _ = g.GenerateLegalMoves(moves)
 	if depth == 1 {

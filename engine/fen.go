@@ -17,7 +17,7 @@ import (
 const maxFEN = 96 // actually less than this
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
-func (b Board) FEN() string {
+func (b *Board) FEN() string {
 	sb := &strings.Builder{}
 	// strings.Builder Write() methods always return a nil error, so this can never error
 	b.WriteFEN(sb)
@@ -25,7 +25,7 @@ func (b Board) FEN() string {
 }
 
 // WriteFEN writes the Forsyth–Edwards Notation for the board to w.
-func (b Board) WriteFEN(w io.Writer) error {
+func (b *Board) WriteFEN(w io.Writer) error {
 	// bufio.Writer helps us defer error handling till the final Flush()
 	// https://blog.golang.org/errors-are-values
 	sb := bufio.NewWriterSize(w, maxFEN)

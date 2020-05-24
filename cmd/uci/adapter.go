@@ -38,8 +38,7 @@ func (a *adapter) Identify() (name, author string, other map[string]string) {
 
 func (a *adapter) NewGame() error {
 	a.logger.Println("initialised new game")
-	g := engine.NewGame(nil) // TODO: return pointer
-	a.game = &g
+	a.game = engine.NewGame(nil)
 	return nil
 }
 
@@ -50,8 +49,7 @@ func (a *adapter) SetStartingPosition() error {
 		return errNoGame
 	}
 
-	b := engine.NewBoard() // TODO: return pointer
-	a.game.SetBoard(&b)
+	a.game.SetBoard(engine.NewBoard())
 	return nil
 }
 

@@ -219,8 +219,8 @@ type moveCapture struct {
 	previousMeta byte
 }
 
-func NewGame(b *Board) Game {
-	return Game{
+func NewGame(b *Board) *Game { // TODO: don't take board here, always use SetBoard?
+	return &Game{
 		Board:   b,
 		history: make([]moveCapture, 0, 128),
 	}

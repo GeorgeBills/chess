@@ -32,7 +32,7 @@ func TestNewBoardFromFEN(t *testing.T) {
 		strings.NewReader(engine.InitialBoardFEN),
 	)
 	require.NoError(t, err)
-	assert.Equal(t, &expected, b)
+	assert.Equal(t, expected, b)
 }
 
 func TestEnPassant(t *testing.T) {
