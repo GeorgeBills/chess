@@ -36,7 +36,7 @@ const (
 )
 
 // NewParser returns a new parser.
-func NewParser(a Adapter, r io.Reader, outw, logw io.Writer) (*Parser, <-chan Execer, <-chan struct{}) {
+func NewParser(r io.Reader, logw io.Writer) (*Parser, <-chan Execer, <-chan struct{}) {
 	commandch := make(chan Execer, 0) // unbuffered
 	stopch := make(chan struct{}, 1)
 	parser := &Parser{

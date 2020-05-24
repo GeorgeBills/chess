@@ -15,7 +15,7 @@ type Wrapper struct {
 }
 
 func New(adapter Adapter, in io.Reader, out, log io.Writer) *Wrapper {
-	parser, commandch, stopch := NewParser(adapter, in, out, log)
+	parser, commandch, stopch := NewParser(in, log)
 	executor, responsech := NewExecutor(commandch, stopch, adapter, log)
 	responder := NewResponder(responsech, out, log)
 	return &Wrapper{
