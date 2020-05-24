@@ -29,7 +29,7 @@ type Executor struct {
 }
 
 type Execer interface {
-	Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{})
+	Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error
 }
 
 // ExecuteCommands takes commands off commandch, executes them, and sends
@@ -42,7 +42,10 @@ func (e *Executor) ExecuteCommands() {
 		e.logger.Printf("running command: %T; %+v", cmd, cmd)
 		// TODO: can we fan-in both stopch and quitch into one ch for exec?
 		//       simplifies life for callees
-		cmd.Exec(e.adapter, e.responsech, e.stopch)
+		err := cmd.Exec(e.adapter, e.responsech, e.stopch)
+		if err != nil {
+			e.logger.Printf("error running command: %v", err)
+		}
 		e.logger.Printf("finished command: %T", cmd)
 	}
 	e.logger.Println("finished")
@@ -50,7 +53,7 @@ func (e *Executor) ExecuteCommands() {
 
 type cmdUCI struct{}
 
-func (c cmdUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
+func (c cmdUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	name, author, rest := a.Identify()
 
 	// respond with required name and author
@@ -68,72 +71,91 @@ func (c cmdUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struc
 	}
 
 	responsech <- responseOK{}
+
+	return nil
 }
 
 type cmdNewGame struct{}
 
-func (c cmdNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.NewGame()
+func (c cmdNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	return a.NewGame()
 }
 
 type cmdIsReady struct{}
 
-func (c cmdIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
+func (c cmdIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
 	responsech <- responseIsReady{}
+	return nil
 }
 
 type cmdSetStartingPosition struct{}
 
-func (c cmdSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.SetStartingPosition()
+func (c cmdSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	return a.SetStartingPosition()
 }
 
 type cmdSetPositionFEN struct {
 	fen string
 }
 
-func (c cmdSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.SetPositionFEN(c.fen)
+func (c cmdSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	return a.SetPositionFEN(c.fen)
 }
 
 type cmdApplyMove struct {
 	move Move
 }
 
-func (c cmdApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	a.ApplyMove(c.move)
+func (c cmdApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	return a.ApplyMove(c.move)
 }
 
 type cmdGoNodes struct {
 	nodes uint64
 }
 
-func (c cmdGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	movestr := a.GoNodes(c.nodes)
+func (c cmdGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	movestr, err := a.GoNodes(c.nodes)
+	if err != nil {
+		return err
+	}
 	responsech <- responseBestMove{movestr}
+	return nil
 }
 
 type cmdGoDepth struct {
 	plies uint8
 }
 
-func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	movestr := a.GoDepth(c.plies)
+func (c cmdGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	movestr, err := a.GoDepth(c.plies)
+	if err != nil {
+		return err
+	}
 	responsech <- responseBestMove{movestr}
+	return nil
 }
 
 type cmdGoInfinite struct{}
 
-func (c cmdGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	move := a.GoInfinite(stopch, responsech)
+func (c cmdGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	move, err := a.GoInfinite(stopch, responsech)
+	if err != nil {
+		return err
+	}
 	responsech <- responseBestMove{move}
+	return nil
 }
 
 type cmdGoTime struct {
 	tc TimeControl
 }
 
-func (c cmdGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) {
-	move := a.GoTime(c.tc)
+func (c cmdGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+	move, err := a.GoTime(c.tc)
+	if err != nil {
+		return err
+	}
 	responsech <- responseBestMove{move}
+	return nil
 }

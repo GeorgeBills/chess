@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"strings"
@@ -15,6 +16,8 @@ const Name = "github.com/GeorgeBills/chess"
 
 // Author is the author of our engine.
 const Author = "George Bills"
+
+var errNoGame = errors.New("must initialise new game first")
 
 // newAdapter returns a new adapter.
 func newAdapter(logw io.Writer) *adapter {
@@ -33,60 +36,84 @@ func (a *adapter) Identify() (name, author string, other map[string]string) {
 	return Name, Author, nil
 }
 
-func (a *adapter) NewGame() {
+func (a *adapter) NewGame() error {
 	a.logger.Println("initialised new game")
 	g := engine.NewGame(nil) // TODO: return pointer
 	a.game = &g
+	return nil
 }
 
-func (a *adapter) SetStartingPosition() {
+func (a *adapter) SetStartingPosition() error {
 	a.logger.Println("set starting position")
-	// TODO: nil check game on SetPositionFEN
-	//       or just return a new game from SetBoard if none already?
-	// if a.game == nil {
-	// 	return errors.New("no game")
-	// }
-	b := engine.NewBoard()
+
+	if a.game == nil {
+		return errNoGame
+	}
+
+	b := engine.NewBoard() // TODO: return pointer
 	a.game.SetBoard(&b)
+	return nil
 }
 
-func (a *adapter) SetPositionFEN(fen string) {
+func (a *adapter) SetPositionFEN(fen string) error {
 	a.logger.Println("set position")
 
-	// TODO: nil check game on SetPositionFEN
-	//       or just return a new game from SetBoard if none already?
+	if a.game == nil {
+		return errNoGame
+	}
 
-	b, _ := engine.NewBoardFromFEN(strings.NewReader(fen))
-	// TODO: return err from SetPositionFEN
-	// if err != nil {
-	// 	return err
-	// }
+	b, err := engine.NewBoardFromFEN(strings.NewReader(fen))
+	if err != nil {
+		return err
+	}
 
 	a.game.SetBoard(b)
+	return nil
 }
 
-func (a *adapter) ApplyMove(move chess.FromToPromoter) {
+func (a *adapter) ApplyMove(move chess.FromToPromoter) error {
 	a.logger.Printf("playing move: %v", move)
+
+	if a.game == nil {
+		return errNoGame
+	}
+
 	m, err := a.game.HydrateMove(move)
 	if err != nil {
-		panic(err) // FIXME: return errors from most adapter methods...
+		return err
 	}
+
 	a.game.MakeMove(m)
+	return nil
 }
 
-func (a *adapter) GoDepth(plies uint8) chess.FromToPromoter {
+func (a *adapter) GoDepth(plies uint8) (chess.FromToPromoter, error) {
 	a.logger.Println("go depth")
+
+	if a.game == nil {
+		return nil, errNoGame
+	}
+
 	m, _ := a.game.BestMoveToDepth(plies * 2)
-	return m
+	return m, nil
 }
 
-func (a *adapter) GoNodes(nodes uint64) chess.FromToPromoter {
+func (a *adapter) GoNodes(nodes uint64) (chess.FromToPromoter, error) {
 	a.logger.Println("go nodes")
-	panic("GoNodes not implemented")
+
+	if a.game == nil {
+		return nil, errNoGame
+	}
+
+	return nil, errors.New("GoNodes not implemented")
 }
 
-func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Responser) chess.FromToPromoter {
+func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Responser) (chess.FromToPromoter, error) {
 	a.logger.Println("go infinite")
+
+	if a.game == nil {
+		return nil, errNoGame
+	}
 
 	statusch := make(chan engine.SearchStatus, 100)
 	go func() {
@@ -96,11 +123,16 @@ func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Respo
 	}()
 
 	m, _ := a.game.BestMoveInfinite(stopch, statusch)
-	return m
+	return m, nil
 }
 
-func (a *adapter) GoTime(tc uci.TimeControl) chess.FromToPromoter {
+func (a *adapter) GoTime(tc uci.TimeControl) (chess.FromToPromoter, error) {
 	a.logger.Println("go time")
+
+	if a.game == nil {
+		return nil, errNoGame
+	}
+
 	m, _ := a.game.BestMoveToTime(tc.WhiteTime, tc.BlackTime, tc.WhiteIncrement, tc.BlackIncrement)
-	return m
+	return m, nil
 }
