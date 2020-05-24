@@ -56,8 +56,8 @@ type Parser struct {
 	reader    io.RuneScanner
 }
 
-// Parse starts the parser.
-func (p *Parser) Parse() {
+// ParseInput starts the parser.
+func (p *Parser) ParseInput() {
 	defer close(p.stopch)
 	defer close(p.commandch)
 

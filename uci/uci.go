@@ -29,7 +29,7 @@ func (w *Wrapper) ParseExecuteRespond() *sync.WaitGroup {
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
 	go func() {
-		w.parser.Parse()
+		w.parser.ParseInput()
 		wg.Done()
 	}()
 	go func() {

@@ -16,14 +16,14 @@ const (
 	timeout    = 1 * time.Second
 )
 
-func TestParse(t *testing.T) {
+func TestParseInput(t *testing.T) {
 	piper, pipew := io.Pipe()
 	p, commandch, stopch := uci.NewParser(piper, os.Stdout)
 	require.NotNil(t, p)
 	require.NotNil(t, commandch)
 	require.NotNil(t, stopch)
 
-	go p.Parse()
+	go p.ParseInput()
 
 	// The command channel is unbuffered; the parser will error out of writing
 	// to it if a goroutine isn't currently blocking on reading it. That makes
@@ -136,7 +136,7 @@ func TestQuitBeforeUCI(t *testing.T) {
 	require.NotNil(t, commandch)
 	require.NotNil(t, stopch)
 
-	go p.Parse()
+	go p.ParseInput()
 
 	pipew.Write([]byte("quit\n"))
 	time.Sleep(processing)
