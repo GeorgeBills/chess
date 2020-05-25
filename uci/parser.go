@@ -178,37 +178,37 @@ func commandPositionFEN(p *Parser) statefn {
 
 	// ranks: [/1-8BKNPQRbknpqr]
 	if err := acceptThenSpace(p.reader, &buf, "/12345678BKNPQRbknpqr"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN ranks: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN ranks: %w", err), false, commandPositionFEN)
 	}
 	buf.WriteRune(' ')
 
 	// to play: [wb]
 	if err := acceptThenSpace(p.reader, &buf, "wb"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN to play: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN to play: %w", err), false, commandPositionFEN)
 	}
 	buf.WriteRune(' ')
 
 	// castling: [KQkq]
 	if err := acceptThenSpace(p.reader, &buf, "KQkq"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN castling: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN castling: %w", err), false, commandPositionFEN)
 	}
 	buf.WriteRune(' ')
 
 	// en passant: [-A-Ha-h][1-8]
 	if err := acceptThenSpace(p.reader, &buf, "-ABCDEFGHabcdefgh12345678"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN en passant: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN en passant: %w", err), false, commandPositionFEN)
 	}
 	buf.WriteRune(' ')
 
 	// half moves
 	if err := acceptThenSpace(p.reader, &buf, "1234567890"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN half moves: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN half moves: %w", err), false, commandPositionFEN)
 	}
 	buf.WriteRune(' ')
 
 	// full moves
 	if err := acceptThenSpace(p.reader, &buf, "1234567890"); err != nil {
-		return errorScanning(p, fmt.Errorf("error scanning FEN full moves: %w", err))
+		return p.handleError(fmt.Errorf("error scanning FEN full moves: %w", err), false, commandPositionFEN)
 	}
 
 	return p.emit(CommandSetPositionFEN{FEN: buf.String()}, commandPositionMoves)
@@ -339,7 +339,7 @@ func commandGoTimeWhiteTime(p *Parser, accumulator TimeControl) statefn {
 
 	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoTimeWhiteTime(p, accumulator))
 	}
 
 	accumulator.WhiteTime = time.Duration(t) * time.Millisecond
@@ -351,7 +351,7 @@ func commandGoTimeBlackTime(p *Parser, accumulator TimeControl) statefn {
 
 	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoTimeBlackTime(p, accumulator))
 	}
 
 	accumulator.BlackTime = time.Duration(t) * time.Millisecond
@@ -363,7 +363,7 @@ func commandGoTimeWhiteIncrement(p *Parser, accumulator TimeControl) statefn {
 
 	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoTimeWhiteIncrement(p, accumulator))
 	}
 
 	accumulator.WhiteIncrement = time.Duration(t) * time.Millisecond
@@ -375,7 +375,7 @@ func commandGoTimeBlackIncrement(p *Parser, accumulator TimeControl) statefn {
 
 	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoTimeBlackIncrement(p, accumulator))
 	}
 
 	accumulator.BlackIncrement = time.Duration(t) * time.Millisecond
@@ -387,7 +387,7 @@ func commandGoDepth(p *Parser) statefn {
 
 	plies, err := nextTokenUint(p.reader, 8)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoDepth)
 	}
 
 	p.commandch <- CommandGoDepth{uint8(plies)}
@@ -399,7 +399,7 @@ func commandGoNodes(p *Parser) statefn {
 
 	nodes, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return p.handleError(err, false)
+		return p.handleError(err, false, commandGoNodes)
 	}
 
 	p.commandch <- CommandGoNodes{nodes}
@@ -433,10 +433,16 @@ func eol(p *Parser, next statefn) statefn {
 
 // handleError takes an error that we don't know the type of and returns the
 // next state based on that error.
-func (p *Parser) handleError(err error, eofOK bool) statefn {
+func (p *Parser) handleError(err error, eofOK bool, next statefn) statefn {
+	var (
+		ire *invalidRuneError
+		ne  *strconv.NumError
+	)
 	switch {
-	case errors.Is(err, strconv.ErrRange), errors.Is(err, strconv.ErrSyntax):
-		return errorParsingNumber(p, err, waitingForCommand)
+	case errors.As(err, &ne): // e.g. strconv.ErrRange, strconv.ErrSyntax
+		return errorParsingNumber(p, err, next)
+	case errors.As(err, &ire):
+		return errorInvalidRune(p, err, next)
 	case errors.Is(err, io.EOF):
 		if !eofOK {
 			return errorScanning(p, io.ErrUnexpectedEOF)
@@ -455,6 +461,11 @@ func (p *Parser) handleError(err error, eofOK bool) statefn {
 // originating state).
 func errorUnrecognized(p *Parser, text string, next statefn) statefn {
 	p.logger.Printf("unrecognized: %s\n", text)
+	return next
+}
+
+func errorInvalidRune(p *Parser, err error, next statefn) statefn {
+	p.logger.Println(err)
 	return next
 }
 
@@ -494,6 +505,12 @@ func consume(r io.RuneScanner, pred func(rune) bool) error {
 	}
 }
 
+type invalidRuneError struct{ c rune }
+
+func (err *invalidRuneError) Error() string {
+	return fmt.Sprintf("invalid rune: %q", err.c)
+}
+
 func accept(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 	for {
 		c, _, err := r.ReadRune()
@@ -507,7 +524,7 @@ func accept(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 			r.UnreadRune()
 			return nil
 		default:
-			return fmt.Errorf("unrecognized rune: %q", c)
+			return &invalidRuneError{c}
 		}
 	}
 }
