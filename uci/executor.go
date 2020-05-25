@@ -4,6 +4,8 @@ import (
 	"io"
 	"log"
 	"sort"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // NewExecutor returns a new executor.
@@ -30,6 +32,11 @@ type Executor struct {
 
 type Execer interface {
 	Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error
+}
+
+type MoveExecer interface {
+	Execer
+	AppendMove(m Move)
 }
 
 // ExecuteCommands takes commands off commandch, executes them, and sends
@@ -88,26 +95,29 @@ func (c CommandIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-ch
 	return nil
 }
 
-type CommandSetStartingPosition struct{}
+type CommandSetStartingPosition struct {
+	Moves []chess.FromToPromoter
+}
+
+func (c *CommandSetStartingPosition) AppendMove(m Move) {
+	c.Moves = append(c.Moves, m)
+}
 
 func (c CommandSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	return a.SetStartingPosition()
+	return a.SetStartingPosition(c.Moves)
 }
 
 type CommandSetPositionFEN struct {
-	FEN string
+	FEN   string
+	Moves []chess.FromToPromoter
 }
 
 func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	return a.SetPositionFEN(c.FEN)
+	return a.SetPositionFEN(c.FEN, c.Moves)
 }
 
-type CommandApplyMove struct {
-	move Move
-}
-
-func (c CommandApplyMove) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
-	return a.ApplyMove(c.move)
+func (c *CommandSetPositionFEN) AppendMove(m Move) {
+	c.Moves = append(c.Moves, m)
 }
 
 type CommandGoNodes struct {

@@ -42,18 +42,26 @@ func (a *adapter) NewGame() error {
 	return nil
 }
 
-func (a *adapter) SetStartingPosition() error {
+func (a *adapter) SetStartingPosition(moves []chess.FromToPromoter) error {
 	a.logger.Println("set starting position")
 
 	if a.game == nil {
 		return errNoGame
 	}
 
+	for _, move := range moves {
+		m, err := a.game.HydrateMove(move)
+		if err != nil {
+			return err
+		}
+		a.game.MakeMove(m)
+	}
+
 	a.game.SetBoard(engine.NewBoard())
 	return nil
 }
 
-func (a *adapter) SetPositionFEN(fen string) error {
+func (a *adapter) SetPositionFEN(fen string, moves []chess.FromToPromoter) error {
 	a.logger.Println("set position")
 
 	if a.game == nil {
@@ -65,23 +73,15 @@ func (a *adapter) SetPositionFEN(fen string) error {
 		return err
 	}
 
+	for _, move := range moves {
+		m, err := a.game.HydrateMove(move)
+		if err != nil {
+			return err
+		}
+		a.game.MakeMove(m)
+	}
+
 	a.game.SetBoard(b)
-	return nil
-}
-
-func (a *adapter) ApplyMove(move chess.FromToPromoter) error {
-	a.logger.Printf("playing move: %v", move)
-
-	if a.game == nil {
-		return errNoGame
-	}
-
-	m, err := a.game.HydrateMove(move)
-	if err != nil {
-		return err
-	}
-
-	a.game.MakeMove(m)
 	return nil
 }
 

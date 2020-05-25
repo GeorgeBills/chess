@@ -30,9 +30,8 @@ func TestExecuteCommands(t *testing.T) {
 			return Name, Author, nil
 		},
 		NewGameFunc:             func() error { return nil },
-		SetStartingPositionFunc: func() error { return nil },
-		SetPositionFENFunc:      func(string) error { return nil },
-		ApplyMoveFunc:           func(chess.FromToPromoter) error { return nil },
+		SetStartingPositionFunc: func([]chess.FromToPromoter) error { return nil },
+		SetPositionFENFunc:      func(string, []chess.FromToPromoter) error { return nil },
 	}
 
 	commandch := make(chan uci.Execer)

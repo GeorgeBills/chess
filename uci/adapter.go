@@ -8,9 +8,8 @@ import chess "github.com/GeorgeBills/chess/m/v2"
 type Adapter interface {
 	Identify() (name, author string, other map[string]string)
 	NewGame() error
-	SetStartingPosition() error
-	SetPositionFEN(fen string) error
-	ApplyMove(move chess.FromToPromoter) error
+	SetStartingPosition(moves []chess.FromToPromoter) error
+	SetPositionFEN(fen string, moves []chess.FromToPromoter) error
 	GoDepth(plies uint8, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
 	GoNodes(nodes uint64, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
 	GoTime(tc TimeControl, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)

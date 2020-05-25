@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	chess "github.com/GeorgeBills/chess/m/v2"
 	"github.com/GeorgeBills/chess/m/v2/uci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,14 +54,37 @@ func TestParseInput(t *testing.T) {
 			[]uci.Execer{
 				uci.CommandUCI{},
 				uci.CommandNewGame{},
-				uci.CommandSetPositionFEN{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+				&uci.CommandSetPositionFEN{
+					FEN:   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+					Moves: nil,
+				},
 			},
 		},
 		{
 			"position startpos",
 			[]string{"uci", "ucinewgame", "position startpos", "quit"},
 			[]uci.Execer{
-				uci.CommandUCI{}, uci.CommandNewGame{}, uci.CommandSetStartingPosition{},
+				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
+			},
+		},
+		{
+			"position startpos moves",
+			[]string{
+				"uci", "ucinewgame",
+				"position startpos moves e2e4 e7e5 g1f3 b8c6 f1b5", // Ruy López
+				"quit",
+			},
+			[]uci.Execer{
+				uci.CommandUCI{}, uci.CommandNewGame{},
+				&uci.CommandSetStartingPosition{
+					Moves: []chess.FromToPromoter{
+						mustParseMove("e2e4"),
+						mustParseMove("e7e5"),
+						mustParseMove("g1f3"),
+						mustParseMove("b8c6"),
+						mustParseMove("f1b5"),
+					},
+				},
 			},
 		},
 		{
@@ -71,7 +95,7 @@ func TestParseInput(t *testing.T) {
 				"quit",
 			},
 			[]uci.Execer{
-				uci.CommandUCI{}, uci.CommandNewGame{}, uci.CommandSetStartingPosition{},
+				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoDepth{Plies: 123},
 			},
 		},
@@ -83,7 +107,7 @@ func TestParseInput(t *testing.T) {
 				"quit",
 			},
 			[]uci.Execer{
-				uci.CommandUCI{}, uci.CommandNewGame{}, uci.CommandSetStartingPosition{},
+				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoNodes{Nodes: 456},
 			},
 		},
@@ -95,7 +119,7 @@ func TestParseInput(t *testing.T) {
 				"quit",
 			},
 			[]uci.Execer{
-				uci.CommandUCI{}, uci.CommandNewGame{}, uci.CommandSetStartingPosition{},
+				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoTime{
 					uci.TimeControl{
 						WhiteTime: 5 * time.Minute,

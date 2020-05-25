@@ -157,7 +157,8 @@ func commandPosition(p *Parser) statefn {
 
 	switch token {
 	case gteStartPos:
-		return p.emit(CommandSetStartingPosition{}, eol(p, waitingForCommand))
+		partial := &CommandSetStartingPosition{}
+		return commandPositionMoves(p, partial)
 	case gteFEN:
 		return commandPositionFEN
 	case "": // newline
@@ -211,7 +212,8 @@ func commandPositionFEN(p *Parser) statefn {
 		return p.handleError(fmt.Errorf("error scanning FEN full moves: %w", err), false, commandPositionFEN)
 	}
 
-	return p.emit(CommandSetPositionFEN{FEN: buf.String()}, commandPositionMoves)
+	partial := &CommandSetPositionFEN{FEN: buf.String()}
+	return commandPositionMoves(p, partial)
 }
 
 func acceptThenSpace(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
@@ -224,7 +226,7 @@ func acceptThenSpace(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 	return nil
 }
 
-func commandPositionMoves(p *Parser) statefn {
+func commandPositionMoves(p *Parser, partial MoveExecer) statefn {
 	p.logger.Println("command: position moves")
 
 	token, err := nextToken(p.reader)
@@ -235,18 +237,19 @@ func commandPositionMoves(p *Parser) statefn {
 	// could be moves, could be EOL
 	switch token {
 	case gteMoves:
-		return commandPositionMovesMove
-	case "": // newline
-		return eol(p, waitingForCommand)
+		return commandPositionMovesMove(p, partial)
+	case "":
+		// newline: fire off the command
+		return p.emit(partial, waitingForCommand)
 	default:
-		return errorUnrecognized(p, token, commandPositionMoves)
+		return errorUnrecognized(p, token, commandPositionMoves(p, partial))
 	}
 }
 
-func commandPositionMovesMove(p *Parser) statefn {
+func commandPositionMovesMove(p *Parser, partial MoveExecer) statefn {
 	p.logger.Println("command: position moves move")
 
-	// loop over all moves
+	// loop over moves until we get an error or a newline
 	for {
 		token, err := nextToken(p.reader)
 		if err != nil {
@@ -254,21 +257,18 @@ func commandPositionMovesMove(p *Parser) statefn {
 		}
 
 		if token == "" {
-			break // newline
+			// newline: fire off the command
+			return p.emit(partial, waitingForCommand)
 		}
 
 		move, err := ParseUCIN(token)
 		if err != nil {
-			return errorUnrecognized(p, token, commandPositionMoves) // TODO: pass along err so we get decent logs
+			next := commandPositionMovesMove(p, partial)
+			return errorUnrecognized(p, token, next) // TODO: pass along err so we get decent logs
 		}
 
-		// block on apply move, since we'll likely pass them through faster than
-		// executor can take them off the channel
-		// TODO: or use the accumulator pattern to make it one big command?
-		p.commandch <- CommandApplyMove{move}
+		partial.AppendMove(move)
 	}
-
-	return waitingForCommand
 }
 
 // TimeControl represents time controls for playing a chess move.
@@ -524,6 +524,7 @@ func accept(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 			r.UnreadRune()
 			return nil
 		default:
+			// TODO: advance to whitespace, this token is bad
 			return &invalidRuneError{c}
 		}
 	}
