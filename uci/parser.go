@@ -3,6 +3,7 @@ package uci
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -336,14 +337,9 @@ func commandGoTime(p *Parser, accumulator TimeControl) statefn {
 func commandGoTimeWhiteTime(p *Parser, accumulator TimeControl) statefn {
 	p.logger.Println("command: go time white time")
 
-	token, err := nextToken(p.reader)
+	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	t, err := strconv.ParseUint(token, 10, 64)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	accumulator.WhiteTime = time.Duration(t) * time.Millisecond
@@ -353,14 +349,9 @@ func commandGoTimeWhiteTime(p *Parser, accumulator TimeControl) statefn {
 func commandGoTimeBlackTime(p *Parser, accumulator TimeControl) statefn {
 	p.logger.Println("command: go time black time")
 
-	token, err := nextToken(p.reader)
+	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	t, err := strconv.ParseUint(token, 10, 64)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	accumulator.BlackTime = time.Duration(t) * time.Millisecond
@@ -370,14 +361,9 @@ func commandGoTimeBlackTime(p *Parser, accumulator TimeControl) statefn {
 func commandGoTimeWhiteIncrement(p *Parser, accumulator TimeControl) statefn {
 	p.logger.Println("command: go time white increment")
 
-	token, err := nextToken(p.reader)
+	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	t, err := strconv.ParseUint(token, 10, 64)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	accumulator.WhiteIncrement = time.Duration(t) * time.Millisecond
@@ -387,14 +373,9 @@ func commandGoTimeWhiteIncrement(p *Parser, accumulator TimeControl) statefn {
 func commandGoTimeBlackIncrement(p *Parser, accumulator TimeControl) statefn {
 	p.logger.Println("command: go time black increment")
 
-	token, err := nextToken(p.reader)
+	t, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	t, err := strconv.ParseUint(token, 10, 64)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	accumulator.BlackIncrement = time.Duration(t) * time.Millisecond
@@ -404,14 +385,9 @@ func commandGoTimeBlackIncrement(p *Parser, accumulator TimeControl) statefn {
 func commandGoDepth(p *Parser) statefn {
 	p.logger.Println("command: go depth")
 
-	token, err := nextToken(p.reader)
+	plies, err := nextTokenUint(p.reader, 8)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	plies, err := strconv.ParseUint(token, 10, 8)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	p.commandch <- CommandGoDepth{uint8(plies)}
@@ -421,14 +397,9 @@ func commandGoDepth(p *Parser) statefn {
 func commandGoNodes(p *Parser) statefn {
 	p.logger.Println("command: go nodes")
 
-	token, err := nextToken(p.reader)
+	nodes, err := nextTokenUint(p.reader, 64)
 	if err != nil {
-		return errorScanning(p, err)
-	}
-
-	nodes, err := strconv.ParseUint(token, 10, 64)
-	if err != nil {
-		return errorParsingNumber(p, err, waitingForCommand)
+		return p.handleError(err, false)
 	}
 
 	p.commandch <- CommandGoNodes{nodes}
@@ -460,9 +431,22 @@ func eol(p *Parser, next statefn) statefn {
 	return next
 }
 
-// TODO: define known types for various errors and pass to generic error handler
-// e.g. some methods might return diff errors, some fatal, some not
-// should use errors.Is() and similar to inspect the error
+// handleError takes an error that we don't know the type of and returns the
+// next state based on that error.
+func (p *Parser) handleError(err error, eofOK bool) statefn {
+	switch {
+	case errors.Is(err, strconv.ErrRange), errors.Is(err, strconv.ErrSyntax):
+		return errorParsingNumber(p, err, waitingForCommand)
+	case errors.Is(err, io.EOF):
+		if !eofOK {
+			return errorScanning(p, io.ErrUnexpectedEOF)
+		}
+		return nil
+	default:
+		// assume it's fatal
+		return errorScanning(p, err)
+	}
+}
 
 // errorUnrecognized logs an "unrecognized token" error and then transitions to
 // the specified next state. In general, per the UCI specification which states
@@ -533,6 +517,20 @@ func nextToken(r io.RuneScanner) (string, error) {
 	return readToken(r)
 	// TODO: manually inline readToken in here, it's never called otherwise
 	// TODO: special case any EOL to consume the whole thing and return "\n"
+}
+
+func nextTokenUint(r io.RuneScanner, bits int) (uint64, error) {
+	token, err := nextToken(r)
+	if err != nil {
+		return 0, err
+	}
+
+	n, err := strconv.ParseUint(token, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return n, nil
 }
 
 // readToken reads runes from r until it finds a rune that terminates the token,
