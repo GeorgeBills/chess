@@ -277,6 +277,16 @@ type TimeControl struct {
 	WhiteIncrement, BlackIncrement time.Duration
 }
 
+func (tc TimeControl) String() string {
+	return fmt.Sprintf(
+		"wtime %d btime %d winc %d binc %d",
+		tc.WhiteTime.Milliseconds(),
+		tc.BlackTime.Milliseconds(),
+		tc.WhiteIncrement.Milliseconds(),
+		tc.BlackIncrement.Milliseconds(),
+	)
+}
+
 func commandGo(p *Parser) statefn {
 	p.logger.Println("command: go")
 
