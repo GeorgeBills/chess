@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	chess "github.com/GeorgeBills/chess/m/v2"
@@ -230,9 +232,17 @@ func NewGame(b *Board) *Game { // TODO: don't take board here, always use SetBoa
 // or similar), checks it against the board for sanity, and returns the engines
 // internal representation of a move.
 func (b *Board) HydrateMove(m chess.FromToPromoter) (Move, error) {
+	if b == nil {
+		return 0, errors.New("nil board")
+	}
+
+	if m == nil || reflect.ValueOf(m).IsZero() {
+		return 0, errors.New("nil or zero move")
+	}
+
 	fromSq, toSq := m.From(), m.To()
 
-	isCapture := !b.isEmptyAt(toSq)
+	isCapture := !b.isEmptyAt(toSq) // nil board from Arena!
 
 	if b.isPawnAt(fromSq) {
 		diff := diff(fromSq, toSq)

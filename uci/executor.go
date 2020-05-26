@@ -31,7 +31,7 @@ type Executor struct {
 }
 
 type Command interface {
-	Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error
+	Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error
 }
 
 type MoveCommand interface {
@@ -49,7 +49,7 @@ func (e *Executor) ExecuteCommands() {
 		e.logger.Printf("running command: %T; %+v", cmd, cmd)
 		// TODO: can we fan-in both stopch and quitch into one ch for exec?
 		//       simplifies life for callees
-		err := cmd.Exec(e.adapter, e.responsech, e.stopch)
+		err := cmd.Execute(e.adapter, e.responsech, e.stopch)
 		if err != nil {
 			e.logger.Printf("error running command: %v", err)
 		}
@@ -60,7 +60,7 @@ func (e *Executor) ExecuteCommands() {
 
 type CommandUCI struct{}
 
-func (c CommandUCI) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandUCI) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	name, author, rest := a.Identify()
 
 	// respond with required name and author
@@ -84,13 +84,13 @@ func (c CommandUCI) Exec(a Adapter, responsech chan<- Response, stopch <-chan st
 
 type CommandNewGame struct{}
 
-func (c CommandNewGame) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandNewGame) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.NewGame()
 }
 
 type CommandIsReady struct{}
 
-func (c CommandIsReady) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandIsReady) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	responsech <- ResponseIsReady{}
 	return nil
 }
@@ -103,7 +103,7 @@ func (c *CommandSetStartingPosition) AppendMove(m *Move) {
 	c.Moves = append(c.Moves, m)
 }
 
-func (c CommandSetStartingPosition) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandSetStartingPosition) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.SetStartingPosition(c.Moves)
 }
 
@@ -112,7 +112,7 @@ type CommandSetPositionFEN struct {
 	Moves []chess.FromToPromoter
 }
 
-func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandSetPositionFEN) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.SetPositionFEN(c.FEN, c.Moves)
 }
 
@@ -124,7 +124,7 @@ type CommandGoNodes struct {
 	Nodes uint64
 }
 
-func (c CommandGoNodes) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandGoNodes) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	movestr, err := a.GoNodes(c.Nodes, stopch, responsech)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ type CommandGoDepth struct {
 	Plies uint8
 }
 
-func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandGoDepth) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	movestr, err := a.GoDepth(c.Plies, stopch, responsech)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Response, stopch <-cha
 
 type CommandGoInfinite struct{}
 
-func (c CommandGoInfinite) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandGoInfinite) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	move, err := a.GoInfinite(stopch, responsech)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ type CommandGoTime struct {
 	TimeControl
 }
 
-func (c CommandGoTime) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
+func (c CommandGoTime) Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	move, err := a.GoTime(c.TimeControl, stopch, responsech)
 	if err != nil {
 		return err
