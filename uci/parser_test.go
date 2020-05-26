@@ -114,15 +114,17 @@ func TestParseInput(t *testing.T) {
 			"go time",
 			[]string{
 				"uci", "ucinewgame", "position startpos",
-				"go wtime 300000 btime 300000 winc 0 binc 0",
+				"go wtime 60000 btime 120000 winc 1000 binc 2000",
 				"quit",
 			},
 			[]uci.Execer{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoTime{
 					uci.TimeControl{
-						WhiteTime: 5 * time.Minute,
-						BlackTime: 5 * time.Minute,
+						WhiteTime:      1 * time.Minute,
+						BlackTime:      2 * time.Minute,
+						WhiteIncrement: 1 * time.Second,
+						BlackIncrement: 2 * time.Second,
 					},
 				},
 			},
