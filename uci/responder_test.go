@@ -11,46 +11,53 @@ import (
 )
 
 func TestWriteResponses(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		response uci.Responser
+		expected string
+	}{
+		{
+			"id",
+			uci.ResponseID{Key: "author", Value: Author},
+			"id author George Bills\n",
+		},
+		{
+			"ok",
+			uci.ResponseOK{},
+			"uciok\n",
+		},
+		{
+			"readyok",
+			uci.ResponseIsReady{},
+			"readyok\n",
+		},
+		{
+			"bestmove",
+			uci.ResponseBestMove{Move: mustParseMove("a1h8")},
+			"bestmove a1h8\n",
+		},
+		{
+			"info",
+			uci.ResponseSearchInformation{Depth: 123},
+			"info depth 123\n",
+		},
+	}
+
 	responsech := make(chan uci.Responser)
 	var buf bytes.Buffer
 	r := uci.NewResponder(responsech, &buf, os.Stdout)
 
 	go r.WriteResponses()
 
-	t.Run("id", func(t *testing.T) {
-		responsech <- uci.ResponseID{Key: "author", Value: Author}
-		time.Sleep(processing)
-		assert.Equal(t, "id author George Bills\n", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("ok", func(t *testing.T) {
-		responsech <- uci.ResponseOK{}
-		time.Sleep(processing)
-		assert.Equal(t, "uciok\n", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("readyok", func(t *testing.T) {
-		responsech <- uci.ResponseIsReady{}
-		time.Sleep(processing)
-		assert.Equal(t, "readyok\n", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("bestmove", func(t *testing.T) {
-		responsech <- uci.ResponseBestMove{Move: mustParseMove("a1h8")}
-		time.Sleep(processing)
-		assert.Equal(t, "bestmove a1h8\n", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("info depth", func(t *testing.T) {
-		responsech <- uci.ResponseSearchInformation{Depth: 123}
-		time.Sleep(processing)
-		assert.Equal(t, "info depth 123\n", buf.String())
-		buf.Reset()
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			responsech <- tt.response
+			time.Sleep(processing)
+			assert.Equal(t, tt.expected, buf.String())
+			buf.Reset()
+		})
+	}
 
 	close(responsech)
 }
