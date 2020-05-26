@@ -34,7 +34,7 @@ type Command interface {
 	Execute(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error
 }
 
-type MoveCommand interface {
+type AppendMoveCommand interface {
 	Command
 	AppendMove(m *Move)
 }

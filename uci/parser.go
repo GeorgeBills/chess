@@ -203,7 +203,7 @@ func commandPositionFEN(p *Parser) statefn {
 	return commandPositionMoves(p, partial)
 }
 
-func commandPositionMoves(p *Parser, partial MoveCommand) statefn {
+func commandPositionMoves(p *Parser, partial AppendMoveCommand) statefn {
 	p.logger.Println("command: position moves")
 
 	token, err := nextToken(p.reader)
@@ -223,7 +223,7 @@ func commandPositionMoves(p *Parser, partial MoveCommand) statefn {
 	}
 }
 
-func commandPositionMovesMove(p *Parser, partial MoveCommand) statefn {
+func commandPositionMovesMove(p *Parser, partial AppendMoveCommand) statefn {
 	p.logger.Println("command: position moves move")
 
 	// loop over moves until we get an error or a newline
