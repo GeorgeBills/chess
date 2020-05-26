@@ -79,7 +79,7 @@ func ParseUCIN(ucin string) (*Move, error) {
 // UCIN is very similar to, but not exactly the same as, Long Algebraic
 // Notation.
 func ToUCIN(move chess.FromToPromoter) string {
-	if move == nil || reflect.ValueOf(move).IsNil() {
+	if move == nil || reflect.ValueOf(move).IsZero() {
 		return "0000"
 	}
 
