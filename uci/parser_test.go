@@ -127,6 +127,18 @@ func TestParseInput(t *testing.T) {
 				},
 			},
 		},
+		{
+			"go infinite",
+			[]string{
+				"uci", "ucinewgame", "position startpos",
+				"go infinite",
+				"quit",
+			},
+			[]uci.Execer{
+				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
+				uci.CommandGoInfinite{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
