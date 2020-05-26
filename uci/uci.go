@@ -3,6 +3,7 @@ package uci
 import (
 	"fmt"
 	"io"
+	"reflect"
 	"sync"
 
 	chess "github.com/GeorgeBills/chess/m/v2"
@@ -59,9 +60,7 @@ type rankFile struct {
 }
 
 // newMove returns a new chess move.
-func newMove(from, to rankFile, promoteTo chess.PromoteTo) Move {
-	return Move{from, to, promoteTo}
-}
+func newMove(from, to rankFile, promoteTo chess.PromoteTo) *Move { return &Move{from, to, promoteTo} }
 
 // From returns the square index the move is coming from.
 func (m Move) From() uint8 { return chess.SquareIndex(m.from.Rank, m.from.File) }
@@ -74,17 +73,22 @@ func (m Move) PromoteTo() chess.PromoteTo { return m.promoteTo }
 
 // ParseUCIN parses a string in Universal Chess Notation (e.g. "a1h8") as a
 // FromToPromote 3-tuple.
-func ParseUCIN(ucin string) (Move, error) {
+func ParseUCIN(ucin string) (*Move, error) {
 	if len(ucin) != 4 && len(ucin) != 5 {
-		return Move{}, fmt.Errorf("invalid length for UCIN: %d", len(ucin))
+		return nil, fmt.Errorf("invalid length for UCIN: %d", len(ucin))
 	}
+
+	if ucin == "0000" {
+		return nil, nil
+	}
+
 	fromRank, fromFile, err := chess.ParseAlgebraicNotationString(ucin[0:2])
 	if err != nil {
-		return Move{}, err
+		return nil, err
 	}
 	toRank, toFile, err := chess.ParseAlgebraicNotationString(ucin[2:4])
 	if err != nil {
-		return Move{}, err
+		return nil, err
 	}
 
 	promoteTo := chess.PromoteToNone
@@ -99,7 +103,7 @@ func ParseUCIN(ucin string) (Move, error) {
 		case 'b':
 			promoteTo = chess.PromoteToBishop
 		default:
-			return Move{}, fmt.Errorf("invalid promote to char: %q", ucin[4])
+			return nil, fmt.Errorf("invalid promote to char: %q", ucin[4])
 		}
 	}
 
@@ -112,7 +116,7 @@ func ParseUCIN(ucin string) (Move, error) {
 // UCIN is very similar to, but not exactly the same as, Long Algebraic
 // Notation.
 func ToUCIN(move chess.FromToPromoter) string {
-	if move == nil {
+	if move == nil || reflect.ValueOf(move).IsNil() {
 		return "0000"
 	}
 

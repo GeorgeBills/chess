@@ -16,14 +16,6 @@ const (
 	Author = "George Bills"
 )
 
-func mustParseMove(ucin string) uci.Move {
-	m, err := uci.ParseUCIN(ucin)
-	if err != nil {
-		panic(err)
-	}
-	return m
-}
-
 func TestExecuteCommands(t *testing.T) {
 	a := &mocks.AdapterMock{
 		IdentifyFunc: func() (name, author string, other map[string]string) {

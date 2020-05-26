@@ -12,11 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	processing = 10 * time.Millisecond
-	timeout    = 1 * time.Second
-)
-
 func TestParseInput(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -11,7 +11,6 @@ import (
 )
 
 func TestWriteResponses(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		response uci.Responser

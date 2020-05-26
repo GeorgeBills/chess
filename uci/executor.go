@@ -36,7 +36,7 @@ type Execer interface {
 
 type MoveExecer interface {
 	Execer
-	AppendMove(m Move)
+	AppendMove(m *Move)
 }
 
 // ExecuteCommands takes commands off commandch, executes them, and sends
@@ -99,7 +99,7 @@ type CommandSetStartingPosition struct {
 	Moves []chess.FromToPromoter
 }
 
-func (c *CommandSetStartingPosition) AppendMove(m Move) {
+func (c *CommandSetStartingPosition) AppendMove(m *Move) {
 	c.Moves = append(c.Moves, m)
 }
 
@@ -116,7 +116,7 @@ func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stop
 	return a.SetPositionFEN(c.FEN, c.Moves)
 }
 
-func (c *CommandSetPositionFEN) AppendMove(m Move) {
+func (c *CommandSetPositionFEN) AppendMove(m *Move) {
 	c.Moves = append(c.Moves, m)
 }
 
