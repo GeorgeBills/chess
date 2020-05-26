@@ -2,47 +2,10 @@ package uci
 
 import (
 	"fmt"
-	"io"
 	"reflect"
-	"sync"
 
 	chess "github.com/GeorgeBills/chess/m/v2"
 )
-
-type Wrapper struct {
-	parser    *Parser
-	executor  *Executor
-	responder *Responder
-}
-
-func New(adapter Adapter, in io.Reader, out, log io.Writer) *Wrapper {
-	parser, commandch, stopch := NewParser(in, log)
-	executor, responsech := NewExecutor(commandch, stopch, adapter, log)
-	responder := NewResponder(responsech, out, log)
-	return &Wrapper{
-		parser,
-		executor,
-		responder,
-	}
-}
-
-func (w *Wrapper) ParseExecuteRespond() *sync.WaitGroup {
-	wg := &sync.WaitGroup{}
-	wg.Add(3)
-	go func() {
-		w.parser.ParseInput()
-		wg.Done()
-	}()
-	go func() {
-		w.executor.ExecuteCommands()
-		wg.Done()
-	}()
-	go func() {
-		w.responder.WriteResponses()
-		wg.Done()
-	}()
-	return wg
-}
 
 // Move is a 3-tuple representing the "from" and "to" squares of a move, as well
 // as which piece the moving piece will promote to (if any). This is the

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/GeorgeBills/chess/m/v2/uci"
 )
@@ -13,9 +14,29 @@ func main() {
 		fatal(err)
 	}
 
-	a := newAdapter(logf)
-	u := uci.New(a, os.Stdin, os.Stdout, logf)
-	wg := u.ParseExecuteRespond()
+	adapter := newAdapter(logf)
+	parser, commandch, stopch := uci.NewParser(os.Stdin, logf)
+	executor, responsech := uci.NewExecutor(commandch, stopch, adapter, logf)
+	responder := uci.NewResponder(responsech, os.Stdout, logf)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(3)
+
+	go func() {
+		parser.ParseInput()
+		wg.Done()
+	}()
+
+	go func() {
+		executor.ExecuteCommands()
+		wg.Done()
+	}()
+
+	go func() {
+		responder.WriteResponses()
+		wg.Done()
+	}()
+
 	wg.Wait()
 }
 
