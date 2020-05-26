@@ -3,7 +3,6 @@ package uci_test
 import (
 	"io"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -130,11 +129,7 @@ func TestParseInput(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		name := tt.name
-		if name == "" {
-			name = strings.Join(tt.input, " ")
-		}
-		t.Run(name, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			piper, pipew := io.Pipe()
 
 			p, commandch, stopch := uci.NewParser(piper, os.Stdout)
