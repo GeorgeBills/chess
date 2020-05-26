@@ -9,8 +9,8 @@ import (
 )
 
 // NewExecutor returns a new executor.
-func NewExecutor(commandch <-chan Execer, stopch <-chan struct{}, a Adapter, logw io.Writer) (*Executor, <-chan Responser) {
-	responsech := make(chan Responser, 100)
+func NewExecutor(commandch <-chan Command, stopch <-chan struct{}, a Adapter, logw io.Writer) (*Executor, <-chan Response) {
+	responsech := make(chan Response, 100)
 	executor := &Executor{
 		commandch,
 		stopch,
@@ -23,19 +23,19 @@ func NewExecutor(commandch <-chan Execer, stopch <-chan struct{}, a Adapter, log
 
 // Executor takes UCI commands from a channel and executes them.
 type Executor struct {
-	commandch  <-chan Execer
+	commandch  <-chan Command
 	stopch     <-chan struct{}
 	logger     *log.Logger
-	responsech chan<- Responser
+	responsech chan<- Response
 	adapter    Adapter
 }
 
-type Execer interface {
-	Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error
+type Command interface {
+	Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error
 }
 
-type MoveExecer interface {
-	Execer
+type MoveCommand interface {
+	Command
 	AppendMove(m *Move)
 }
 
@@ -60,7 +60,7 @@ func (e *Executor) ExecuteCommands() {
 
 type CommandUCI struct{}
 
-func (c CommandUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandUCI) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	name, author, rest := a.Identify()
 
 	// respond with required name and author
@@ -84,13 +84,13 @@ func (c CommandUCI) Exec(a Adapter, responsech chan<- Responser, stopch <-chan s
 
 type CommandNewGame struct{}
 
-func (c CommandNewGame) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandNewGame) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.NewGame()
 }
 
 type CommandIsReady struct{}
 
-func (c CommandIsReady) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandIsReady) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	responsech <- ResponseIsReady{}
 	return nil
 }
@@ -103,7 +103,7 @@ func (c *CommandSetStartingPosition) AppendMove(m *Move) {
 	c.Moves = append(c.Moves, m)
 }
 
-func (c CommandSetStartingPosition) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandSetStartingPosition) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.SetStartingPosition(c.Moves)
 }
 
@@ -112,7 +112,7 @@ type CommandSetPositionFEN struct {
 	Moves []chess.FromToPromoter
 }
 
-func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandSetPositionFEN) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	return a.SetPositionFEN(c.FEN, c.Moves)
 }
 
@@ -124,7 +124,7 @@ type CommandGoNodes struct {
 	Nodes uint64
 }
 
-func (c CommandGoNodes) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandGoNodes) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	movestr, err := a.GoNodes(c.Nodes, stopch, responsech)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ type CommandGoDepth struct {
 	Plies uint8
 }
 
-func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	movestr, err := a.GoDepth(c.Plies, stopch, responsech)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (c CommandGoDepth) Exec(a Adapter, responsech chan<- Responser, stopch <-ch
 
 type CommandGoInfinite struct{}
 
-func (c CommandGoInfinite) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandGoInfinite) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	move, err := a.GoInfinite(stopch, responsech)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ type CommandGoTime struct {
 	TimeControl
 }
 
-func (c CommandGoTime) Exec(a Adapter, responsech chan<- Responser, stopch <-chan struct{}) error {
+func (c CommandGoTime) Exec(a Adapter, responsech chan<- Response, stopch <-chan struct{}) error {
 	move, err := a.GoTime(c.TimeControl, stopch, responsech)
 	if err != nil {
 		return err

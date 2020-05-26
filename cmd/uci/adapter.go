@@ -85,7 +85,7 @@ func (a *adapter) SetPositionFEN(fen string, moves []chess.FromToPromoter) error
 	return nil
 }
 
-func (a *adapter) GoDepth(plies uint8, stopch <-chan struct{}, responsech chan<- uci.Responser) (chess.FromToPromoter, error) {
+func (a *adapter) GoDepth(plies uint8, stopch <-chan struct{}, responsech chan<- uci.Response) (chess.FromToPromoter, error) {
 	a.logger.Println("go depth")
 
 	if a.game == nil {
@@ -100,7 +100,7 @@ func (a *adapter) GoDepth(plies uint8, stopch <-chan struct{}, responsech chan<-
 	return m, nil
 }
 
-func (a *adapter) GoNodes(nodes uint64, stopch <-chan struct{}, responsech chan<- uci.Responser) (chess.FromToPromoter, error) {
+func (a *adapter) GoNodes(nodes uint64, stopch <-chan struct{}, responsech chan<- uci.Response) (chess.FromToPromoter, error) {
 	a.logger.Println("go nodes")
 
 	if a.game == nil {
@@ -110,7 +110,7 @@ func (a *adapter) GoNodes(nodes uint64, stopch <-chan struct{}, responsech chan<
 	return nil, errors.New("GoNodes not implemented")
 }
 
-func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Responser) (chess.FromToPromoter, error) {
+func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Response) (chess.FromToPromoter, error) {
 	a.logger.Println("go infinite")
 
 	if a.game == nil {
@@ -124,7 +124,7 @@ func (a *adapter) GoInfinite(stopch <-chan struct{}, responsech chan<- uci.Respo
 	return m, nil
 }
 
-func (a *adapter) GoTime(tc uci.TimeControl, stopch <-chan struct{}, responsech chan<- uci.Responser) (chess.FromToPromoter, error) {
+func (a *adapter) GoTime(tc uci.TimeControl, stopch <-chan struct{}, responsech chan<- uci.Response) (chess.FromToPromoter, error) {
 	a.logger.Println("go time")
 
 	if a.game == nil {
@@ -140,7 +140,7 @@ func (a *adapter) GoTime(tc uci.TimeControl, stopch <-chan struct{}, responsech 
 
 // forward takes messages off statusch, converts them to uci responses and sends
 // them off on responsech.
-func forward(statusch <-chan engine.SearchStatus, responsech chan<- uci.Responser) {
+func forward(statusch <-chan engine.SearchStatus, responsech chan<- uci.Response) {
 	for info := range statusch {
 		responsech <- uci.ResponseSearchInformation{Depth: info.Depth}
 	}

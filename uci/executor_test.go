@@ -27,21 +27,21 @@ func TestExecuteCommands(t *testing.T) {
 		NewGameFunc:             func() error { return nil },
 		SetStartingPositionFunc: func([]chess.FromToPromoter) error { return nil },
 		SetPositionFENFunc:      func(string, []chess.FromToPromoter) error { return nil },
-		GoDepthFunc: func(plies uint8, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
+		GoDepthFunc: func(plies uint8, stopch <-chan struct{}, infoch chan<- uci.Response) (chess.FromToPromoter, error) {
 			return mustParseMove("a1a2"), nil
 		},
-		GoNodesFunc: func(nodes uint64, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
+		GoNodesFunc: func(nodes uint64, stopch <-chan struct{}, infoch chan<- uci.Response) (chess.FromToPromoter, error) {
 			return mustParseMove("b3b4"), nil
 		},
-		GoTimeFunc: func(tc uci.TimeControl, stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
+		GoTimeFunc: func(tc uci.TimeControl, stopch <-chan struct{}, infoch chan<- uci.Response) (chess.FromToPromoter, error) {
 			return mustParseMove("c5c6"), nil
 		},
-		GoInfiniteFunc: func(stopch <-chan struct{}, infoch chan<- uci.Responser) (chess.FromToPromoter, error) {
+		GoInfiniteFunc: func(stopch <-chan struct{}, infoch chan<- uci.Response) (chess.FromToPromoter, error) {
 			return mustParseMove("d7d8"), nil
 		},
 	}
 
-	commandch := make(chan uci.Execer)
+	commandch := make(chan uci.Command)
 	stopch := make(chan struct{})
 	e, responsech := uci.NewExecutor(commandch, stopch, a, os.Stdout)
 
@@ -189,7 +189,7 @@ func TestExecuteCommands(t *testing.T) {
 	close(commandch)
 }
 
-func timeoutReadResponse(t *testing.T, responsech <-chan uci.Responser) uci.Responser {
+func timeoutReadResponse(t *testing.T, responsech <-chan uci.Response) uci.Response {
 	select {
 	case response := <-responsech:
 		return response

@@ -13,7 +13,7 @@ import (
 func TestWriteResponses(t *testing.T) {
 	tests := []struct {
 		name     string
-		response uci.Responser
+		response uci.Response
 		expected string
 	}{
 		{
@@ -43,7 +43,7 @@ func TestWriteResponses(t *testing.T) {
 		},
 	}
 
-	responsech := make(chan uci.Responser)
+	responsech := make(chan uci.Response)
 	var buf bytes.Buffer
 	r := uci.NewResponder(responsech, &buf, os.Stdout)
 

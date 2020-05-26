@@ -10,8 +10,8 @@ type Adapter interface {
 	NewGame() error
 	SetStartingPosition(moves []chess.FromToPromoter) error
 	SetPositionFEN(fen string, moves []chess.FromToPromoter) error
-	GoDepth(plies uint8, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
-	GoNodes(nodes uint64, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
-	GoTime(tc TimeControl, stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
-	GoInfinite(stopch <-chan struct{}, infoch chan<- Responser) (chess.FromToPromoter, error)
+	GoDepth(plies uint8, stopch <-chan struct{}, infoch chan<- Response) (chess.FromToPromoter, error)
+	GoNodes(nodes uint64, stopch <-chan struct{}, infoch chan<- Response) (chess.FromToPromoter, error)
+	GoTime(tc TimeControl, stopch <-chan struct{}, infoch chan<- Response) (chess.FromToPromoter, error)
+	GoInfinite(stopch <-chan struct{}, infoch chan<- Response) (chess.FromToPromoter, error)
 }

@@ -16,7 +16,7 @@ func TestParseInput(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []string
-		expected []uci.Execer
+		expected []uci.Command
 	}{
 		{
 			"quit before uci",
@@ -26,17 +26,17 @@ func TestParseInput(t *testing.T) {
 		{
 			"uci",
 			[]string{"uci", "quit"},
-			[]uci.Execer{uci.CommandUCI{}},
+			[]uci.Command{uci.CommandUCI{}},
 		},
 		{
 			"isready",
 			[]string{"uci", "isready", "quit"},
-			[]uci.Execer{uci.CommandUCI{}, uci.CommandIsReady{}},
+			[]uci.Command{uci.CommandUCI{}, uci.CommandIsReady{}},
 		},
 		{
 			"ucinewgame",
 			[]string{"uci", "ucinewgame", "quit"},
-			[]uci.Execer{uci.CommandUCI{}, uci.CommandNewGame{}},
+			[]uci.Command{uci.CommandUCI{}, uci.CommandNewGame{}},
 		},
 		{
 			"position fen",
@@ -45,7 +45,7 @@ func TestParseInput(t *testing.T) {
 				"position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{},
 				uci.CommandNewGame{},
 				&uci.CommandSetPositionFEN{
@@ -57,7 +57,7 @@ func TestParseInput(t *testing.T) {
 		{
 			"position startpos",
 			[]string{"uci", "ucinewgame", "position startpos", "quit"},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 			},
 		},
@@ -68,7 +68,7 @@ func TestParseInput(t *testing.T) {
 				"position startpos moves e2e4 e7e5 g1f3 b8c6 f1b5", // Ruy López
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{},
 				&uci.CommandSetStartingPosition{
 					Moves: []chess.FromToPromoter{
@@ -88,7 +88,7 @@ func TestParseInput(t *testing.T) {
 				"go depth 123",
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoDepth{Plies: 123},
 			},
@@ -100,7 +100,7 @@ func TestParseInput(t *testing.T) {
 				"go nodes 456",
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoNodes{Nodes: 456},
 			},
@@ -112,7 +112,7 @@ func TestParseInput(t *testing.T) {
 				"go wtime 60000 btime 120000 winc 1000 binc 2000",
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoTime{
 					uci.TimeControl{
@@ -131,7 +131,7 @@ func TestParseInput(t *testing.T) {
 				"go infinite",
 				"quit",
 			},
-			[]uci.Execer{
+			[]uci.Command{
 				uci.CommandUCI{}, uci.CommandNewGame{}, &uci.CommandSetStartingPosition{},
 				uci.CommandGoInfinite{},
 			},
@@ -148,7 +148,7 @@ func TestParseInput(t *testing.T) {
 
 			go p.ParseInput()
 
-			var commands []uci.Execer
+			var commands []uci.Command
 			go func() {
 				for cmd := range commandch {
 					commands = append(commands, cmd)

@@ -21,12 +21,12 @@ const (
 	etgInfo     = "info"     // engine wants to send information to the GUI
 )
 
-type Responser interface {
+type Response interface {
 	Response() string
 }
 
 // NewResponder returns a new responder.
-func NewResponder(responsech <-chan Responser, out io.Writer, logw io.Writer) *Responder {
+func NewResponder(responsech <-chan Response, out io.Writer, logw io.Writer) *Responder {
 	return &Responder{
 		responsech,
 		out,
@@ -36,7 +36,7 @@ func NewResponder(responsech <-chan Responser, out io.Writer, logw io.Writer) *R
 
 // Responder pulls responses off a channel and writes them to the writer.
 type Responder struct {
-	responsech <-chan Responser
+	responsech <-chan Response
 	out        io.Writer
 	logger     *log.Logger
 }

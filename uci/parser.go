@@ -37,8 +37,8 @@ const (
 )
 
 // NewParser returns a new parser.
-func NewParser(r io.Reader, logw io.Writer) (*Parser, <-chan Execer, <-chan struct{}) {
-	commandch := make(chan Execer, 0) // unbuffered
+func NewParser(r io.Reader, logw io.Writer) (*Parser, <-chan Command, <-chan struct{}) {
+	commandch := make(chan Command, 0) // unbuffered
 	stopch := make(chan struct{}, 1)
 	parser := &Parser{
 		commandch: commandch,
@@ -52,7 +52,7 @@ func NewParser(r io.Reader, logw io.Writer) (*Parser, <-chan Execer, <-chan stru
 // Parser parses and generates events from UCI.
 type Parser struct {
 	logger    *log.Logger
-	commandch chan<- Execer
+	commandch chan<- Command
 	stopch    chan<- struct{}
 	reader    io.RuneScanner
 }
@@ -131,7 +131,7 @@ func waitingForCommand(p *Parser) statefn { // TODO: "running"
 	}
 }
 
-func (p *Parser) emit(cmd Execer, next statefn) statefn {
+func (p *Parser) emit(cmd Command, next statefn) statefn {
 	select {
 	case p.commandch <- cmd:
 		p.logger.Printf("emitted %T command", cmd)
@@ -203,7 +203,7 @@ func commandPositionFEN(p *Parser) statefn {
 	return commandPositionMoves(p, partial)
 }
 
-func commandPositionMoves(p *Parser, partial MoveExecer) statefn {
+func commandPositionMoves(p *Parser, partial MoveCommand) statefn {
 	p.logger.Println("command: position moves")
 
 	token, err := nextToken(p.reader)
@@ -223,7 +223,7 @@ func commandPositionMoves(p *Parser, partial MoveExecer) statefn {
 	}
 }
 
-func commandPositionMovesMove(p *Parser, partial MoveExecer) statefn {
+func commandPositionMovesMove(p *Parser, partial MoveCommand) statefn {
 	p.logger.Println("command: position moves move")
 
 	// loop over moves until we get an error or a newline
