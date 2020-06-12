@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	processing = 10 * time.Millisecond
+	processing = 20 * time.Millisecond
 	timeout    = 1 * time.Second
 )
 
