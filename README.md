@@ -22,11 +22,11 @@ beats me (that's a very low bar).
 
 ## Useful commands
 
- * `go test ./engine -bench 'GenerateLegalMoves'`
+ * `go test ./engine -short -bench 'GenerateLegalMoves'`
 
    Run unit tests and move generation micro-benchmarks.
 
- * `go test ./engine -covermode=count -coverprofile='coverage.out'`
+ * `go test ./engine -short -covermode=count -coverprofile='coverage.out'`
 
    Generate unit test coverage info.
  
@@ -34,7 +34,7 @@ beats me (that's a very low bar).
 
    View coverage report.
 
- * `go test ./engine  -bench 'GenerateLegalMoves' -cpuprofile cpu.prof -memprofile mem.prof`
+ * `go test ./engine -short -bench 'GenerateLegalMoves' -cpuprofile cpu.prof -memprofile mem.prof`
 
    Write out profiling information.
 
