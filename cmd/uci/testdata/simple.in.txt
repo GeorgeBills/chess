@@ -1,0 +1,6 @@
+uci
+isready
+ucinewgame
+position startpos
+go depth 2
+quit

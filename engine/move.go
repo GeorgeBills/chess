@@ -1,14 +1,22 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
-	"io"
+	"reflect"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // https://www.chessprogramming.org/Encoding_Moves
 
 // Move represents a chess move.
+//
+// This type unambiguously represents any chess move, and also encodes some meta
+// information such as whether the move is a capture, en passant, castling, etc.
+// This meta information is redundant (it can be recalculated from the move plus
+// the current board state) but can be useful for ordering moves.
 type Move uint16
 
 // NewMove returns a new move which is not a capture, promotion or castling.
@@ -84,7 +92,7 @@ func NewBishopPromotion(from, to uint8, capture bool) Move {
 // type. Piece type can be unambiguously determined from the source square and
 // the current state of the board.
 func (m Move) SAN() string {
-	// TODO: convert to UCIN, we can provide proper SAN later on; this is neither
+	// TODO: convert to proper SAN e.g. "Nf3", "e4"; will need the board
 	if m == 0 {
 		return "-" // TODO: 0000 in UCI
 	}
@@ -95,11 +103,11 @@ func (m Move) SAN() string {
 		return "O-O-O"
 	}
 	var san strings.Builder
-	san.WriteString(ToAlgebraicNotation(m.From()))
+	san.WriteString(chess.SquareIndexToAlgebraicNotation(m.From()))
 	if m.IsCapture() {
 		san.WriteByte('x')
 	}
-	san.WriteString(ToAlgebraicNotation(m.To()))
+	san.WriteString(chess.SquareIndexToAlgebraicNotation(m.To()))
 	switch {
 	case m&moveMetaMask == moveIsEnPassant:
 		san.WriteString("e.p.")
@@ -173,50 +181,68 @@ func (m Move) To() uint8 {
 	return uint8((m & moveToMask) >> 0)
 }
 
+// PromoteTo returns which piece the move should promote to, or PieceNone.
+func (m Move) PromoteTo() chess.PromoteTo {
+	if !m.IsPromotion() {
+		return chess.PromoteToNone
+	}
+	switch {
+	case m&moveIsQueenPromotion == moveIsQueenPromotion:
+		return chess.PromoteToQueen
+	case m&moveIsKnightPromotion == moveIsKnightPromotion:
+		return chess.PromoteToKnight
+	case m&moveIsRookPromotion == moveIsRookPromotion:
+		return chess.PromoteToRook
+	case m&moveIsBishopPromotion == moveIsBishopPromotion:
+		return chess.PromoteToBishop
+	default:
+		panic(fmt.Errorf("invalid promotion; %#v", m))
+	}
+}
+
 type Game struct {
-	*Board  // TODO: rename to BoardWithHistory or similar
+	*Board  // TODO: Board (no ref), to embed mem and avoid lots of pointer lookups?
 	history []moveCapture
 }
 
+func (g *Game) SetBoard(b *Board) {
+	g.Board = b
+}
+
+// moveCapture represents a chess move (including meta information such as
+// whether the move is a capture, en passant, castling, etc) along with the
+// information required to reverse the move.
 type moveCapture struct {
+	// NOTE: "reversible algebraic notation" is a standard for serializing this
+	//       https://en.wikipedia.org/wiki/Chess_notation
+	// TODO: rename to ReversibleMove
 	Move
 	capture      Piece
 	previousMeta byte
 }
 
-func NewGame(b *Board) Game {
-	return Game{
+func NewGame(b *Board) *Game { // TODO: don't take board here, always use SetBoard?
+	return &Game{
 		Board:   b,
 		history: make([]moveCapture, 0, 128),
 	}
 }
 
-const (
-	uciWhiteKingsideCastle  = "e1g1"
-	uciWhiteQueensideCastle = "e1c1"
-	uciBlackKingsideCastle  = "e8g8"
-	uciBlackQueensideCastle = "e8c8"
-)
-
-// ParseNewMoveFromUCIN parses a new move from Universal Chess Interface
-// Notation. UCIN is very similar to Long Algebraic Notation, but omits the
-// hyphen, the moving piece (can be inferred from the "from" AN) and whether the
-// move is a capture (can be inferred from the "to" AN and the current state of
-// the board).
-func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
-	fromRank, fromFile, err := ParseAlgebraicNotation(r)
-	if err != nil {
-		return 0, err
+// HydrateMove takes a minimal move (likely parsed from Long Algebraic Notation
+// or similar), checks it against the board for sanity, and returns the engines
+// internal representation of a move.
+func (b *Board) HydrateMove(m chess.FromToPromoter) (Move, error) {
+	if b == nil {
+		return 0, errors.New("nil board")
 	}
-	fromSq := Square(fromRank, fromFile)
 
-	toRank, toFile, err := ParseAlgebraicNotation(r)
-	if err != nil {
-		return 0, err
+	if m == nil || reflect.ValueOf(m).IsZero() {
+		return 0, errors.New("nil or zero move")
 	}
-	toSq := Square(toRank, toFile)
 
-	isCapture := !b.isEmptyAt(toSq)
+	fromSq, toSq := m.From(), m.To()
+
+	isCapture := !b.isEmptyAt(toSq) // nil board from Arena!
 
 	if b.isPawnAt(fromSq) {
 		diff := diff(fromSq, toSq)
@@ -231,24 +257,16 @@ func (b *Board) ParseNewMoveFromUCIN(r io.RuneReader) (Move, error) {
 			return NewEnPassant(fromSq, toSq), nil
 		}
 
-		if toRank == rank1 || toRank == rank8 {
-			// pawn moving to rank 1 or 8; must be a promotion
-			ch, _, err := r.ReadRune()
-			if err != nil {
-				return 0, err
-			}
-			switch ch {
-			case 'q':
-				return NewQueenPromotion(fromSq, toSq, isCapture), nil
-			case 'r':
-				return NewRookPromotion(fromSq, toSq, isCapture), nil
-			case 'n':
-				return NewKnightPromotion(fromSq, toSq, isCapture), nil
-			case 'b':
-				return NewBishopPromotion(fromSq, toSq, isCapture), nil
-			default:
-				return 0, fmt.Errorf("unexpected promotion '%c', expecting [qrnb]", ch)
-			}
+		promoteTo := m.PromoteTo()
+		switch promoteTo {
+		case chess.PromoteToQueen:
+			return NewQueenPromotion(fromSq, toSq, isCapture), nil
+		case chess.PromoteToRook:
+			return NewRookPromotion(fromSq, toSq, isCapture), nil
+		case chess.PromoteToKnight:
+			return NewKnightPromotion(fromSq, toSq, isCapture), nil
+		case chess.PromoteToBishop:
+			return NewBishopPromotion(fromSq, toSq, isCapture), nil
 		}
 	}
 
@@ -326,7 +344,7 @@ func (g *Game) MakeMove(move Move) {
 	switch {
 	case move.IsPawnDoublePush():
 		g.meta |= maskCanEnPassant
-		g.meta |= File(from)
+		g.meta |= chess.FileIndex(from)
 	case move.IsKingsideCastling():
 		switch tomove {
 		case White:

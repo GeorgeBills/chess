@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 func main() {
@@ -19,26 +18,16 @@ func main() {
 
 	var board uint64
 	var err error
-	switch {
-	case strings.HasPrefix(bitstring, "0x"):
-		clean := strings.ReplaceAll(bitstring[2:], "_", "")
-		board, err = strconv.ParseUint(clean, 16, 64)
-		if err != nil {
-			fatal(err)
-		}
-	case strings.HasPrefix(bitstring, "0b"):
-		clean := strings.ReplaceAll(bitstring[2:], "_", "")
-		board, err = strconv.ParseUint(clean, 2, 64)
-		if err != nil {
-			fatal(err)
-		}
-	case strings.HasPrefix(bitstring, "0d"):
-		board, err = strconv.ParseUint(bitstring[2:], 10, 64)
-		if err != nil {
-			fatal(err)
-		}
-	default:
-		fatal(fmt.Errorf("invalid board: %s; should be a 64 bit decimal (0d...), hex (0x...), or binary (0b...) variable", bitstring))
+
+	// https://golang.org/pkg/strconv/#ParseInt
+	//
+	// "If the base argument is 0, the true base is implied by the string's
+	// prefix: 2 for "0b", 8 for "0" or "0o", 16 for "0x", and 10 otherwise.
+	// Also, for argument base 0 only, underscore characters are permitted as
+	// defined by the Go syntax for integer literals."
+	board, err = strconv.ParseUint(bitstring, 0, 64)
+	if err != nil {
+		fatal(err)
 	}
 
 	f := bufio.NewWriter(os.Stdout)
@@ -49,7 +38,7 @@ func main() {
 		if i != 0 && i%8 == 0 {
 			f.WriteRune('\n')
 		}
-		idx := engine.PrintOrderedIndex(i) // reverse ranks as we print
+		idx := chess.PrintOrderedIndex(i) // reverse ranks as we print
 		if board&(1<<idx) != 0 {
 			f.WriteRune('■')
 		} else {

@@ -48,6 +48,12 @@ func TestBestMoveToDepth(t *testing.T) {
 			"d7h7",
 		},
 		{
+			"depth 3: must move even if checkmate is guaranteed",
+			"4k3/8/8/8/3Pn3/8/5K2/3b3q w - - 1 15",
+			3,
+			"f2e3",
+		},
+		{
 			"depth 4: mate in two",
 			"r3k3/r5Q1/8/8/8/8/5PPR/7K b - - 0 1",
 			4,
@@ -60,7 +66,7 @@ func TestBestMoveToDepth(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, b)
 			g := engine.NewGame(b)
-			move, _ := g.BestMoveToDepth(tt.depth)
+			move, _ := g.BestMoveToDepth(tt.depth, nil, nil)
 			assert.Equal(t, tt.expected, move.SAN())
 		})
 	}
@@ -69,12 +75,14 @@ func TestBestMoveToDepth(t *testing.T) {
 func BenchmarkBestMoveToDepth(b *testing.B) {
 	const depth = 6
 
-	board := engine.NewBoard()
-	g := engine.NewGame(&board)
+	g := engine.NewGame(engine.NewBoard())
+
+	stopch := make(chan struct{})
+	statusch := make(chan engine.SearchStatus)
 
 	var move engine.Move
 	for i := 0; i < b.N; i++ {
-		move, _ = g.BestMoveToDepth(depth)
+		move, _ = g.BestMoveToDepth(depth, stopch, statusch)
 	}
 	b.StopTimer()
 

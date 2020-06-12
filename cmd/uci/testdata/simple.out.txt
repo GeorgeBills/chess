@@ -1,0 +1,5 @@
+id name github.com/GeorgeBills/chess
+id author George Bills
+uciok
+readyok
+bestmove e2e4

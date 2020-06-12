@@ -1,4 +1,15 @@
 *.exe
+*.exe~
+*.log
 *.out
 *.prof
 *.test
+
+# mocks generated with go generate
+**/mocks/*.go
+
+# String() receivers generated with go generate
+*_string.go
+
+# uci specification document
+uci/engine-interface.txt

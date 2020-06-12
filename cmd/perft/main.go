@@ -37,7 +37,7 @@ func fatal(v error) {
 	os.Exit(1)
 }
 
-func perft(g engine.Game, depth uint, validate, divide bool) uint64 {
+func perft(g *engine.Game, depth uint, validate, divide bool) uint64 {
 	var ret uint64
 	moves := make([]engine.Move, 0, 32)
 	moves, _ = g.GenerateLegalMoves(moves)

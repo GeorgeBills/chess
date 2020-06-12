@@ -8,6 +8,7 @@ import (
 
 	"github.com/GeorgeBills/chess/m/v2/engine"
 	. "github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/m/v2/uci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,6 +40,30 @@ func TestMove_SAN(t *testing.T) {
 	}
 }
 
+// TODO: move to uci package
+// func TestUCIN(t *testing.T) {
+// 	tests := []struct {
+// 		name     string
+// 		move     engine.Move
+// 		expected string
+// 	}{
+// 		{"quiet move", engine.NewMove(C3, E5), "c3e5"},
+// 		{"capture", engine.NewCapture(A1, A3), "a1a3"},
+// 		{"en passant", engine.NewEnPassant(D5, C6), "d5c6"},
+// 		{"kingside castling", engine.WhiteKingsideCastle, "e1g1"},
+// 		{"queenside castling", engine.BlackQueensideCastle, "e8c8"},
+// 		{"promotion to queen", engine.NewQueenPromotion(A7, A8, false), "a7a8q"},
+// 		{"promotion to bishop with capture", engine.NewBishopPromotion(B2, B1, true), "b2b1b"},
+// 		{"promotion to rook", engine.NewRookPromotion(C2, C1, false), "c2c1r"},
+// 		{"promotion to knight with capture", engine.NewKnightPromotion(D7, D8, true), "d7d8n"},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			assert.Equal(t, tt.expected, tt.move.SAN())
+// 		})
+// 	}
+// }
+
 // FIXME: better tests for parsing
 //        including parsing and attempting to play invalid moves
 
@@ -63,8 +88,11 @@ func TestParseMakeUnmakeMove(t *testing.T) {
 
 			g := NewGame(b)
 
+			parsed, err := uci.ParseUCIN(tt.Move)
+			require.NoError(t, err)
+
 			// parse the move
-			move, err := b.ParseNewMoveFromUCIN(strings.NewReader(tt.Move))
+			move, err := b.HydrateMove(parsed)
 			require.NoError(t, err)
 			require.NotNil(t, move)
 
@@ -101,11 +129,13 @@ func TestMakeUnmakeMoveHistory(t *testing.T) {
 		"d1d8",
 	}
 	b := engine.NewBoard()
-	g := engine.NewGame(&b)
+	g := engine.NewGame(b)
 	for _, ucin := range opera {
-		m, err := b.ParseNewMoveFromUCIN(strings.NewReader(ucin))
+		parsed, err := uci.ParseUCIN(ucin)
 		require.NoError(t, err)
-		g.MakeMove(m)
+		move, err := b.HydrateMove(parsed)
+		require.NoError(t, err)
+		g.MakeMove(move)
 	}
 	for i := 0; i < len(opera); i++ {
 		g.UnmakeMove()

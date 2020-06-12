@@ -6,6 +6,8 @@ import (
 	"math"
 	"math/bits"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // https://www.chessprogramming.org/Bitboards
@@ -69,8 +71,8 @@ const (
 )
 
 // NewBoard returns a board in the initial state.
-func NewBoard() Board {
-	return Board{
+func NewBoard() *Board {
+	return &Board{
 		white:   maskRank1 | maskRank2,
 		black:   maskRank7 | maskRank8,
 		pawns:   maskRank2 | maskRank7,
@@ -122,9 +124,9 @@ func (b Board) EnPassant() uint8 {
 	file := uint8(b.meta & maskEnPassantFile)
 	switch b.ToMove() {
 	case White:
-		return Square(rank6, file)
+		return chess.SquareIndex(rank6, file)
 	case Black:
-		return Square(rank3, file)
+		return chess.SquareIndex(rank3, file)
 	default:
 		panic(fmt.Errorf("invalid to move; %#v", b))
 	}
@@ -207,7 +209,7 @@ func (b Board) String() string {
 		if i != 0 && i%8 == 0 {
 			sb.WriteRune('\n')
 		}
-		poi := PrintOrderedIndex(i)
+		poi := chess.PrintOrderedIndex(i)
 		r := b.PieceAt(poi).Rune()
 		sb.WriteRune(r)
 	}
@@ -226,7 +228,7 @@ func (b Board) ColourFlipped() Board {
 
 	var i uint8
 	for i = 0; i < 32; i++ {
-		j := PrintOrderedIndex(i)
+		j := chess.PrintOrderedIndex(i)
 
 		// swap position of i and j
 		pi, pj := b.PieceAt(i), b.PieceAt(j)

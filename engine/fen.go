@@ -8,6 +8,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	chess "github.com/GeorgeBills/chess/m/v2"
 )
 
 // https://www.chessprogramming.org/Forsyth-Edwards_Notation
@@ -15,7 +17,7 @@ import (
 const maxFEN = 96 // actually less than this
 
 // FEN returns the Forsyth–Edwards Notation for the board as a string.
-func (b Board) FEN() string {
+func (b *Board) FEN() string {
 	sb := &strings.Builder{}
 	// strings.Builder Write() methods always return a nil error, so this can never error
 	b.WriteFEN(sb)
@@ -23,7 +25,7 @@ func (b Board) FEN() string {
 }
 
 // WriteFEN writes the Forsyth–Edwards Notation for the board to w.
-func (b Board) WriteFEN(w io.Writer) error {
+func (b *Board) WriteFEN(w io.Writer) error {
 	// bufio.Writer helps us defer error handling till the final Flush()
 	// https://blog.golang.org/errors-are-values
 	sb := bufio.NewWriterSize(w, maxFEN)
@@ -32,7 +34,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 	var i uint8
 
 	for i = 0; i < 64; i++ {
-		poi := PrintOrderedIndex(i)
+		poi := chess.PrintOrderedIndex(i)
 		p := b.PieceAt(poi)
 
 		// sequences of empty squares are indicated with their count
@@ -115,7 +117,7 @@ func (b Board) WriteFEN(w io.Writer) error {
 
 	ep := b.EnPassant()
 	if ep != math.MaxUint8 {
-		sb.WriteString(ToAlgebraicNotation(ep))
+		sb.WriteString(chess.SquareIndexToAlgebraicNotation(ep))
 	} else {
 		sb.WriteRune('-')
 	}
@@ -158,6 +160,13 @@ func NewBoardFromFEN(fen io.Reader) (*Board, error) {
 			}
 			seen = true
 		}
+	}
+
+	unexpectingEOF := func(err error) error {
+		if err == io.EOF {
+			return io.ErrUnexpectedEOF
+		}
+		return err
 	}
 
 	readuint8 := func() (uint8, error) {
@@ -214,7 +223,7 @@ READ_SQUARES:
 			}
 		}
 
-		var mask uint64 = 1 << PrintOrderedIndex(i)
+		var mask uint64 = 1 << chess.PrintOrderedIndex(i)
 
 		switch ch {
 		case 'P':
@@ -330,9 +339,9 @@ READ_CASTLING:
 
 		b.meta |= maskCanEnPassant
 
-		rank, file, err := ParseAlgebraicNotation(r)
+		epRank, epFile, err := chess.ParseAlgebraicNotation(r)
 		if err != nil {
-			return nil, err
+			return nil, unexpectingEOF(err)
 		}
 
 		// We don't encode the rank into the board state, since it can be
@@ -348,17 +357,17 @@ READ_CASTLING:
 		// inconsistent.
 		switch tomove {
 		case 'w':
-			if rank != rank6 {
-				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", rank+1)
+			if epRank != rank6 {
+				return nil, fmt.Errorf("invalid board state: black moved last; en passant on rank %d", epRank+1)
 			}
 		case 'b':
-			if rank != rank3 {
-				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", rank+1)
+			if epRank != rank3 {
+				return nil, fmt.Errorf("invalid board state: white moved last; en passant on rank %d", epRank+1)
 			}
 		}
 
 		// store the zero indexed file as the last 4 bits in the board meta
-		b.meta |= file
+		b.meta |= epFile
 	}
 
 	if err = skipspace(); err != nil {
