@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	chess "github.com/GeorgeBills/chess/m/v2"
 	"github.com/GeorgeBills/chess/m/v2/uci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,23 +24,36 @@ func mustParseMove(ucin string) *uci.Move {
 }
 
 func TestUCIN(t *testing.T) {
-	tests := []string{
-		"0000",
-		"a1a2",
-		"b3b4",
-		"c5c6",
-		"d7d8",
-		"e7e8q",
-		"f7f8r",
-		"g7g8n",
-		"h7h8b",
+	tests := []struct {
+		ucin      string
+		from, to  uint8
+		promoteTo chess.PromoteTo
+	}{
+		{"0000", 0, 0, chess.PromoteToNone},
+		{"a1a2", 0, 8, chess.PromoteToNone},
+		{"b3b4", 17, 25, chess.PromoteToNone},
+		{"c5c6", 34, 42, chess.PromoteToNone},
+		{"d7d8", 51, 59, chess.PromoteToNone},
+		{"e7e8q", 52, 60, chess.PromoteToQueen},
+		{"f7f8r", 53, 61, chess.PromoteToRook},
+		{"g7g8n", 54, 62, chess.PromoteToKnight},
+		{"h7h8b", 55, 63, chess.PromoteToBishop},
 	}
-	for _, ucin := range tests {
-		t.Run(ucin, func(t *testing.T) {
-			parsed, err := uci.ParseUCIN(ucin)
+	for _, tt := range tests {
+		t.Run(tt.ucin, func(t *testing.T) {
+			// parse from ucin
+			parsed, err := uci.ParseUCIN(tt.ucin)
 			require.NoError(t, err)
-			str := uci.ToUCIN(parsed)
-			assert.Equal(t, ucin, str)
+			if tt.ucin != "0000" {
+				require.NotNil(t, parsed)
+				assert.Equal(t, tt.from, parsed.From(), "parsed.From() != %d", tt.from)
+				assert.Equal(t, tt.to, parsed.To(), "parsed.To() != %d", tt.to)
+				assert.Equal(t, tt.promoteTo, parsed.PromoteTo(), "parsed.PromoteTo() != %s", tt.promoteTo)
+			}
+
+			// round trip back to ucin
+			ucin := uci.ToUCIN(parsed)
+			assert.Equal(t, tt.ucin, ucin)
 		})
 	}
 }
