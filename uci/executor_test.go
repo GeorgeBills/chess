@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
-	"github.com/GeorgeBills/chess/m/v2/uci"
-	"github.com/GeorgeBills/chess/m/v2/uci/mocks"
+	"github.com/GeorgeBills/chess"
+	"github.com/GeorgeBills/chess/uci"
+	"github.com/GeorgeBills/chess/uci/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

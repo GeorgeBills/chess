@@ -7,7 +7,7 @@ import (
 	"math/bits"
 	"strings"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 )
 
 // https://www.chessprogramming.org/Bitboards
@@ -45,7 +45,7 @@ type Board struct {
 	// moved. We only record half moves, and calculate full moves if needed.
 	//
 	// half records the number of half moves since a pawn was moved or a piece
-	// was captured, and is used for determing if a draw can be claimed under
+	// was captured, and is used for determining if a draw can be claimed under
 	// the fifty-move rule.
 	//
 	// total records the total number of half moves since the start of the game.

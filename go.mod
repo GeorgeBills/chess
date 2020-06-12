@@ -1,4 +1,4 @@
-module github.com/GeorgeBills/chess/m/v2
+module github.com/GeorgeBills/chess
 
 go 1.13
 

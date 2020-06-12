@@ -1,6 +1,6 @@
 package uci
 
-import chess "github.com/GeorgeBills/chess/m/v2"
+import "github.com/GeorgeBills/chess"
 
 //go:generate moq -out mocks/adapter.go -pkg mocks . Adapter
 

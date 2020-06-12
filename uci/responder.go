@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 )
 
 // Engine-to-GUI constants are tokens sent from the engine to the GUI.

@@ -6,9 +6,9 @@ import (
 	"log"
 	"strings"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
-	"github.com/GeorgeBills/chess/m/v2/engine"
-	"github.com/GeorgeBills/chess/m/v2/uci"
+	"github.com/GeorgeBills/chess"
+	"github.com/GeorgeBills/chess/engine"
+	"github.com/GeorgeBills/chess/uci"
 )
 
 // Name is the name of our engine.

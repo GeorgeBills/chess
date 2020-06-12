@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GeorgeBills/chess/m/v2/engine"
+	"github.com/GeorgeBills/chess/engine"
 )
 
 func main() {

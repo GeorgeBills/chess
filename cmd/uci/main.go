@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/GeorgeBills/chess/m/v2/uci"
+	"github.com/GeorgeBills/chess/uci"
 )
 
 func main() {

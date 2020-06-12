@@ -1,6 +1,6 @@
 goos: windows
 goarch: amd64
-pkg: github.com/GeorgeBills/chess/m/v2/engine
+pkg: github.com/GeorgeBills/chess/engine
 BenchmarkEvaluate-8             	11009001	       101 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEvaluate-8             	12245234	        99.4 ns/op	       0 B/op	       0 allocs/op
 BenchmarkEvaluate-8             	11880552	        99.2 ns/op	       0 B/op	       0 allocs/op
@@ -202,4 +202,4 @@ BenchmarkBestMoveToDepth-8               	       1	20359945600 ns/op	633077024 B
 BenchmarkBestMoveToDepth-8               	       1	19915576400 ns/op	633079408 B/op	20427613 allocs/op
 BenchmarkBestMoveToDepth-8               	       1	20010376100 ns/op	633078448 B/op	20427603 allocs/op
 PASS
-ok  	github.com/GeorgeBills/chess/m/v2/engine	797.289s
+ok  	github.com/GeorgeBills/chess/engine	797.289s

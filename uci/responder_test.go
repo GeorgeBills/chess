@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GeorgeBills/chess/m/v2/uci"
+	"github.com/GeorgeBills/chess/uci"
 	"github.com/stretchr/testify/assert"
 )
 

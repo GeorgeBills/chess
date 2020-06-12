@@ -5,7 +5,7 @@ import (
 	"log"
 	"sort"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
+	"github.com/GeorgeBills/chess"
 )
 
 // NewExecutor returns a new executor.

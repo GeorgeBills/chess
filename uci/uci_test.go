@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	chess "github.com/GeorgeBills/chess/m/v2"
-	"github.com/GeorgeBills/chess/m/v2/uci"
+	"github.com/GeorgeBills/chess"
+	"github.com/GeorgeBills/chess/uci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
