@@ -7,6 +7,8 @@ import (
 // Piece represents a chess piece.
 type Piece byte
 
+//go:generate stringer -type=Piece
+
 // TODO: seems like it's better to have these as indexes into an array of boards
 //       doing that would mean we'd never need to switch on piece type, just index
 

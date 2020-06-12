@@ -9,6 +9,8 @@ const (
 	Black Colour = 'b'
 )
 
+//go:generate stringer -type=Colour
+
 // A1...H8 are constants defined for hardcoding an index by its rank and file.
 const (
 	A1 = iota

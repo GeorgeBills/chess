@@ -8,6 +8,8 @@ import (
 // PromoteTo represents the piece that a move will promote to.
 type PromoteTo byte
 
+//go:generate stringer -type=PromoteTo
+
 // PromoteTo constants are returned from FromToPromoter.PromoteTo()
 // implementations.
 const (
