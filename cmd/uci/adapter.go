@@ -51,7 +51,7 @@ func (a *adapter) SetStartingPosition(moves []chess.FromToPromoter) error {
 
 	b := engine.NewBoard()
 	a.game.SetBoard(b)
-	if err := a.makeMoves(moves); err != nil {
+	if err := makeMoves(a.game, moves); err != nil {
 		return err
 	}
 
@@ -70,20 +70,20 @@ func (a *adapter) SetPositionFEN(fen string, moves []chess.FromToPromoter) error
 		return err
 	}
 	a.game.SetBoard(b)
-	if err := a.makeMoves(moves); err != nil {
+	if err := makeMoves(a.game, moves); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *adapter) makeMoves(moves []chess.FromToPromoter) error {
+func makeMoves(game *engine.Game, moves []chess.FromToPromoter) error {
 	for _, move := range moves {
-		m, err := a.game.HydrateMove(move)
+		m, err := game.HydrateMove(move)
 		if err != nil {
 			return err
 		}
-		a.game.MakeMove(m)
+		game.MakeMove(m)
 	}
 	return nil
 }
