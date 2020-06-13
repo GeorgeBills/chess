@@ -505,7 +505,7 @@ func accept(r io.RuneScanner, buf *bytes.Buffer, valid string) error {
 			return err
 		}
 		switch {
-		case strings.IndexRune(valid, c) != -1:
+		case strings.ContainsRune(valid, c):
 			buf.WriteRune(c)
 		case isSpace(c) || isEOL(c):
 			r.UnreadRune()
