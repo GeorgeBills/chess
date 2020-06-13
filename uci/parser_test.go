@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: these tests occasionally fail for timing reasons, which is a bit gross
+//       if we pass in commandch, we can pass in a buffered chan and then we can
+//       throw in all the input, and timeout read x responses off the chan,
+//       asserting on each.
+
 func TestParseInput(t *testing.T) {
 	tests := []struct {
 		name     string
