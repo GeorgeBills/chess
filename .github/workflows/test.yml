@@ -20,13 +20,14 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Dependencies
+      - name: Generate
+        # generate before go get, or go get tries to find generated "mocks" pkg
         run: |
-          go get -t ./...
           go get github.com/matryer/moq
           go get golang.org/x/tools/cmd/stringer
-      - name: Generate
-        run: go generate ./...
+          go generate ./...
+      - name: Dependencies
+        run: go get -t ./...
       - name: Test
         run: go test -short -coverprofile 'coverage.out' ./...
       - name: Coverage
