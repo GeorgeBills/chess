@@ -14,10 +14,11 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout
         uses: actions/checkout@v2
-      - name: go get stringer
-        run: go get golang.org/x/tools/cmd/stringer
-      - name: go get moq
-        run: go get github.com/matryer/moq
+      - name: Dependencies
+        run: |
+          go get ./...
+          go get github.com/matryer/moq
+          go get golang.org/x/tools/cmd/stringer
       - name: Generate
         run: go generate ./...
       - name: Test
