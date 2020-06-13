@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/GeorgeBills/chess/engine"
+	"github.com/GeorgeBills/chess"
 )
 
 func main() {
