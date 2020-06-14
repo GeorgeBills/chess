@@ -146,9 +146,7 @@ func TestBotStreamGame(t *testing.T) {
 }
 
 func TestBotMakeMove(t *testing.T) {
-	m := &mocks.GetPosterMock{
-		PostFormFunc: emptyok,
-	}
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
 	c := lichess.NewClient(m)
 	err := c.BotMakeMove("v8vDhD", move{12, 34, chess.PromoteToNone}, false)
 	require.NoError(t, err)
@@ -160,9 +158,7 @@ func TestBotMakeMove(t *testing.T) {
 }
 
 func TestBotWriteChat(t *testing.T) {
-	m := &mocks.GetPosterMock{
-		PostFormFunc: emptyok,
-	}
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
 	c := lichess.NewClient(m)
 	err := c.BotWriteChat("gLQEsv", lichess.ChatRoomPlayer, "ggwp!")
 	require.NoError(t, err)
@@ -174,9 +170,7 @@ func TestBotWriteChat(t *testing.T) {
 }
 
 func TestBotAbortGame(t *testing.T) {
-	m := &mocks.GetPosterMock{
-		PostFormFunc: emptyok,
-	}
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
 	c := lichess.NewClient(m)
 	err := c.BotAbortGame("DRBgmL")
 	require.NoError(t, err)
@@ -188,9 +182,7 @@ func TestBotAbortGame(t *testing.T) {
 }
 
 func TestBotResignGame(t *testing.T) {
-	m := &mocks.GetPosterMock{
-		PostFormFunc: emptyok,
-	}
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
 	c := lichess.NewClient(m)
 	err := c.BotResignGame("fN9LTy")
 	require.NoError(t, err)
