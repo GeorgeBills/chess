@@ -7,6 +7,11 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       BucketName: lichess-bot
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -25,4 +30,3 @@ Resources:
             Condition:
               StringEquals:
                 aws:Referer: !Ref AWS::AccountId
-
