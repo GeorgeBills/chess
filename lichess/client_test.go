@@ -150,11 +150,11 @@ func TestBotMakeMove(t *testing.T) {
 		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
-	err := c.BotMakeMove("abc123", move{12, 34, chess.PromoteToNone}, false)
+	err := c.BotMakeMove("v8vDhD", move{12, 34, chess.PromoteToNone}, false)
 	require.NoError(t, err)
 	calls := m.PostFormCalls()
 	if assert.Len(t, calls, 1) {
-		assert.Equal(t, "https://lichess.org/api/bot/game/abc123/move/e2c5?offeringDraw=false", calls[0].URI)
+		assert.Equal(t, "https://lichess.org/api/bot/game/v8vDhD/move/e2c5?offeringDraw=false", calls[0].URI)
 		assert.Equal(t, "", calls[0].Data.Encode())
 	}
 }
@@ -164,11 +164,11 @@ func TestBotWriteChat(t *testing.T) {
 		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
-	err := c.BotWriteChat("abc123", lichess.ChatRoomPlayer, "ggwp!")
+	err := c.BotWriteChat("gLQEsv", lichess.ChatRoomPlayer, "ggwp!")
 	require.NoError(t, err)
 	calls := m.PostFormCalls()
 	if assert.Len(t, calls, 1) {
-		assert.Equal(t, "https://lichess.org/api/bot/game/abc123/chat", calls[0].URI)
+		assert.Equal(t, "https://lichess.org/api/bot/game/gLQEsv/chat", calls[0].URI)
 		assert.Equal(t, "room=player&text=ggwp%21", calls[0].Data.Encode())
 	}
 }
@@ -178,11 +178,11 @@ func TestBotAbortGame(t *testing.T) {
 		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
-	err := c.BotAbortGame("abc123")
+	err := c.BotAbortGame("DRBgmL")
 	require.NoError(t, err)
 	calls := m.PostFormCalls()
 	if assert.Len(t, calls, 1) {
-		assert.Equal(t, "https://lichess.org/api/bot/game/abc123/abort", calls[0].URI)
+		assert.Equal(t, "https://lichess.org/api/bot/game/DRBgmL/abort", calls[0].URI)
 		assert.Equal(t, "", calls[0].Data.Encode())
 	}
 }
@@ -192,11 +192,11 @@ func TestBotResignGame(t *testing.T) {
 		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
-	err := c.BotResignGame("abc123")
+	err := c.BotResignGame("fN9LTy")
 	require.NoError(t, err)
 	calls := m.PostFormCalls()
 	if assert.Len(t, calls, 1) {
-		assert.Equal(t, "https://lichess.org/api/bot/game/abc123/resign", calls[0].URI)
+		assert.Equal(t, "https://lichess.org/api/bot/game/fN9LTy/resign", calls[0].URI)
 		assert.Equal(t, "", calls[0].Data.Encode())
 	}
 }
