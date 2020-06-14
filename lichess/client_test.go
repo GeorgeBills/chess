@@ -88,7 +88,7 @@ func TestBotStreamGame(t *testing.T) {
 
 	eventch := make(chan interface{}, 100)
 
-	err = c.BotStreamGame(eventch)
+	err = c.BotStreamGame("9cttHZ", eventch)
 	require.NoError(t, err)
 
 	event1 := <-eventch // TODO: timeout

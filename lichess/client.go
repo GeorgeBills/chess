@@ -180,10 +180,10 @@ func (c *Client) BotStreamEvents(eventch chan<- interface{}) error {
 }
 
 // https://lichess.org/api#operation/botGameStream
-func (c *Client) BotStreamGame(eventch chan<- interface{}) error {
-	const path = "/api/bot/game/stream/{gameId}"
+func (c *Client) BotStreamGame(gameID string, eventch chan<- interface{}) error {
+	const path = "/api/bot/game/stream/%s"
 
-	uri := endpoint + path
+	uri := endpoint + fmt.Sprintf(path, gameID)
 	resp, err := c.httpClient.Get(uri)
 	if err != nil {
 		return err
