@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
@@ -27,10 +28,10 @@ func TestBotUpgradeToBotAccount(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
 			return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("")),
+				StatusCode: http.StatusOK,
+				Body:       ioutil.NopCloser(strings.NewReader("")),
 			}, nil
-				},
+		},
 	}
 	c := lichess.NewClient(m)
 	err := c.BotUpgradeToBotAccount()
@@ -42,12 +43,70 @@ func TestBotUpgradeToBotAccount(t *testing.T) {
 	}
 }
 
+func TestBotStreamEvents(t *testing.T) {
+	f, err := os.Open("testdata/event-stream.ndjson")
+	require.NoError(t, err)
+
+	m := &mocks.GetPosterMock{
+		GetFunc: func(uri string) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       f,
+			}, nil
+		},
+	}
+	c := lichess.NewClient(m)
+
+	eventch := make(chan *lichess.Event, 100)
+
+	err = c.BotStreamEvents(eventch)
+	require.NoError(t, err)
+
+	event := <-eventch // TODO: timeout
+	expected := &lichess.Event{
+		EventType: "challenge",
+		Challenge: &lichess.EventChallenge{
+			ID:     "7pGLxJ4F",
+			Status: "created",
+		},
+	}
+	assert.Equal(t, expected, event)
+}
+
+func TestBotStreamGame(t *testing.T) {
+	f, err := os.Open("testdata/game-stream.ndjson")
+	require.NoError(t, err)
+
+	m := &mocks.GetPosterMock{
+		GetFunc: func(uri string) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       f,
+			}, nil
+		},
+	}
+	c := lichess.NewClient(m)
+
+	eventch := make(chan *lichess.GameEvent, 100)
+
+	err = c.BotStreamGame(eventch)
+	require.NoError(t, err)
+
+	event := <-eventch // TODO: timeout
+	expected := &lichess.GameEvent{
+		GameEventType: "gameFull",
+		ID:            "5IrD6Gzz",
+		Rated:         true,
+	}
+	assert.Equal(t, expected, event)
+}
+
 func TestBotMakeMove(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
 			return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("")),
+				StatusCode: http.StatusOK,
+				Body:       ioutil.NopCloser(strings.NewReader("")),
 			}, nil
 		},
 	}
@@ -65,8 +124,8 @@ func TestBotWriteChat(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
 			return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("")),
+				StatusCode: http.StatusOK,
+				Body:       ioutil.NopCloser(strings.NewReader("")),
 			}, nil
 		},
 	}
@@ -84,10 +143,10 @@ func TestBotAbortGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
 			return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("")),
+				StatusCode: http.StatusOK,
+				Body:       ioutil.NopCloser(strings.NewReader("")),
 			}, nil
-				},
+		},
 	}
 	c := lichess.NewClient(m)
 	err := c.BotAbortGame("abc123")
@@ -103,8 +162,8 @@ func TestBotResignGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
 			return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("")),
+				StatusCode: http.StatusOK,
+				Body:       ioutil.NopCloser(strings.NewReader("")),
 			}, nil
 		},
 	}

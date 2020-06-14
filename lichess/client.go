@@ -61,18 +61,22 @@ func (c *Client) BotUpgradeToBotAccount() error {
 }
 
 type Event struct {
-	EventType string `json:"type"`
-	Game      struct {
-		ID string `json:"id"`
-	} `json:"game"`
-	Challenge struct {
-		ID     string `json:"id"`
-		Status string `json:"status"`
-	} `json:"challenge"`
+	EventType string          `json:"type"`
+	Game      *EventGame      `json:"game"`
+	Challenge *EventChallenge `json:"challenge"`
+}
+
+type EventGame struct {
+	ID string `json:"id"`
+}
+
+type EventChallenge struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 // https://lichess.org/api#operation/apiStreamEvent
-func (c *Client) BotStreamEvents() error {
+func (c *Client) BotStreamEvents(eventch chan<- *Event) error {
 	const path = "/api/stream/event"
 
 	uri := endpoint + path
@@ -85,82 +89,31 @@ func (c *Client) BotStreamEvents() error {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		text := scanner.Text()
+
+		if text == "" { // tickle
+			continue
+		}
+
 		var event Event
-		json.Unmarshal([]byte(text), &event)
+		err := json.Unmarshal([]byte(text), &event)
+		if err != nil {
+			return fmt.Errorf("error unmarshalling '%s': %w", text, err)
+		}
+
+		eventch <- &event
 	}
 
 	return scanner.Err()
 }
 
-// [
-//   {
-//     "type": "gameFull",
-//     "id": "5IrD6Gzz",
-//     "rated": true,
-//     "variant": {
-//       "key": "standard",
-//       "name": "Standard",
-//       "short": "Std"
-//     },
-//     "clock": {
-//       "initial": 1200000,
-//       "increment": 10000
-//     },
-//     "speed": "classical",
-//     "perf": {
-//       "name": "Classical"
-//     },
-//     "createdAt": 1523825103562,
-//     "white": {
-//       "id": "lovlas",
-//       "name": "lovlas",
-//       "provisional": false,
-//       "rating": 2500,
-//       "title": "IM"
-//     },
-//     "black": {
-//       "id": "leela",
-//       "name": "leela",
-//       "rating": 2390,
-//       "title": null
-//     },
-//     "initialFen": "startpos",
-//     "state": {
-//       "type": "gameState",
-//       "moves": "e2e4 c7c5 f2f4 d7d6 g1f3 b8c6 f1c4 g8f6 d2d3 g7g6 e1g1 f8g7",
-//       "wtime": 7598040,
-//       "btime": 8395220,
-//       "winc": 10000,
-//       "binc": 10000,
-//       "status": "started"
-//     }
-//   },
-
-//   {
-//     "type": "gameState",
-//     "moves": "e2e4 c7c5 f2f4 d7d6 g1f3 b8c6 f1c4 g8f6 d2d3 g7g6 e1g1 f8g7 b1c3",
-//     "wtime": 7598040,
-//     "btime": 8395220,
-//     "winc": 10000,
-//     "binc": 10000,
-//     "status": "started"
-//   },
-
-//   {
-//     "type": "chatLine",
-//     "username": "thibault",
-//     "text": "Good luck, have fun",
-//     "room": "player"
-//   },
-
-type Game struct {
-	GameType string `json:"type"`
-	ID       string `json:"id"`
-	Rated    bool   `json:"rated"`
+type GameEvent struct {
+	GameEventType string `json:"type"`
+	ID            string `json:"id"`
+	Rated         bool   `json:"rated"`
 }
 
-// https://lichess.org/api#operation/apiStreamEvent
-func (c *Client) BotStreamGame() error {
+// https://lichess.org/api#operation/botGameStream
+func (c *Client) BotStreamGame(eventch chan<- *GameEvent) error {
 	const path = "/api/bot/game/stream/{gameId}"
 
 	uri := endpoint + path
@@ -173,8 +126,18 @@ func (c *Client) BotStreamGame() error {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		text := scanner.Text()
-		var event Event
-		json.Unmarshal([]byte(text), &event)
+
+		if text == "" { // tickle
+			continue
+		}
+
+		var event GameEvent
+		err := json.Unmarshal([]byte(text), &event)
+		if err != nil {
+			return fmt.Errorf("error unmarshalling '%s': %w", text, err)
+		}
+
+		eventch <- &event
 	}
 
 	return scanner.Err()
