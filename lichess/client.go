@@ -48,6 +48,7 @@ func (c *Client) BotUpgradeToBotAccount() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
@@ -79,6 +80,7 @@ func (c *Client) BotStreamEvents() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
@@ -166,6 +168,7 @@ func (c *Client) BotStreamGame() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
@@ -186,6 +189,7 @@ func (c *Client) BotMakeMove(gameID string, move chess.FromToPromoter, offeringD
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
@@ -219,6 +223,7 @@ func (c *Client) BotWriteChat(gameID string, room ChatRoom, text string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
@@ -239,6 +244,7 @@ func (c *Client) BotAbortGame(gameID string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
@@ -259,6 +265,7 @@ func (c *Client) BotResignGame(gameID string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:

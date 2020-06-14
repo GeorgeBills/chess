@@ -1,8 +1,10 @@
 package lichess_test
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/GeorgeBills/chess"
@@ -24,8 +26,11 @@ func (m move) PromoteTo() chess.PromoteTo { return m.promoteTo }
 func TestBotUpgradeToBotAccount(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{StatusCode: http.StatusOK}, nil
-		},
+			return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader("")),
+			}, nil
+				},
 	}
 	c := lichess.NewClient(m)
 	err := c.BotUpgradeToBotAccount()
@@ -40,7 +45,10 @@ func TestBotUpgradeToBotAccount(t *testing.T) {
 func TestBotMakeMove(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{StatusCode: http.StatusOK}, nil
+			return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader("")),
+			}, nil
 		},
 	}
 	c := lichess.NewClient(m)
@@ -56,7 +64,10 @@ func TestBotMakeMove(t *testing.T) {
 func TestBotWriteChat(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{StatusCode: http.StatusOK}, nil
+			return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader("")),
+			}, nil
 		},
 	}
 	c := lichess.NewClient(m)
@@ -72,8 +83,11 @@ func TestBotWriteChat(t *testing.T) {
 func TestBotAbortGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{StatusCode: http.StatusOK}, nil
-		},
+			return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader("")),
+			}, nil
+				},
 	}
 	c := lichess.NewClient(m)
 	err := c.BotAbortGame("abc123")
@@ -88,7 +102,10 @@ func TestBotAbortGame(t *testing.T) {
 func TestBotResignGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
 		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{StatusCode: http.StatusOK}, nil
+			return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader("")),
+			}, nil
 		},
 	}
 	c := lichess.NewClient(m)
