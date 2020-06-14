@@ -192,3 +192,45 @@ func TestBotResignGame(t *testing.T) {
 		assert.Equal(t, "", calls[0].Data.Encode())
 	}
 }
+
+func TestChallengeCreate(t *testing.T) {
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	c := lichess.NewClient(m)
+	var limit, increment uint = 900, 10
+	params := lichess.ChallengeCreateParams{
+		Username:              "GeorgeBills",
+		ClockLimitSeconds:     &limit,
+		ClockIncrementSeconds: &increment,
+	}
+	err := c.ChallengeCreate(params)
+	require.NoError(t, err)
+	calls := m.PostFormCalls()
+	if assert.Len(t, calls, 1) {
+		assert.Equal(t, "https://lichess.org/api/challenge/GeorgeBills", calls[0].URI)
+		assert.Equal(t, "clock.increment=10&clock.limit=900&rated=false", calls[0].Data.Encode())
+	}
+}
+
+func TestChallengeAccept(t *testing.T) {
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	c := lichess.NewClient(m)
+	err := c.ChallengeAccept("zbcLEG")
+	require.NoError(t, err)
+	calls := m.PostFormCalls()
+	if assert.Len(t, calls, 1) {
+		assert.Equal(t, "https://lichess.org/api/challenge/zbcLEG/accept", calls[0].URI)
+		assert.Equal(t, "", calls[0].Data.Encode())
+	}
+}
+
+func TestChallengeDecline(t *testing.T) {
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	c := lichess.NewClient(m)
+	err := c.ChallengeDecline("PDCtHG")
+	require.NoError(t, err)
+	calls := m.PostFormCalls()
+	if assert.Len(t, calls, 1) {
+		assert.Equal(t, "https://lichess.org/api/challenge/PDCtHG/decline", calls[0].URI)
+		assert.Equal(t, "", calls[0].Data.Encode())
+	}
+}

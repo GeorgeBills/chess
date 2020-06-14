@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/GeorgeBills/chess"
@@ -330,8 +331,146 @@ func (c *Client) BotResignGame(gameID string) error {
 	}
 }
 
+type Color string
+
+const (
+	ColorRandom Color = "random"
+	ColorWhite  Color = "white"
+	ColorBlack  Color = "black"
+)
+
+type Variant string
+
+const (
+	VariantStandard      Variant = "standard"
+	VariantChess960      Variant = "chess960"
+	VariantCrazyhouse    Variant = "crazyhouse"
+	VariantAntichess     Variant = "antichess"
+	VariantAtomic        Variant = "atomic"
+	VariantHorde         Variant = "horde"
+	VariantKingOfTheHill Variant = "kingOfTheHill"
+	VariantRacingKings   Variant = "racingKings"
+	VariantThreeCheck    Variant = "threeCheck"
+)
+
+type ChallengeCreateParams struct {
+	Username              string
+	Rated                 bool
+	ClockLimitSeconds     *uint
+	ClockIncrementSeconds *uint
+	Days                  *uint
+	Color                 Color
+	Variant               Variant
+	FEN                   string
+}
+
+func (p ChallengeCreateParams) values() (url.Values, error) {
+	values := url.Values{
+		"rated": {strconv.FormatBool(p.Rated)},
+	}
+	if p.Color != "" {
+		values["color"] = []string{string(p.Color)}
+	}
+	if p.Variant != "" {
+		values["variant"] = []string{string(p.Variant)}
+	}
+	if p.FEN != "" {
+		values["fen"] = []string{p.FEN}
+	}
+	clock := p.ClockLimitSeconds != nil || p.ClockIncrementSeconds != nil
+	correspondence := p.Days != nil
+	switch {
+	case clock && correspondence || !(clock || correspondence):
+		return url.Values{}, errors.New("must specify either clock or days")
+	case correspondence:
+		values["days"] = []string{strconv.Itoa(int(*p.Days))}
+	case clock:
+		values["clock.limit"] = []string{"0"}
+		if p.ClockLimitSeconds != nil {
+			values["clock.limit"] = []string{strconv.Itoa(int(*p.ClockLimitSeconds))}
+		}
+		values["clock.increment"] = []string{"0"}
+		if p.ClockIncrementSeconds != nil {
+			values["clock.increment"] = []string{strconv.Itoa(int(*p.ClockIncrementSeconds))}
+		}
+	}
+	return values, nil
+}
+
+// https://lichess.org/api#operation/challengeCreate
+func (c *Client) ChallengeCreate(params ChallengeCreateParams) error {
+	const path = "/api/challenge/%s"
+
+	values, err := params.values()
+	if err != nil {
+		return err
+	}
+
+	uri := endpoint + fmt.Sprintf(path, params.Username)
+	resp, err := c.httpClient.PostForm(uri, values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusBadRequest:
+		return newBadRequestError(resp.Body)
+	default:
+		return newUnexpectedStatusCodeError(resp.StatusCode)
+	}
+}
+
+// https://lichess.org/api#operation/challengeAccept
+func (c *Client) ChallengeAccept(challengeID string) error {
+	const path = "/api/challenge/%s/accept"
+
+	uri := endpoint + fmt.Sprintf(path, challengeID)
+	resp, err := c.httpClient.PostForm(uri, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusNotFound:
+		return newNotFoundError(uri)
+	default:
+		return newUnexpectedStatusCodeError(resp.StatusCode)
+	}
+}
+
+// https://lichess.org/api#operation/challengeDecline
+func (c *Client) ChallengeDecline(challengeID string) error {
+	const path = "/api/challenge/%s/decline"
+
+	uri := endpoint + fmt.Sprintf(path, challengeID)
+	resp, err := c.httpClient.PostForm(uri, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusNotFound:
+		return newNotFoundError(uri)
+	default:
+		return newUnexpectedStatusCodeError(resp.StatusCode)
+	}
+}
+
 func newBadRequestError(body io.Reader) error {
 	return errors.New("bad request") // TODO: parse body, should indicate exact error
+}
+
+func newNotFoundError(uri string) error {
+	return fmt.Errorf("not found: %s", uri)
 }
 
 func newUnexpectedStatusCodeError(code int) error {
