@@ -15,6 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func emptyok(uri string, data url.Values) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(strings.NewReader("")),
+	}, nil
+}
+
 type move struct {
 	from, to  uint8
 	promoteTo chess.PromoteTo
@@ -25,14 +32,7 @@ func (m move) To() uint8                  { return m.to }
 func (m move) PromoteTo() chess.PromoteTo { return m.promoteTo }
 
 func TestBotUpgradeToBotAccount(t *testing.T) {
-	m := &mocks.GetPosterMock{
-		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(strings.NewReader("")),
-			}, nil
-		},
-	}
+	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
 	c := lichess.NewClient(m)
 	err := c.BotUpgradeToBotAccount()
 	require.NoError(t, err)
@@ -147,12 +147,7 @@ func TestBotStreamGame(t *testing.T) {
 
 func TestBotMakeMove(t *testing.T) {
 	m := &mocks.GetPosterMock{
-		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(strings.NewReader("")),
-			}, nil
-		},
+		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
 	err := c.BotMakeMove("abc123", move{12, 34, chess.PromoteToNone}, false)
@@ -166,12 +161,7 @@ func TestBotMakeMove(t *testing.T) {
 
 func TestBotWriteChat(t *testing.T) {
 	m := &mocks.GetPosterMock{
-		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(strings.NewReader("")),
-			}, nil
-		},
+		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
 	err := c.BotWriteChat("abc123", lichess.ChatRoomPlayer, "ggwp!")
@@ -185,12 +175,7 @@ func TestBotWriteChat(t *testing.T) {
 
 func TestBotAbortGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
-		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(strings.NewReader("")),
-			}, nil
-		},
+		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
 	err := c.BotAbortGame("abc123")
@@ -204,12 +189,7 @@ func TestBotAbortGame(t *testing.T) {
 
 func TestBotResignGame(t *testing.T) {
 	m := &mocks.GetPosterMock{
-		PostFormFunc: func(uri string, data url.Values) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(strings.NewReader("")),
-			}, nil
-		},
+		PostFormFunc: emptyok,
 	}
 	c := lichess.NewClient(m)
 	err := c.BotResignGame("abc123")
