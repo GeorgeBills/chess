@@ -358,15 +358,15 @@ const (
 )
 
 const (
-	VariantNameStandard      = "standard"
-	VariantNameChess960      = "chess960"
-	VariantNameCrazyhouse    = "crazyhouse"
-	VariantNameAntichess     = "antichess"
-	VariantNameAtomic        = "atomic"
-	VariantNameHorde         = "horde"
-	VariantNameKingOfTheHill = "kingOfTheHill"
-	VariantNameRacingKings   = "racingKings"
-	VariantNameThreeCheck    = "threeCheck"
+	VariantKeyStandard      = "standard"
+	VariantKeyChess960      = "chess960"
+	VariantKeyCrazyhouse    = "crazyhouse"
+	VariantKeyAntichess     = "antichess"
+	VariantKeyAtomic        = "atomic"
+	VariantKeyHorde         = "horde"
+	VariantKeyKingOfTheHill = "kingOfTheHill"
+	VariantKeyRacingKings   = "racingKings"
+	VariantKeyThreeCheck    = "threeCheck"
 )
 
 type ChallengeCreateParams struct {
