@@ -81,11 +81,21 @@ func (h *eventHandler) handleEvents() {
 	switch v := event.(type) {
 	case *lichess.EventChallenge:
 		logger.Printf("accepting challenge: %s", v.Challenge.ID)
+
+			if v.Challenge.Challenger.ID == "GeorgeBills" &&
+				v.Challenge.Variant.Name == lichess.VariantNameStandard {
 		err := h.client.ChallengeAccept(v.Challenge.ID)
 		if err != nil {
 			logger.Fatal(err)
 		}
 		// we now expect an incoming "game start" event
+			} else {
+				err := h.client.ChallengeDecline(v.Challenge.ID)
+				if err != nil {
+					logger.Fatal(err)
+				}
+			}
+
 	case *lichess.EventGameStart:
 		logger.Printf("streaming game: %s", v.Game.ID)
 		eventch := make(chan interface{}, 100)
