@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -481,7 +482,19 @@ func (c *Client) ChallengeDecline(challengeID string) error {
 }
 
 func newBadRequestError(body io.Reader) error {
-	return errors.New("bad request") // TODO: parse body, should indicate exact error
+	text, err := ioutil.ReadAll(body)
+	if err != nil {
+		return fmt.Errorf("bad request (additional error reading response body: %v)", err)
+	}
+
+	var parsed struct {
+		Err string `json:"error"`
+	}
+	if err := json.Unmarshal(text, &parsed); err != nil {
+		return fmt.Errorf("bad request (additional error parsing response body: %v)", err)
+	}
+
+	return fmt.Errorf("bad request: %s", parsed.Err)
 }
 
 func newNotFoundError(uri string) error {
