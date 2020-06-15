@@ -75,20 +75,21 @@ func (h *eventHandler) streamEvents() {
 }
 
 func (h *eventHandler) handleEvents() {
-	event := <-h.eventch
-	logger.Printf("event: %#v", event)
+	for event := range h.eventch {
+		logger.Printf("event: %#v", event)
 
-	switch v := event.(type) {
-	case *lichess.EventChallenge:
-		logger.Printf("accepting challenge: %s", v.Challenge.ID)
+		switch v := event.(type) {
+
+		case *lichess.EventChallenge:
+			logger.Printf("accepting challenge: %s", v.Challenge.ID)
 
 			if v.Challenge.Challenger.ID == "GeorgeBills" &&
 				v.Challenge.Variant.Name == lichess.VariantNameStandard {
-		err := h.client.ChallengeAccept(v.Challenge.ID)
-		if err != nil {
-			logger.Fatal(err)
-		}
-		// we now expect an incoming "game start" event
+				err := h.client.ChallengeAccept(v.Challenge.ID)
+				if err != nil {
+					logger.Fatal(err)
+				}
+				// we now expect an incoming "game start" event
 			} else {
 				err := h.client.ChallengeDecline(v.Challenge.ID)
 				if err != nil {
@@ -96,18 +97,19 @@ func (h *eventHandler) handleEvents() {
 				}
 			}
 
-	case *lichess.EventGameStart:
-		logger.Printf("streaming game: %s", v.Game.ID)
-		eventch := make(chan interface{}, 100)
-		h := &gameHandler{
-			gameID:  v.Game.ID,
-			client:  h.client,
-			eventch: eventch,
+		case *lichess.EventGameStart:
+			eventch := make(chan interface{}, 100)
+			h := &gameHandler{
+				gameID:  v.Game.ID,
+				client:  h.client,
+				eventch: eventch,
+			}
+			go h.streamGameEvents()
+			go h.handleGameEvents()
+
+		default:
+			logger.Printf("ignoring unrecognized event type: %T", v)
 		}
-		go h.streamGameEvents()
-		go h.handleGameEvents()
-	default:
-		logger.Printf("ignoring unrecognized event type: %T", v)
 	}
 }
 
@@ -127,50 +129,52 @@ func (h *gameHandler) streamGameEvents() {
 }
 
 func (h *gameHandler) handleGameEvents() {
-	event := <-h.eventch
-	logger.Printf("game event: %#v", event) // TODO: include game id
+	for event := range h.eventch {
+		logger.Printf("game event: %#v", event) // TODO: include game id
 
-	switch v := event.(type) {
-	case *lichess.EventGameFull:
-		logger.Printf("new game: %s", v.ID)
-		// TODO: refuse to play if the variant isn't standard
+		switch v := event.(type) {
+		case *lichess.EventGameFull:
+			logger.Printf("new game: %s", v.ID)
+			// TODO: refuse to play if the variant isn't standard
 
-		var b *engine.Board
-		switch v.InitialFen {
-		case "startpos":
-			b = engine.NewBoard()
+			var b *engine.Board
+			switch v.InitialFen {
+			case "startpos":
+				b = engine.NewBoard()
+			default:
+				var err error
+				b, err = engine.NewBoardFromFEN(strings.NewReader(v.InitialFen))
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+
+			h.game = engine.NewGame(b)
+
+			logger.Printf("state: %#v", v.State)
+			logger.Printf("white: %#v", v.White)
+			logger.Printf("black: %#v", v.Black)
+
+			// are we to move?
+			if v.White.ID == id {
+				stopch := make(chan struct{})
+				statusch := make(chan engine.SearchStatus)
+				move, score := h.game.BestMoveToDepth(4, stopch, statusch)
+				offeringDraw := score <= drawThreshold
+				err := h.client.BotMakeMove(h.gameID, move, offeringDraw)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+
+		case *lichess.EventGameState:
+			logger.Printf("game state")
+
+		case *lichess.EventChatLine:
+			logger.Printf("chat line")
+
 		default:
-			var err error
-			b, err = engine.NewBoardFromFEN(strings.NewReader(v.InitialFen))
-			if err != nil {
-				log.Fatal(err)
-			}
+			logger.Printf("ignoring unrecognized event type: %T", v)
 		}
-
-		h.game = engine.NewGame(b)
-
-		logger.Printf("state: %#v", v.State)
-		logger.Printf("white: %#v", v.White)
-		logger.Printf("black: %#v", v.Black)
-
-		// are we to move?
-		if v.White.ID == id {
-			stopch := make(chan struct{})
-			statusch := make(chan engine.SearchStatus)
-			move, score := h.game.BestMoveToDepth(4, stopch, statusch)
-			offeringDraw := score <= drawThreshold
-			err := h.client.BotMakeMove(h.gameID, move, offeringDraw)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	case *lichess.EventGameState:
-		logger.Printf("game state")
-
-	case *lichess.EventChatLine:
-		logger.Printf("chat line")
-
-	default:
-		logger.Printf("ignoring unrecognized event type: %T", v)
 	}
 }
