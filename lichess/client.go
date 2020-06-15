@@ -75,25 +75,39 @@ type EventChallenge struct {
 }
 
 type EventChallengeChallenge struct {
-	ID     string `json:"id" mapstructure:"id"`
-	Status string `json:"status" mapstructure:"status"`
+	ID              string       `json:"id" mapstructure:"id"`
+	Status          string       `json:"status" mapstructure:"status"`
+	Challenger      *Player      `json:"challenger" mapstructure:"challenger"`
+	DestinationUser *Player      `json:"destUser" mapstructure:"destUser"`
+	Variant         *Variant     `json:"variant"`
+	Rated           bool         `json:"rated"`
+	Color           string       `json:"color"`
+	Perf            *Perf        `json:"perf"`
+	TimeControl     *TimeControl `json:"timeControl"`
+}
+
+type TimeControl struct {
+	Type      string `json:"type" mapstructure:"type"`
+	Limit     int    `json:"limit" mapstructure:"limit"`
+	Increment int    `json:"increment" mapstructure:"increment"`
+	Show      string `json:"show" mapstructure:"show"`
 }
 
 type EventGameFull struct {
-	ID         string                   `json:"id" mapstructure:"id"`
-	Rated      bool                     `json:"rated" mapstructure:"rated"`
-	Variant    *EventGameFullVariant    `json:"variant" mapstructure:"variant"`
-	Clock      *EventGameFullClock      `json:"clock" mapstructure:"clock"`
-	Speed      string                   `json:"speed" mapstructure:"speed"`
-	Perf       *EventGameFullPerf       `json:"perf" mapstructure:"perf"`
-	CreatedAt  int                      `json:"createdAt" mapstructure:"createdAt"` // TODO: should be time.Time
-	White      *EventGameFullPlayerInfo `json:"white" mapstructure:"white"`
-	Black      *EventGameFullPlayerInfo `json:"black" mapstructure:"black"`
-	InitialFen string                   `json:"initialFen" mapstructure:"initialFen"`
-	State      *EventGameState          `json:"state" mapstructure:"state"`
+	ID         string              `json:"id" mapstructure:"id"`
+	Rated      bool                `json:"rated" mapstructure:"rated"`
+	Variant    *Variant            `json:"variant" mapstructure:"variant"`
+	Clock      *EventGameFullClock `json:"clock" mapstructure:"clock"`
+	Speed      string              `json:"speed" mapstructure:"speed"`
+	Perf       *Perf               `json:"perf" mapstructure:"perf"`
+	CreatedAt  int                 `json:"createdAt" mapstructure:"createdAt"` // TODO: should be time.Time
+	White      *Player             `json:"white" mapstructure:"white"`
+	Black      *Player             `json:"black" mapstructure:"black"`
+	InitialFen string              `json:"initialFen" mapstructure:"initialFen"`
+	State      *EventGameState     `json:"state" mapstructure:"state"`
 }
 
-type EventGameFullVariant struct {
+type Variant struct {
 	Key   string `json:"key" mapstructure:"key"`
 	Name  string `json:"name" mapstructure:"name"`
 	Short string `json:"short" mapstructure:"short"`
@@ -104,16 +118,19 @@ type EventGameFullClock struct {
 	Increment int `json:"increment" mapstructure:"increment"`
 }
 
-type EventGameFullPerf struct {
+type Perf struct {
+	Icon string
 	Name string `json:"name" mapstructure:"name"`
 }
 
-type EventGameFullPlayerInfo struct {
+type Player struct {
 	ID          string `json:"id" mapstructure:"id"`
 	Name        string `json:"name" mapstructure:"name"`
 	Provisional bool   `json:"provisional" mapstructure:"provisional"`
 	Rating      int    `json:"rating" mapstructure:"rating"`
 	Title       string `json:"title" mapstructure:"title"`
+	Online      bool
+	Lag         int
 }
 
 type EventGameState struct {
@@ -339,18 +356,16 @@ const (
 	ColorBlack  Color = "black"
 )
 
-type Variant string
-
 const (
-	VariantStandard      Variant = "standard"
-	VariantChess960      Variant = "chess960"
-	VariantCrazyhouse    Variant = "crazyhouse"
-	VariantAntichess     Variant = "antichess"
-	VariantAtomic        Variant = "atomic"
-	VariantHorde         Variant = "horde"
-	VariantKingOfTheHill Variant = "kingOfTheHill"
-	VariantRacingKings   Variant = "racingKings"
-	VariantThreeCheck    Variant = "threeCheck"
+	VariantNameStandard      = "standard"
+	VariantNameChess960      = "chess960"
+	VariantNameCrazyhouse    = "crazyhouse"
+	VariantNameAntichess     = "antichess"
+	VariantNameAtomic        = "atomic"
+	VariantNameHorde         = "horde"
+	VariantNameKingOfTheHill = "kingOfTheHill"
+	VariantNameRacingKings   = "racingKings"
+	VariantNameThreeCheck    = "threeCheck"
 )
 
 type ChallengeCreateParams struct {
@@ -360,7 +375,7 @@ type ChallengeCreateParams struct {
 	ClockIncrementSeconds *uint
 	Days                  *uint
 	Color                 Color
-	Variant               Variant
+	Variant               string
 	FEN                   string
 }
 
