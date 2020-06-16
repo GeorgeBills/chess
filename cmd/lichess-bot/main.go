@@ -54,75 +54,81 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	h := &eventHandler{
-		client:  client,
-		eventch: eventch,
+		client: client,
 	}
-	go h.handleEvents()
-	go h.streamEvents()
+	go streamEvents(client, eventch)
+	go HandleEvents(h, eventch)
 	wg.Wait()
 }
 
 type eventHandler struct {
-	client  *lichess.Client
-	eventch chan interface{}
+	client *lichess.Client
 }
 
-func (h *eventHandler) streamEvents() {
+func streamEvents(client *lichess.Client, eventch chan<- interface{}) {
 	logger.Printf("streaming events")
-	err := h.client.BotStreamEvents(h.eventch)
+	err := client.BotStreamEvents(eventch)
 	if err != nil {
 		logger.Fatal(fmt.Errorf("error streaming events: %w", err))
 	}
 }
 
-func (h *eventHandler) handleEvents() {
-	for event := range h.eventch {
+type EventHandler interface {
+	Challenge(eventChallenge *lichess.EventChallenge)
+	GameStart(eventGameStart *lichess.EventGameStart)
+}
+
+func HandleEvents(h EventHandler, eventch <-chan interface{}) {
+	for event := range eventch {
 		logger.Printf("event: %#v", event)
-
 		switch v := event.(type) {
-
 		case *lichess.EventChallenge:
-			logger.Printf(
-				"challenge; id: %s; challenger: %s; variant: %s; rated: %t",
-				v.Challenge.ID,
-				v.Challenge.Challenger.ID,
-				v.Challenge.Variant.Key,
-				v.Challenge.Rated,
-			)
-
-			if v.Challenge.Challenger.ID == "georgebills" &&
-				v.Challenge.Rated == false && // require unrated for now to avoid changing my own rating
-				v.Challenge.Variant.Key == lichess.VariantKeyStandard {
-
-				logger.Printf("accepting challenge: %s", v.Challenge.ID)
-				err := h.client.ChallengeAccept(v.Challenge.ID)
-				if err != nil {
-					logger.Fatal(err)
-				}
-				// we now expect an incoming "game start" event
-			} else {
-
-				logger.Printf("declining challenge: %s", v.Challenge.ID)
-				err := h.client.ChallengeDecline(v.Challenge.ID)
-				if err != nil {
-					logger.Fatal(err)
-				}
-			}
-
+			h.Challenge(v)
 		case *lichess.EventGameStart:
-			eventch := make(chan interface{}, 100)
-			h := &gameHandler{
-				gameID:  v.Game.ID,
-				client:  h.client,
-				eventch: eventch,
-			}
-			go h.streamGameEvents()
-			go h.handleGameEvents()
-
+			h.GameStart(v)
 		default:
-			logger.Printf("ignoring unrecognized event type: %T", v)
+			logger.Printf("ignoring unrecognized event type: %T", v) // errch?
 		}
 	}
+}
+
+func (h *eventHandler) Challenge(v *lichess.EventChallenge) {
+	logger.Printf(
+		"challenge; id: %s; challenger: %s; variant: %s; rated: %t",
+		v.Challenge.ID,
+		v.Challenge.Challenger.ID,
+		v.Challenge.Variant.Key,
+		v.Challenge.Rated,
+	)
+
+	if v.Challenge.Challenger.ID == "georgebills" &&
+		v.Challenge.Rated == false && // require unrated for now to avoid changing my own rating
+		v.Challenge.Variant.Key == lichess.VariantKeyStandard {
+
+		logger.Printf("accepting challenge: %s", v.Challenge.ID)
+		err := h.client.ChallengeAccept(v.Challenge.ID)
+		if err != nil {
+			logger.Fatal(err)
+		}
+		// we now expect an incoming "game start" event
+	} else {
+
+		logger.Printf("declining challenge: %s", v.Challenge.ID)
+		err := h.client.ChallengeDecline(v.Challenge.ID)
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}
+}
+
+func (h *eventHandler) GameStart(v *lichess.EventGameStart) {
+	eventch := make(chan interface{}, 100)
+	gh := &gameHandler{
+		gameID: v.Game.ID,
+		client: h.client,
+	}
+	go streamGameEvents(v.Game.ID, h.client, eventch)
+	go HandleGameEvents(gh, eventch)
 }
 
 type Colour uint8
@@ -134,95 +140,107 @@ const (
 )
 
 type gameHandler struct {
-	game    *engine.Game
-	gameID  string
-	client  *lichess.Client
-	eventch chan interface{}
-	colour  Colour
+	game   *engine.Game
+	gameID string
+	client *lichess.Client
+	colour Colour
 }
 
-func (h *gameHandler) streamGameEvents() {
-	logger.Printf("streaming game: %s", h.gameID)
-	err := h.client.BotStreamGame(h.gameID, h.eventch)
+func streamGameEvents(gameID string, client *lichess.Client, eventch chan<- interface{}) {
+	logger.Printf("streaming game: %s", gameID)
+	err := client.BotStreamGame(gameID, eventch)
 	if err != nil {
 		logger.Fatal(err)
 	}
 }
 
-func (h *gameHandler) handleGameEvents() {
-	for event := range h.eventch {
+type GameHandler interface {
+	GameFull(eventGameFull *lichess.EventGameFull)
+	GameState(eventGameState *lichess.EventGameState)
+	ChatLine(eventChatLine *lichess.EventChatLine)
+}
+
+func HandleGameEvents(h GameHandler, eventch <-chan interface{}) {
+	for event := range eventch {
 		logger.Printf("game event: %#v", event) // TODO: include game id
-
 		switch v := event.(type) {
-
 		case *lichess.EventGameFull:
-			logger.Printf("game full; game: %s; white: %s; black: %s", v.ID, v.White.ID, v.Black.ID)
-
-			var b *engine.Board
-			switch v.InitialFen {
-			case "startpos":
-				b = engine.NewBoard()
-			default:
-				var err error
-				b, err = engine.NewBoardFromFEN(strings.NewReader(v.InitialFen))
-				if err != nil {
-					log.Fatal(err)
-				}
-			}
-
-			h.game = engine.NewGame(b)
-
-			switch id {
-			case v.White.ID:
-				h.colour = ColourWhite
-			case v.Black.ID:
-				h.colour = ColourBlack
-			default:
-				logger.Fatal("unknown colour to play")
-			}
-			logger.Println(h.colour)
-
-			movestrs, tomove := splitMoves(v.State.Moves)
-			for _, movestr := range movestrs {
-				h.makeMove(movestr)
-			}
-
-			// logger.Printf("variant: %#v", v.Variant)
-			// logger.Printf("clock: %#v", v.Clock)
-			// logger.Printf("perf: %#v", v.Perf)
-			// logger.Printf("state: %#v", v.State)
-			// logger.Printf("white: %#v", v.White)
-			// logger.Printf("black: %#v", v.Black)
-
-			// are we to move?
-			if tomove == h.colour {
-				if err := h.searchMove(); err != nil {
-					log.Fatal(err)
-				}
-			}
-
+			h.GameFull(v)
 		case *lichess.EventGameState:
-			logger.Printf("game state")
-			logger.Printf("status: %#v", v.Status)
-
-			movestrs, tomove := splitMoves(v.Moves)
-
-			// apply only the last move, the others have been applied already
-			h.makeMove(movestrs[len(movestrs)-1])
-
-			if tomove == h.colour {
-				if err := h.searchMove(); err != nil {
-					log.Fatal(err)
-				}
-			}
-
+			h.GameState(v)
 		case *lichess.EventChatLine:
-			logger.Printf("chat line; '%s'", v.Text)
-
+			h.ChatLine(v)
 		default:
-			logger.Printf("ignoring unrecognized event type: %T", v)
+			logger.Printf("ignoring unrecognized game event type: %T", v) // errch
 		}
 	}
+}
+
+func (h *gameHandler) GameFull(v *lichess.EventGameFull) {
+	logger.Printf("game full; game: %s; white: %s; black: %s", v.ID, v.White.ID, v.Black.ID)
+
+	var b *engine.Board
+	switch v.InitialFen {
+	case "startpos":
+		b = engine.NewBoard()
+	default:
+		var err error
+		b, err = engine.NewBoardFromFEN(strings.NewReader(v.InitialFen))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	h.game = engine.NewGame(b)
+
+	switch id {
+	case v.White.ID:
+		h.colour = ColourWhite
+	case v.Black.ID:
+		h.colour = ColourBlack
+	default:
+		logger.Fatal("unknown colour to play")
+	}
+	logger.Println(h.colour)
+
+	movestrs, tomove := splitMoves(v.State.Moves)
+	for _, movestr := range movestrs {
+		h.makeMove(movestr)
+	}
+
+	// logger.Printf("variant: %#v", v.Variant)
+	// logger.Printf("clock: %#v", v.Clock)
+	// logger.Printf("perf: %#v", v.Perf)
+	// logger.Printf("state: %#v", v.State)
+	// logger.Printf("white: %#v", v.White)
+	// logger.Printf("black: %#v", v.Black)
+
+	// are we to move?
+	if tomove == h.colour {
+		if err := h.searchMove(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (h *gameHandler) GameState(v *lichess.EventGameState) {
+	logger.Printf("game state")
+	logger.Printf("status: %#v", v.Status)
+
+	movestrs, tomove := splitMoves(v.Moves)
+
+	// apply only the last move, the others have been applied already
+	h.makeMove(movestrs[len(movestrs)-1])
+
+	if tomove == h.colour {
+		if err := h.searchMove(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (h *gameHandler) ChatLine(v *lichess.EventChatLine) {
+	logger.Printf("chat line; '%s'", v.Text)
 }
 
 func splitMoves(moves string) ([]string, Colour) {
