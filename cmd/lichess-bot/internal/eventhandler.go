@@ -7,16 +7,18 @@ import (
 	"github.com/GeorgeBills/chess/lichess"
 )
 
-func NewEventHandler(client Lichesser, logger *log.Logger) *EventHandler {
+func NewEventHandler(client Lichesser, logger *log.Logger, factory GameFactory) *EventHandler {
 	return &EventHandler{
-		client: client,
-		logger: logger,
+		client:  client,
+		logger:  logger,
+		factory: factory,
 	}
 }
 
 type EventHandler struct {
-	client Lichesser
-	logger *log.Logger
+	client  Lichesser
+	logger  *log.Logger
+	factory GameFactory
 }
 
 func (h *EventHandler) Challenge(v *lichess.EventChallenge) {
@@ -50,7 +52,7 @@ func (h *EventHandler) Challenge(v *lichess.EventChallenge) {
 
 func (h *EventHandler) GameStart(v *lichess.EventGameStart) {
 	eventch := make(chan interface{}, 100)
-	gh := NewGameHandler(v.Game.ID, h.client, h.logger)
+	gh := NewGameHandler(v.Game.ID, h.client, h.logger, h.factory)
 	go StreamGameEvents(v.Game.ID, h.client, eventch, h.logger)
 	go lichess.HandleGameEvents(gh, h.logger, eventch)
 }

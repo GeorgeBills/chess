@@ -46,7 +46,8 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	h := internal.NewEventHandler(client, logger)
+	factory := NewGameFactory()
+	h := internal.NewEventHandler(client, logger, factory)
 	go internal.StreamEvents(client, eventch, logger)
 	go lichess.HandleEvents(h, logger, eventch)
 	wg.Wait()

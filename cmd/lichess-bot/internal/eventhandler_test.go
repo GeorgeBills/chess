@@ -14,10 +14,11 @@ import (
 var logger = log.New(os.Stdout, "", log.LstdFlags)
 
 func TestEventHandlerChallengeAccept(t *testing.T) {
-	m := &mocks.LichesserMock{
+	mockClient := &mocks.LichesserMock{
 		ChallengeAcceptFunc: func(challengeID string) error { return nil },
 	}
-	h := internal.NewEventHandler(m, logger)
+	mockFactory := &mocks.GameFactoryMock{}
+	h := internal.NewEventHandler(mockClient, logger, mockFactory)
 	h.Challenge(
 		&lichess.EventChallenge{
 			Challenge: lichess.EventChallengeChallenge{
@@ -29,7 +30,7 @@ func TestEventHandlerChallengeAccept(t *testing.T) {
 		},
 	)
 
-	calls := m.ChallengeAcceptCalls()
+	calls := mockClient.ChallengeAcceptCalls()
 	if assert.Len(t, calls, 1) {
 		assert.Equal(t, "CHWmd4", calls[0].ChallengeID)
 	}
@@ -57,14 +58,15 @@ func TestEventHandlerChallengeDecline(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &mocks.LichesserMock{
+			mockClient := &mocks.LichesserMock{
 				ChallengeDeclineFunc: func(challengeID string) error { return nil },
 			}
-			h := internal.NewEventHandler(m, logger)
+			mockFactory := &mocks.GameFactoryMock{}
+			h := internal.NewEventHandler(mockClient, logger, mockFactory)
 
 			h.Challenge(tt.challenge)
 
-			calls := m.ChallengeDeclineCalls()
+			calls := mockClient.ChallengeDeclineCalls()
 			if assert.Len(t, calls, 1) {
 				assert.Equal(t, "Jp7EUq", calls[0].ChallengeID)
 			}

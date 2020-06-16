@@ -11,13 +11,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type move struct {
+	from, to  uint8
+	promoteTo chess.PromoteTo
+}
+
+func (m move) From() uint8                { return m.from }
+func (m move) To() uint8                  { return m.to }
+func (m move) PromoteTo() chess.PromoteTo { return m.promoteTo }
+
 func TestGameFullToMove(t *testing.T) {
-	m := &mocks.LichesserMock{
+	mockClient := &mocks.LichesserMock{
 		BotMakeMoveFunc: func(gameID string, move chess.FromToPromoter, offeringDraw bool) error {
 			return nil
 		},
 	}
-	h := internal.NewGameHandler("QSdKvR", m, logger)
+	mockFactory := &mocks.GameFactoryMock{
+		NewGameFunc: func() internal.Game {
+			return &mocks.GameMock{
+				BestMoveFunc: func() (chess.FromToPromoter, int16) {
+					return move{from: 12, to: 28}, 10 // e2e4
+					// TODO: copy square constants up to chess pkg
+				},
+			}
+		},
+	}
+	h := internal.NewGameHandler("QSdKvR", mockClient, logger, mockFactory)
 	h.GameFull(&lichess.EventGameFull{
 		ID:         "QSdKvR",
 		White:      lichess.Player{ID: "gbcb"},
@@ -26,7 +45,7 @@ func TestGameFullToMove(t *testing.T) {
 		State:      lichess.EventGameState{Moves: ""},
 	})
 
-	calls := m.BotMakeMoveCalls()
+	calls := mockClient.BotMakeMoveCalls()
 	if assert.Len(t, calls, 1) {
 		assert.Equal(t, "QSdKvR", calls[0].GameID)
 		assert.Equal(t, "e2e4", uci.ToUCIN(calls[0].Move))
