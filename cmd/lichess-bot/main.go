@@ -57,7 +57,7 @@ func main() {
 		client: client,
 	}
 	go streamEvents(client, eventch)
-	go HandleEvents(h, eventch)
+	go lichess.HandleEvents(h, logger, eventch)
 	wg.Wait()
 }
 
@@ -70,25 +70,6 @@ func streamEvents(client *lichess.Client, eventch chan<- interface{}) {
 	err := client.BotStreamEvents(eventch)
 	if err != nil {
 		logger.Fatal(fmt.Errorf("error streaming events: %w", err))
-	}
-}
-
-type EventHandler interface {
-	Challenge(eventChallenge *lichess.EventChallenge)
-	GameStart(eventGameStart *lichess.EventGameStart)
-}
-
-func HandleEvents(h EventHandler, eventch <-chan interface{}) {
-	for event := range eventch {
-		logger.Printf("event: %#v", event)
-		switch v := event.(type) {
-		case *lichess.EventChallenge:
-			h.Challenge(v)
-		case *lichess.EventGameStart:
-			h.GameStart(v)
-		default:
-			logger.Printf("ignoring unrecognized event type: %T", v) // errch?
-		}
 	}
 }
 
@@ -128,7 +109,7 @@ func (h *eventHandler) GameStart(v *lichess.EventGameStart) {
 		client: h.client,
 	}
 	go streamGameEvents(v.Game.ID, h.client, eventch)
-	go HandleGameEvents(gh, eventch)
+	go lichess.HandleGameEvents(gh, logger, eventch)
 }
 
 type Colour uint8
@@ -151,28 +132,6 @@ func streamGameEvents(gameID string, client *lichess.Client, eventch chan<- inte
 	err := client.BotStreamGame(gameID, eventch)
 	if err != nil {
 		logger.Fatal(err)
-	}
-}
-
-type GameHandler interface {
-	GameFull(eventGameFull *lichess.EventGameFull)
-	GameState(eventGameState *lichess.EventGameState)
-	ChatLine(eventChatLine *lichess.EventChatLine)
-}
-
-func HandleGameEvents(h GameHandler, eventch <-chan interface{}) {
-	for event := range eventch {
-		logger.Printf("game event: %#v", event) // TODO: include game id
-		switch v := event.(type) {
-		case *lichess.EventGameFull:
-			h.GameFull(v)
-		case *lichess.EventGameState:
-			h.GameState(v)
-		case *lichess.EventChatLine:
-			h.ChatLine(v)
-		default:
-			logger.Printf("ignoring unrecognized game event type: %T", v) // errch
-		}
 	}
 }
 
