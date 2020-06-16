@@ -64,12 +64,12 @@ func TestBotStreamEvents(t *testing.T) {
 
 	event1 := <-eventch // TODO: timeout
 	expected1 := &lichess.EventChallenge{
-		Challenge: &lichess.EventChallengeChallenge{
+		Challenge: lichess.EventChallengeChallenge{
 			ID:     "7pGLxJ4F",
 			Status: "created",
 			Rated:  true,
 			Color:  "random",
-			Challenger: &lichess.Player{
+			Challenger: lichess.Player{
 				ID:          "lovlas",
 				Name:        "Lovlas",
 				Provisional: false,
@@ -78,7 +78,7 @@ func TestBotStreamEvents(t *testing.T) {
 				Online:      true,
 				Lag:         24,
 			},
-			DestinationUser: &lichess.Player{
+			DestinationUser: lichess.Player{
 				ID:          "thibot",
 				Name:        "thibot",
 				Provisional: true,
@@ -87,16 +87,16 @@ func TestBotStreamEvents(t *testing.T) {
 				Online:      true,
 				Lag:         45,
 			},
-			Variant: &lichess.Variant{
+			Variant: lichess.Variant{
 				Key:   "standard",
 				Name:  "Standard",
 				Short: "Std",
 			},
-			Perf: &lichess.Perf{
+			Perf: lichess.Perf{
 				Icon: "#",
 				Name: "Rapid",
 			},
-			TimeControl: &lichess.TimeControl{
+			TimeControl: lichess.TimeControl{
 				Type:      "clock",
 				Limit:     300,
 				Increment: 25,
@@ -107,7 +107,7 @@ func TestBotStreamEvents(t *testing.T) {
 	assert.Equal(t, expected1, event1)
 
 	event2 := <-eventch // TODO: timeout
-	expected2 := &lichess.EventGameStart{Game: &lichess.EventGameStartGame{ID: "1lsvP62l"}}
+	expected2 := &lichess.EventGameStart{Game: lichess.EventGameStartGame{ID: "1lsvP62l"}}
 	assert.Equal(t, expected2, event2)
 
 }
@@ -135,15 +135,15 @@ func TestBotStreamGame(t *testing.T) {
 	expected1 := &lichess.EventGameFull{
 		ID:         "5IrD6Gzz",
 		Rated:      true,
-		Variant:    &lichess.Variant{Key: "standard", Name: "Standard", Short: "Std"},
-		Clock:      &lichess.EventGameFullClock{Initial: 1200000, Increment: 10000},
+		Variant:    lichess.Variant{Key: "standard", Name: "Standard", Short: "Std"},
+		Clock:      lichess.EventGameFullClock{Initial: 1200000, Increment: 10000},
 		Speed:      "classical",
-		Perf:       &lichess.Perf{Name: "Classical"},
+		Perf:       lichess.Perf{Name: "Classical"},
 		CreatedAt:  1523825103562,
 		InitialFen: "startpos",
-		White:      &lichess.Player{ID: "lovlas", Name: "lovlas", Provisional: false, Rating: 2500, Title: "IM"},
-		Black:      &lichess.Player{ID: "leela", Name: "leela", Provisional: false, Rating: 2390, Title: ""},
-		State: &lichess.EventGameState{
+		White:      lichess.Player{ID: "lovlas", Name: "lovlas", Provisional: false, Rating: 2500, Title: "IM"},
+		Black:      lichess.Player{ID: "leela", Name: "leela", Provisional: false, Rating: 2390, Title: ""},
+		State: lichess.EventGameState{
 			Moves:          "e2e4 c7c5 f2f4 d7d6 g1f3 b8c6 f1c4 g8f6 d2d3 g7g6 e1g1 f8g7",
 			WhiteTime:      7598040,
 			BlackTime:      8395220,

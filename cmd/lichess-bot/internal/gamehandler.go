@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -10,6 +10,11 @@ import (
 	"github.com/GeorgeBills/chess/uci"
 )
 
+const (
+	id               = "gbcb"
+	absDrawThreshold = 500 // relative to side to move!
+)
+
 type Colour uint8
 
 const (
@@ -18,23 +23,25 @@ const (
 	ColourBlack
 )
 
-type gameHandler struct {
-	game   *engine.Game
-	gameID string
-	client *lichess.Client
-	colour Colour
-}
-
-func streamGameEvents(gameID string, client *lichess.Client, eventch chan<- interface{}) {
-	logger.Printf("streaming game: %s", gameID)
-	err := client.BotStreamGame(gameID, eventch)
-	if err != nil {
-		logger.Fatal(err)
+func NewGameHandler(gameID string, client Lichesser, logger *log.Logger) *GameHandler {
+	return &GameHandler{
+		gameID: gameID,
+		client: client,
+		logger: logger,
+		// TODO: inject engine.NewGame, engine.NewBoard and engine.NewBoardFromFEN
 	}
 }
 
-func (h *gameHandler) GameFull(v *lichess.EventGameFull) {
-	logger.Printf("game full; game: %s; white: %s; black: %s", v.ID, v.White.ID, v.Black.ID)
+type GameHandler struct {
+	game   *engine.Game
+	gameID string
+	client Lichesser
+	colour Colour
+	logger *log.Logger
+}
+
+func (h *GameHandler) GameFull(v *lichess.EventGameFull) {
+	h.logger.Printf("game full; game: %s; white: %s; black: %s", v.ID, v.White.ID, v.Black.ID)
 
 	var b *engine.Board
 	switch v.InitialFen {
@@ -44,7 +51,7 @@ func (h *gameHandler) GameFull(v *lichess.EventGameFull) {
 		var err error
 		b, err = engine.NewBoardFromFEN(strings.NewReader(v.InitialFen))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(fmt.Errorf("error while parsing FEN: %w", err))
 		}
 	}
 
@@ -56,9 +63,9 @@ func (h *gameHandler) GameFull(v *lichess.EventGameFull) {
 	case v.Black.ID:
 		h.colour = ColourBlack
 	default:
-		logger.Fatal("unknown colour to play")
+		h.logger.Fatal("unknown colour to play")
 	}
-	logger.Println(h.colour)
+	h.logger.Println(h.colour)
 
 	movestrs, tomove := splitMoves(v.State.Moves)
 	for _, movestr := range movestrs {
@@ -80,9 +87,9 @@ func (h *gameHandler) GameFull(v *lichess.EventGameFull) {
 	}
 }
 
-func (h *gameHandler) GameState(v *lichess.EventGameState) {
-	logger.Printf("game state")
-	logger.Printf("status: %#v", v.Status)
+func (h *GameHandler) GameState(v *lichess.EventGameState) {
+	h.logger.Printf("game state")
+	h.logger.Printf("status: %#v", v.Status)
 
 	movestrs, tomove := splitMoves(v.Moves)
 
@@ -96,8 +103,8 @@ func (h *gameHandler) GameState(v *lichess.EventGameState) {
 	}
 }
 
-func (h *gameHandler) ChatLine(v *lichess.EventChatLine) {
-	logger.Printf("chat line; '%s'", v.Text)
+func (h *GameHandler) ChatLine(v *lichess.EventChatLine) {
+	h.logger.Printf("chat line; '%s'", v.Text)
 }
 
 func splitMoves(moves string) ([]string, Colour) {
@@ -112,7 +119,7 @@ func splitMoves(moves string) ([]string, Colour) {
 	return movestrs, ColourBlack
 }
 
-func (h *gameHandler) makeMove(movestr string) error {
+func (h *GameHandler) makeMove(movestr string) error {
 	parsed, err := uci.ParseUCIN(movestr)
 	if err != nil {
 		return fmt.Errorf("error applying move: %w", err)
@@ -127,12 +134,12 @@ func (h *gameHandler) makeMove(movestr string) error {
 	return nil
 }
 
-func (h *gameHandler) searchMove() error {
+func (h *GameHandler) searchMove() error {
 	stopch := make(chan struct{})
 	statusch := make(chan engine.SearchStatus)
 	move, score := h.game.BestMoveToDepth(4, stopch, statusch)
 
-	logger.Printf("making move %s", move.SAN())
+	h.logger.Printf("making move %s", move.SAN())
 
 	offerDraw := h.offerDraw(score)
 	return h.client.BotMakeMove(h.gameID, move, offerDraw)
@@ -140,7 +147,9 @@ func (h *gameHandler) searchMove() error {
 
 // offerDraw returns true if we should offer a draw and hope our opponent takes
 // mercy on us.
-func (h *gameHandler) offerDraw(score int16) bool {
+// FIXME: just resign here instead, no sense wasting our opponents time
+// TODO: add logic to detect a "probable" draw (e.g. drawish material)
+func (h *GameHandler) offerDraw(score int16) bool {
 	if h.colour == ColourWhite {
 		return score < absDrawThreshold*-1
 	}

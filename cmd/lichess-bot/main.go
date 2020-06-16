@@ -9,12 +9,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/GeorgeBills/chess/cmd/lichess-bot/internal"
 	"github.com/GeorgeBills/chess/lichess"
-)
-
-const (
-	id               = "gbcb"
-	absDrawThreshold = 500 // relative to side to move!
 )
 
 var logger = log.New(os.Stdout, "", 0)
@@ -50,18 +46,8 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	h := &eventHandler{
-		client: client,
-	}
-	go streamEvents(client, eventch)
+	h := internal.NewEventHandler(client, logger)
+	go internal.StreamEvents(client, eventch, logger)
 	go lichess.HandleEvents(h, logger, eventch)
 	wg.Wait()
-}
-
-func streamEvents(client *lichess.Client, eventch chan<- interface{}) {
-	logger.Printf("streaming events")
-	err := client.BotStreamEvents(eventch)
-	if err != nil {
-		logger.Fatal(fmt.Errorf("error streaming events: %w", err))
-	}
 }

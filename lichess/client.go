@@ -64,7 +64,7 @@ func (c *Client) BotUpgradeToBotAccount() error {
 }
 
 type EventGameStart struct {
-	Game *EventGameStartGame `json:"game" mapstructure:"game"`
+	Game EventGameStartGame `json:"game" mapstructure:"game"`
 }
 
 type EventGameStartGame struct {
@@ -72,19 +72,19 @@ type EventGameStartGame struct {
 }
 
 type EventChallenge struct {
-	Challenge *EventChallengeChallenge `json:"challenge" mapstructure:"challenge"`
+	Challenge EventChallengeChallenge `json:"challenge" mapstructure:"challenge"`
 }
 
 type EventChallengeChallenge struct {
-	ID              string       `json:"id" mapstructure:"id"`
-	Status          string       `json:"status" mapstructure:"status"`
-	Challenger      *Player      `json:"challenger" mapstructure:"challenger"`
-	DestinationUser *Player      `json:"destUser" mapstructure:"destUser"`
-	Variant         *Variant     `json:"variant"`
-	Rated           bool         `json:"rated"`
-	Color           string       `json:"color"`
-	Perf            *Perf        `json:"perf"`
-	TimeControl     *TimeControl `json:"timeControl"`
+	ID              string      `json:"id" mapstructure:"id"`
+	Status          string      `json:"status" mapstructure:"status"`
+	Challenger      Player      `json:"challenger" mapstructure:"challenger"`
+	DestinationUser Player      `json:"destUser" mapstructure:"destUser"`
+	Variant         Variant     `json:"variant"`
+	Rated           bool        `json:"rated"`
+	Color           string      `json:"color"`
+	Perf            Perf        `json:"perf"`
+	TimeControl     TimeControl `json:"timeControl"`
 }
 
 type TimeControl struct {
@@ -95,17 +95,17 @@ type TimeControl struct {
 }
 
 type EventGameFull struct {
-	ID         string              `json:"id" mapstructure:"id"`
-	Rated      bool                `json:"rated" mapstructure:"rated"`
-	Variant    *Variant            `json:"variant" mapstructure:"variant"`
-	Clock      *EventGameFullClock `json:"clock" mapstructure:"clock"`
-	Speed      string              `json:"speed" mapstructure:"speed"`
-	Perf       *Perf               `json:"perf" mapstructure:"perf"`
-	CreatedAt  int                 `json:"createdAt" mapstructure:"createdAt"` // TODO: should be time.Time
-	White      *Player             `json:"white" mapstructure:"white"`
-	Black      *Player             `json:"black" mapstructure:"black"`
-	InitialFen string              `json:"initialFen" mapstructure:"initialFen"`
-	State      *EventGameState     `json:"state" mapstructure:"state"`
+	ID         string             `json:"id" mapstructure:"id"`
+	Rated      bool               `json:"rated" mapstructure:"rated"`
+	Variant    Variant            `json:"variant" mapstructure:"variant"`
+	Clock      EventGameFullClock `json:"clock" mapstructure:"clock"`
+	Speed      string             `json:"speed" mapstructure:"speed"`
+	Perf       Perf               `json:"perf" mapstructure:"perf"`
+	CreatedAt  int                `json:"createdAt" mapstructure:"createdAt"` // TODO: should be time.Time
+	White      Player             `json:"white" mapstructure:"white"`
+	Black      Player             `json:"black" mapstructure:"black"`
+	InitialFen string             `json:"initialFen" mapstructure:"initialFen"`
+	State      EventGameState     `json:"state" mapstructure:"state"`
 }
 
 type Variant struct {
