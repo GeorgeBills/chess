@@ -9,6 +9,7 @@ aws cloudformation deploy `
     --region eu-central-1 `
     --stack-name lichess-bot `
     --template-file .\infrastructure.yaml
+    --capabilities CAPABILITY_NAMED_IAM
 ```
 
 ## Publishing

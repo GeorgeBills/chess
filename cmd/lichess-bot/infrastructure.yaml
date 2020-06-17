@@ -36,6 +36,41 @@ Resources:
     Properties:
       RepositoryName: lichess-bot
 
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lichess-bot-execution-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Name: lichess-bot
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/lichess-bot:latest"
+          ReadonlyRootFilesystem: true
+          # LogConfiguration: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html
+          # Secrets: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html
+      Cpu: 1024 # 1 vCPU
+      Family: lichess-bot
+      Memory: 2048 # 2Gb
+      NetworkMode: awsvpc # required for fargate
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref ExecutionRole
+      # TaskRoleArn: # will need a task role for S3 Syzygy download, metadata poll for spot termination
+      # Volumes: # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-task-storage.html
+
 Outputs:
   Repository:
     Value: !GetAtt Repository.Arn
