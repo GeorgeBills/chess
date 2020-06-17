@@ -153,6 +153,8 @@ type EventChatLine struct {
 func (c *Client) BotStreamEvents(eventch chan<- interface{}) error {
 	const path = "/api/stream/event"
 
+	defer close(eventch)
+
 	uri := endpoint + path
 	resp, err := c.httpClient.Get(uri)
 	if err != nil {
@@ -200,6 +202,8 @@ func (c *Client) BotStreamEvents(eventch chan<- interface{}) error {
 // https://lichess.org/api#operation/botGameStream
 func (c *Client) BotStreamGame(gameID string, eventch chan<- interface{}) error {
 	const path = "/api/bot/game/stream/%s"
+
+	defer close(eventch)
 
 	uri := endpoint + fmt.Sprintf(path, gameID)
 	resp, err := c.httpClient.Get(uri)

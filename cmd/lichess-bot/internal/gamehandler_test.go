@@ -52,3 +52,26 @@ func TestGameFullToMove(t *testing.T) {
 		assert.Equal(t, false, calls[0].OfferingDraw)
 	}
 }
+
+func TestStreamGameEvents(t *testing.T) {
+	mockClient := &mocks.LichesserMock{
+		BotStreamGameFunc: func(gameID string, eventch chan<- interface{}) error {
+			eventch <- &lichess.EventGameFull{}
+			eventch <- &lichess.EventGameState{}
+			eventch <- &lichess.EventChatLine{}
+			close(eventch)
+			return nil
+		},
+	}
+	eventch := make(chan interface{}, 100)
+	internal.StreamGameEvents("NdHWLn", mockClient, eventch, logger)
+
+	received := []interface{}{}
+	for event := range eventch {
+		received = append(received, event)
+	}
+
+	assert.Equal(t, &lichess.EventGameFull{}, received[0])
+	assert.Equal(t, &lichess.EventGameState{}, received[1])
+	assert.Equal(t, &lichess.EventChatLine{}, received[2])
+}
