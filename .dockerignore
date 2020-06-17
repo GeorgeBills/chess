@@ -1,0 +1,14 @@
+.git/
+*_string.go
+*.exe
+*.exe~
+*.log
+*.out
+*.prof
+*.test
+**/Dockerfile
+**/mocks/*.go
+bench*.txt
+LICENSE
+README.md
+uci/engine-interface.txt
