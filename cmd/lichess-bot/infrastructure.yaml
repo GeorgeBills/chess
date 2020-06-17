@@ -30,3 +30,12 @@ Resources:
             Condition:
               StringEquals:
                 aws:Referer: !Ref AWS::AccountId
+
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: lichess-bot
+
+Outputs:
+  Repository:
+    Value: !GetAtt Repository.Arn
