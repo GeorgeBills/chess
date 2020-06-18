@@ -135,6 +135,12 @@ Resources:
     Properties:
       ClusterName: lichess-bot-cluster
 
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: lichess-bot-logs
+      RetentionInDays: 30
+
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -143,6 +149,12 @@ Resources:
           Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/lichess-bot:latest"
           ReadonlyRootFilesystem: true
           # LogConfiguration: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              "awslogs-group": !Ref LogGroup
+              "awslogs-region": !Ref AWS::Region
+              "awslogs-stream-prefix": "lichess-bot"
           # Secrets: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html
       Cpu: 1024 # 1 vCPU
       Family: lichess-bot
