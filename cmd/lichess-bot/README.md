@@ -4,12 +4,28 @@
 `eu-central-1` - Frankfurt - as that's the geographically closest AWS region to
 the Lichess servers, which are currently hosted by OVH in Strasbourg.
 
-```
+```powershell
 aws cloudformation deploy `
-    --region eu-central-1 `
-    --stack-name lichess-bot `
-    --template-file .\infrastructure.yaml
-    --capabilities CAPABILITY_NAMED_IAM
+    --region 'eu-central-1' `
+    --stack-name 'lichess-bot' `
+    --template-file '.\infrastructure.yaml' `
+    --capabilities 'CAPABILITY_NAMED_IAM'
+```
+
+## Setting personal API token
+
+https://lichess.org/api#personal-api-token
+
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ssm-parameter.html#cfn-ssm-parameter-type
+
+> AWS CloudFormation doesn't support creating a SecureString parameter type.
+
+```powershell
+aws ssm put-parameter `
+    --region 'eu-central-1' `
+    --name '/lichess-bot/api-token' `
+    --type SecureString `
+    --value 's3cr3t_t0k3n'
 ```
 
 ## Publishing
