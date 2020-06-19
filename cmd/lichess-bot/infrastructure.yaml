@@ -142,6 +142,9 @@ Resources:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: lichess-bot-cluster
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
 
   LogGroup:
     Type: AWS::Logs::LogGroup
