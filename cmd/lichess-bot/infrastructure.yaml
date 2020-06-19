@@ -51,6 +51,14 @@ Resources:
               - "sts:AssumeRole"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: access-api-token-param
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ssm:GetParameters
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/lichess-bot/*"
 
   VPC:
     Type: AWS::EC2::VPC
@@ -148,14 +156,19 @@ Resources:
         - Name: lichess-bot
           Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/lichess-bot:latest"
           ReadonlyRootFilesystem: true
-          # LogConfiguration: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html
+
+          # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html
           LogConfiguration:
             LogDriver: awslogs
             Options:
               "awslogs-group": !Ref LogGroup
               "awslogs-region": !Ref AWS::Region
               "awslogs-stream-prefix": "lichess-bot"
-          # Secrets: #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html
+
+          # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data-parameters.html
+          Secrets:
+            - Name: TOKEN
+              ValueFrom: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/lichess-bot/api-token"
       Cpu: 1024 # 1 vCPU
       Family: lichess-bot
       Memory: 2048 # 2Gb
