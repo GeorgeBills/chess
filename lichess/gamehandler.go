@@ -12,7 +12,6 @@ type GameHandler interface {
 
 func HandleGameEvents(h GameHandler, logger *log.Logger, eventch <-chan interface{}) {
 	for event := range eventch {
-		logger.Printf("game event: %#v", event) // TODO: include game id
 		switch v := event.(type) {
 		case *EventGameFull:
 			h.GameFull(v)

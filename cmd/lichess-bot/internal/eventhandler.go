@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/GeorgeBills/chess/lichess"
 )
@@ -23,18 +24,18 @@ type EventHandler struct {
 
 func (h *EventHandler) Challenge(v *lichess.EventChallenge) {
 	h.logger.Printf(
-		"challenge; id: %s; challenger: %s; variant: %s; rated: %t",
+		"challenge %s: challenger: %s; variant: %s; %s",
 		v.Challenge.ID,
 		v.Challenge.Challenger.ID,
-		v.Challenge.Variant.Key,
-		v.Challenge.Rated,
+		strings.ToLower(v.Challenge.Variant.Name),
+		ratedstr(v.Challenge.Rated),
 	)
 
 	if v.Challenge.Challenger.ID == "georgebills" &&
 		v.Challenge.Rated == false && // require unrated for now to avoid changing my own rating
 		v.Challenge.Variant.Key == lichess.VariantKeyStandard {
 
-		h.logger.Printf("accepting challenge: %s", v.Challenge.ID)
+		h.logger.Printf("challenge %s: accepting", v.Challenge.ID)
 		err := h.client.ChallengeAccept(v.Challenge.ID)
 		if err != nil {
 			h.logger.Fatal(err)
@@ -42,7 +43,7 @@ func (h *EventHandler) Challenge(v *lichess.EventChallenge) {
 		// we now expect an incoming "game start" event
 	} else {
 
-		h.logger.Printf("declining challenge: %s", v.Challenge.ID)
+		h.logger.Printf("challenge %s: declining", v.Challenge.ID)
 		err := h.client.ChallengeDecline(v.Challenge.ID)
 		if err != nil {
 			h.logger.Fatal(err)

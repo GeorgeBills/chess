@@ -11,7 +11,6 @@ type EventHandler interface {
 
 func HandleEvents(h EventHandler, logger *log.Logger, eventch <-chan interface{}) {
 	for event := range eventch {
-		logger.Printf("event: %#v", event)
 		switch v := event.(type) {
 		case *EventChallenge:
 			h.Challenge(v)

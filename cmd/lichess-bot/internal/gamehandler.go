@@ -3,9 +3,11 @@ package internal
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/GeorgeBills/chess/lichess"
+	"github.com/GeorgeBills/chess/uci"
 )
 
 const (
@@ -40,7 +42,14 @@ type GameHandler struct {
 }
 
 func (h *GameHandler) GameFull(v *lichess.EventGameFull) {
-	h.logger.Printf("game full; game: %s; white: %s; black: %s", v.ID, v.White.ID, v.Black.ID)
+	h.logger.Printf(
+		"game %s: full; %s; %s vs %s; t%s; %s",
+		v.ID,
+		strings.ToLower(v.Variant.Name),
+		v.White.ID, v.Black.ID,
+		timestr(v.Clock.Initial, v.Clock.Increment),
+		ratedstr(v.Rated),
+	)
 
 	switch v.InitialFen {
 	case "startpos":
@@ -59,21 +68,13 @@ func (h *GameHandler) GameFull(v *lichess.EventGameFull) {
 	case v.Black.ID:
 		h.colour = ColourBlack
 	default:
-		h.logger.Fatal("unknown colour to play")
+		h.logger.Fatal("unknown colour to play") // FIXME: errch?
 	}
-	h.logger.Println(h.colour)
 
 	movestrs, tomove := splitMoves(v.State.Moves)
 	for _, movestr := range movestrs {
 		h.game.MakeMove(movestr)
 	}
-
-	// logger.Printf("variant: %#v", v.Variant)
-	// logger.Printf("clock: %#v", v.Clock)
-	// logger.Printf("perf: %#v", v.Perf)
-	// logger.Printf("state: %#v", v.State)
-	// logger.Printf("white: %#v", v.White)
-	// logger.Printf("black: %#v", v.Black)
 
 	// are we to move?
 	if tomove == h.colour {
@@ -82,8 +83,14 @@ func (h *GameHandler) GameFull(v *lichess.EventGameFull) {
 }
 
 func (h *GameHandler) GameState(v *lichess.EventGameState) {
-	h.logger.Printf("game state")
-	h.logger.Printf("status: %#v", v.Status)
+	h.logger.Printf(
+		"game %s: %s; wt: %s; bt: %s; moves: %s",
+		h.gameID,
+		v.Status,
+		timestr(v.WhiteTime, v.WhiteIncrement),
+		timestr(v.BlackTime, v.BlackIncrement),
+		last(20, v.Moves),
+	)
 
 	movestrs, tomove := splitMoves(v.Moves)
 
@@ -97,15 +104,15 @@ func (h *GameHandler) GameState(v *lichess.EventGameState) {
 
 func (h *GameHandler) bestMove() {
 	move, score := h.game.BestMove()
-	h.logger.Printf("making move %v", move)
+	h.logger.Printf("game %s: playing %s", h.gameID, uci.ToUCIN(move))
 	err := h.client.BotMakeMove(h.gameID, move, h.offerDraw(score))
 	if err != nil {
-		h.logger.Fatal(fmt.Errorf("error making move: %v", err))
+		h.logger.Fatal(fmt.Errorf("error playing move: %v", err))
 	}
 }
 
 func (h *GameHandler) ChatLine(v *lichess.EventChatLine) {
-	h.logger.Printf("chat line; '%s'", v.Text)
+	h.logger.Printf("game %s: chat line; %s", h.gameID, v.Text)
 }
 
 func splitMoves(moves string) ([]string, Colour) {
@@ -129,4 +136,25 @@ func (h *GameHandler) offerDraw(score int16) bool {
 		return score < absDrawThreshold*-1
 	}
 	return score > absDrawThreshold
+}
+
+func timestr(initial, increment int) string {
+	if initial == math.MaxInt32 {
+		return "∞"
+	}
+	return fmt.Sprintf("%d+%d", initial, increment)
+}
+
+func ratedstr(rated bool) string {
+	if rated {
+		return "rated"
+	}
+	return "unrated"
+}
+
+func last(n int, s string) string {
+	if n >= len(s) {
+		return s
+	}
+	return "..." + s[len(s)-n:]
 }
