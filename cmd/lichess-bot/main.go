@@ -22,7 +22,10 @@ func main() {
 	flag.Parse()
 
 	if *token == "" {
-		logger.Fatal(errors.New("token argument is required"))
+		*token = os.Getenv("TOKEN")
+		if *token == "" {
+			logger.Fatal(errors.New("token argument is required"))
+		}
 	}
 
 	transport := lichess.NewAuthorizingTransport(*token, &http.Transport{})
