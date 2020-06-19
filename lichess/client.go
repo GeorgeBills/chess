@@ -162,6 +162,14 @@ func (c *Client) BotStreamEvents(eventch chan<- interface{}) error {
 	}
 	defer resp.Body.Close()
 
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
+	default:
+		return newUnexpectedStatusCodeError(resp.StatusCode)
+	}
+
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -211,6 +219,14 @@ func (c *Client) BotStreamGame(gameID string, eventch chan<- interface{}) error 
 		return err
 	}
 	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
+	default:
+		return newUnexpectedStatusCodeError(resp.StatusCode)
+	}
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
@@ -272,6 +288,8 @@ func (c *Client) BotMakeMove(gameID string, move chess.FromToPromoter, offeringD
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	default:
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
@@ -306,6 +324,8 @@ func (c *Client) BotWriteChat(gameID string, room ChatRoom, text string) error {
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	default:
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
@@ -327,6 +347,8 @@ func (c *Client) BotAbortGame(gameID string) error {
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	default:
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
@@ -348,6 +370,8 @@ func (c *Client) BotResignGame(gameID string) error {
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	default:
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
@@ -438,6 +462,8 @@ func (c *Client) ChallengeCreate(params ChallengeCreateParams) error {
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	default:
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
@@ -457,6 +483,8 @@ func (c *Client) ChallengeAccept(challengeID string) error {
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return nil
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	case http.StatusNotFound:
 		return newNotFoundError(uri)
 	default:
@@ -478,6 +506,8 @@ func (c *Client) ChallengeDecline(challengeID string) error {
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return nil
+	case http.StatusUnauthorized:
+		return newUnauthorizedError()
 	case http.StatusNotFound:
 		return newNotFoundError(uri)
 	default:
@@ -503,6 +533,10 @@ func newBadRequestError(body io.Reader) error {
 
 func newNotFoundError(uri string) error {
 	return fmt.Errorf("not found: %s", uri)
+}
+
+func newUnauthorizedError() error {
+	return errors.New("unauthorized: incorrect api token?")
 }
 
 func newUnexpectedStatusCodeError(code int) error {
