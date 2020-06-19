@@ -28,6 +28,8 @@ const (
 )
 
 const (
+	GameStateCreated = "created"
 	GameStateStarted = "started"
 	GameStateResign  = "resign"
+	GameStateMate    = "mate"
 )
