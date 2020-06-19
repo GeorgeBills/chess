@@ -295,13 +295,6 @@ func (c *Client) BotMakeMove(gameID string, move chess.FromToPromoter, offeringD
 	}
 }
 
-type ChatRoom string
-
-const (
-	ChatRoomPlayer    = "player"
-	ChatRoomSpectator = "spectator"
-)
-
 // https://lichess.org/api#operation/botGameChat
 func (c *Client) BotWriteChat(gameID string, room ChatRoom, text string) error {
 	const path = "/api/bot/game/%s/chat"
@@ -376,31 +369,6 @@ func (c *Client) BotResignGame(gameID string) error {
 		return newUnexpectedStatusCodeError(resp.StatusCode)
 	}
 }
-
-type Color string
-
-const (
-	ColorRandom Color = "random"
-	ColorWhite  Color = "white"
-	ColorBlack  Color = "black"
-)
-
-const (
-	VariantKeyStandard      = "standard"
-	VariantKeyChess960      = "chess960"
-	VariantKeyCrazyhouse    = "crazyhouse"
-	VariantKeyAntichess     = "antichess"
-	VariantKeyAtomic        = "atomic"
-	VariantKeyHorde         = "horde"
-	VariantKeyKingOfTheHill = "kingOfTheHill"
-	VariantKeyRacingKings   = "racingKings"
-	VariantKeyThreeCheck    = "threeCheck"
-)
-
-const (
-	GameStateStarted = "started"
-	GameStateResign  = "resign"
-)
 
 type ChallengeCreateParams struct {
 	Username              string
