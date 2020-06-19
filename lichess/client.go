@@ -397,6 +397,11 @@ const (
 	VariantKeyThreeCheck    = "threeCheck"
 )
 
+const (
+	GameStateStarted = "started"
+	GameStateResign  = "resign"
+)
+
 type ChallengeCreateParams struct {
 	Username              string
 	Rated                 bool
