@@ -1,11 +1,9 @@
 package lichess_test
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/GeorgeBills/chess"
@@ -16,10 +14,7 @@ import (
 )
 
 func emptyok(uri string, data url.Values) (*http.Response, error) {
-	return &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(strings.NewReader("")),
-	}, nil
+	return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
 }
 
 type move struct {
