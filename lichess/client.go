@@ -53,14 +53,7 @@ func (c *Client) BotUpgradeToBotAccount() error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 type EventGameStart struct {
@@ -162,12 +155,8 @@ func (c *Client) BotStreamEvents(eventch chan<- interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
+	if err := handleStatusCode(uri, resp); err != nil {
+		return err
 	}
 
 	scanner := bufio.NewScanner(resp.Body)
@@ -220,12 +209,8 @@ func (c *Client) BotStreamGame(gameID string, eventch chan<- interface{}) error 
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
+	if err := handleStatusCode(uri, resp); err != nil {
+		return err
 	}
 
 	scanner := bufio.NewScanner(resp.Body)
@@ -283,16 +268,7 @@ func (c *Client) BotMakeMove(gameID string, move chess.FromToPromoter, offeringD
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 // https://lichess.org/api#operation/botGameChat
@@ -312,16 +288,7 @@ func (c *Client) BotWriteChat(gameID string, room ChatRoom, text string) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 // https://lichess.org/api#operation/botGameAbort
@@ -335,16 +302,7 @@ func (c *Client) BotAbortGame(gameID string) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 // https://lichess.org/api#operation/botGameResign
@@ -358,16 +316,7 @@ func (c *Client) BotResignGame(gameID string) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 type ChallengeCreateParams struct {
@@ -430,16 +379,7 @@ func (c *Client) ChallengeCreate(params ChallengeCreateParams) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return newBadRequestError(resp.Body)
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 // https://lichess.org/api#operation/challengeAccept
@@ -453,16 +393,7 @@ func (c *Client) ChallengeAccept(challengeID string) error {
 	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusUnauthorized:
-		return newUnauthorizedError()
-	case http.StatusNotFound:
-		return newNotFoundError(uri)
-	default:
-		return newUnexpectedStatusCodeError(resp.StatusCode)
-	}
+	return handleStatusCode(uri, resp)
 }
 
 // https://lichess.org/api#operation/challengeDecline
@@ -476,9 +407,15 @@ func (c *Client) ChallengeDecline(challengeID string) error {
 	}
 	defer resp.Body.Close()
 
+	return handleStatusCode(uri, resp)
+}
+
+func handleStatusCode(uri string, resp *http.Response) error {
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return nil
+	case http.StatusBadRequest:
+		return newBadRequestError(resp.Body)
 	case http.StatusUnauthorized:
 		return newUnauthorizedError()
 	case http.StatusNotFound:
