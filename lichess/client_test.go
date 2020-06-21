@@ -1,9 +1,12 @@
 package lichess_test
 
 import (
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/GeorgeBills/chess"
@@ -13,8 +16,56 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func emptyok(uri string, data url.Values) (*http.Response, error) {
+func postEmptyOK(uri string, data url.Values) (*http.Response, error) {
 	return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil
+}
+
+func getError(uri string) (*http.Response, error) {
+	return nil, errors.New("error123")
+}
+
+func postError(uri string, data url.Values) (*http.Response, error) {
+	return nil, errors.New("error123")
+}
+
+func getUnauthorized(uri string) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusUnauthorized, Body: http.NoBody}, nil
+}
+
+func postUnauthorized(uri string, data url.Values) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusUnauthorized, Body: http.NoBody}, nil
+}
+
+func getTeapot(uri string) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusTeapot, Body: http.NoBody}, nil
+}
+
+func postTeapot(uri string, data url.Values) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusTeapot, Body: http.NoBody}, nil
+}
+
+func getNotFound(uri string) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusNotFound, Body: http.NoBody}, nil
+}
+
+func postNotFound(uri string, data url.Values) (*http.Response, error) {
+	return &http.Response{StatusCode: http.StatusNotFound, Body: http.NoBody}, nil
+}
+
+func getBadRequest(uri string) (*http.Response, error) {
+	return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(strings.NewReader(`{"error":"your request was bad and you should feel bad"}`)),
+		},
+		nil
+}
+
+func postBadRequest(uri string, data url.Values) (*http.Response, error) {
+	return &http.Response{
+			StatusCode: http.StatusBadRequest,
+			Body:       ioutil.NopCloser(strings.NewReader(`{"error":"your request was bad and you should feel bad"}`)),
+		},
+		nil
 }
 
 type move struct {
@@ -27,7 +78,7 @@ func (m move) To() uint8                  { return m.to }
 func (m move) PromoteTo() chess.PromoteTo { return m.promoteTo }
 
 func TestBotUpgradeToBotAccount(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.BotUpgradeToBotAccount()
 	require.NoError(t, err)
@@ -181,7 +232,7 @@ func TestBotStreamGame(t *testing.T) {
 }
 
 func TestBotMakeMove(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.BotMakeMove("v8vDhD", move{12, 34, chess.PromoteToNone}, false)
 	require.NoError(t, err)
@@ -193,7 +244,7 @@ func TestBotMakeMove(t *testing.T) {
 }
 
 func TestBotWriteChat(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.BotWriteChat("gLQEsv", lichess.ChatRoomPlayer, "ggwp!")
 	require.NoError(t, err)
@@ -205,7 +256,7 @@ func TestBotWriteChat(t *testing.T) {
 }
 
 func TestBotAbortGame(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.BotAbortGame("DRBgmL")
 	require.NoError(t, err)
@@ -217,7 +268,7 @@ func TestBotAbortGame(t *testing.T) {
 }
 
 func TestBotResignGame(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.BotResignGame("fN9LTy")
 	require.NoError(t, err)
@@ -229,7 +280,7 @@ func TestBotResignGame(t *testing.T) {
 }
 
 func TestChallengeCreate(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	var limit, increment uint = 900, 10
 	params := lichess.ChallengeCreateParams{
@@ -247,7 +298,7 @@ func TestChallengeCreate(t *testing.T) {
 }
 
 func TestChallengeAccept(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.ChallengeAccept("zbcLEG")
 	require.NoError(t, err)
@@ -259,7 +310,7 @@ func TestChallengeAccept(t *testing.T) {
 }
 
 func TestChallengeDecline(t *testing.T) {
-	m := &mocks.GetPosterMock{PostFormFunc: emptyok}
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	err := c.ChallengeDecline("PDCtHG")
 	require.NoError(t, err)
@@ -267,5 +318,120 @@ func TestChallengeDecline(t *testing.T) {
 	if assert.Len(t, calls, 1) {
 		assert.Equal(t, "https://lichess.org/api/challenge/PDCtHG/decline", calls[0].URI)
 		assert.Equal(t, "", calls[0].Data.Encode())
+	}
+}
+
+func TestErrors(t *testing.T) {
+	errs := []struct {
+		name     string
+		mock     *mocks.GetPosterMock
+		expected string
+	}{
+		{
+			"bad request",
+			&mocks.GetPosterMock{GetFunc: getBadRequest, PostFormFunc: postBadRequest},
+			"bad request: your request was bad and you should feel bad",
+		},
+		{
+			"unauthorized",
+			&mocks.GetPosterMock{GetFunc: getUnauthorized, PostFormFunc: postUnauthorized},
+			"unauthorized: incorrect api token?",
+		},
+		{
+			"err",
+			&mocks.GetPosterMock{GetFunc: getError, PostFormFunc: postError},
+			"error123",
+		},
+		{
+			"unexpected",
+			&mocks.GetPosterMock{GetFunc: getTeapot, PostFormFunc: postTeapot},
+			"unexpected status code: 418",
+		},
+		// {
+		// 	"not found",
+		// 	&mocks.GetPosterMock{GetFunc: getNotFound, PostFormFunc: postNotFound},
+		// 	"unauthorized: incorrect api token?",
+		// },
+	}
+
+	calls := []struct {
+		name string
+		fn   func(client *lichess.Client) error
+	}{
+		{
+			"BotUpgradeToBotAccount",
+			func(client *lichess.Client) error {
+				return client.BotUpgradeToBotAccount()
+			},
+		},
+		{
+			"BotStreamEvents",
+			func(client *lichess.Client) error {
+				eventch := make(chan interface{})
+				return client.BotStreamEvents(eventch)
+			},
+		},
+		{
+			"BotStreamGame",
+			func(client *lichess.Client) error {
+				eventch := make(chan interface{})
+				return client.BotStreamGame("xyz", eventch)
+			},
+		},
+		{
+			"BotMakeMove",
+			func(client *lichess.Client) error {
+				return client.BotMakeMove("xyz", nil, false)
+			},
+		},
+		{
+			"BotWriteChat",
+			func(client *lichess.Client) error {
+				return client.BotWriteChat("xyz", lichess.ChatRoomPlayer, "glhf")
+			},
+		},
+		{
+			"BotAbortGame",
+			func(client *lichess.Client) error {
+				return client.BotAbortGame("xyz")
+			},
+		},
+		{
+			"BotResignGame",
+			func(client *lichess.Client) error {
+				return client.BotResignGame("xyz")
+			},
+		},
+		{
+			"ChallengeCreate",
+			func(client *lichess.Client) error {
+				var time uint = 600
+				return client.ChallengeCreate(lichess.ChallengeCreateParams{ClockLimitSeconds: &time})
+			},
+		},
+		{
+			"ChallengeAccept",
+			func(client *lichess.Client) error {
+				return client.ChallengeAccept("xyz")
+			},
+		},
+		{
+			"ChallengeDecline",
+			func(client *lichess.Client) error {
+				return client.ChallengeDecline("xyz")
+			},
+		},
+	}
+
+	for _, errt := range errs {
+		client := lichess.NewClient(errt.mock)
+		t.Run(errt.name, func(t *testing.T) {
+			for _, callt := range calls {
+				t.Run(callt.name, func(t *testing.T) {
+					err := callt.fn(client)
+					assert.EqualError(t, err, errt.expected)
+				})
+			}
+		})
 	}
 }
