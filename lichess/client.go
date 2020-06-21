@@ -319,8 +319,12 @@ func (c *Client) BotResignGame(gameID string) error {
 	return handleStatusCode(uri, resp)
 }
 
-type ChallengeCreateParams struct {
-	Username              string
+type ParamsChallengeCreate struct {
+	Username string
+	ParamsChallenge
+}
+
+type ParamsChallenge struct {
 	Rated                 bool
 	ClockLimitSeconds     *uint
 	ClockIncrementSeconds *uint
@@ -330,7 +334,7 @@ type ChallengeCreateParams struct {
 	FEN                   string
 }
 
-func (p ChallengeCreateParams) values() (url.Values, error) {
+func (p ParamsChallenge) values() (url.Values, error) {
 	values := url.Values{
 		"rated": {strconv.FormatBool(p.Rated)},
 	}
@@ -363,8 +367,22 @@ func (p ChallengeCreateParams) values() (url.Values, error) {
 	return values, nil
 }
 
+type ParamsChallengeAI struct {
+	Level uint
+	ParamsChallenge
+}
+
+func (p ParamsChallengeAI) values() (url.Values, error) {
+	values, err := p.ParamsChallenge.values()
+	if err != nil {
+		return nil, err
+	}
+	values["level"] = []string{strconv.Itoa(int(p.Level))}
+	return values, nil
+}
+
 // https://lichess.org/api#operation/challengeCreate
-func (c *Client) ChallengeCreate(params ChallengeCreateParams) error {
+func (c *Client) ChallengeCreate(params ParamsChallengeCreate) error {
 	const path = "/api/challenge/%s"
 
 	values, err := params.values()
@@ -373,6 +391,25 @@ func (c *Client) ChallengeCreate(params ChallengeCreateParams) error {
 	}
 
 	uri := endpoint + fmt.Sprintf(path, params.Username)
+	resp, err := c.httpClient.PostForm(uri, values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return handleStatusCode(uri, resp)
+}
+
+// https://lichess.org/api#operation/challengeAi
+func (c *Client) ChallengeAI(params ParamsChallengeAI) error {
+	const path = "/api/challenge/ai"
+
+	values, err := params.values()
+	if err != nil {
+		return err
+	}
+
+	uri := endpoint + path
 	resp, err := c.httpClient.PostForm(uri, values)
 	if err != nil {
 		return err
@@ -412,7 +449,7 @@ func (c *Client) ChallengeDecline(challengeID string) error {
 
 func handleStatusCode(uri string, resp *http.Response) error {
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusCreated:
 		return nil
 	case http.StatusBadRequest:
 		return newBadRequestError(resp.Body)

@@ -283,17 +283,41 @@ func TestChallengeCreate(t *testing.T) {
 	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
 	c := lichess.NewClient(m)
 	var limit, increment uint = 900, 10
-	params := lichess.ChallengeCreateParams{
-		Username:              "GeorgeBills",
-		ClockLimitSeconds:     &limit,
-		ClockIncrementSeconds: &increment,
+	params := lichess.ParamsChallengeCreate{
+		Username: "GeorgeBills",
+		ParamsChallenge: lichess.ParamsChallenge{
+			Rated:                 true,
+			ClockLimitSeconds:     &limit,
+			ClockIncrementSeconds: &increment,
+		},
 	}
 	err := c.ChallengeCreate(params)
 	require.NoError(t, err)
 	calls := m.PostFormCalls()
 	if assert.Len(t, calls, 1) {
 		assert.Equal(t, "https://lichess.org/api/challenge/GeorgeBills", calls[0].URI)
-		assert.Equal(t, "clock.increment=10&clock.limit=900&rated=false", calls[0].Data.Encode())
+		assert.Equal(t, "clock.increment=10&clock.limit=900&rated=true", calls[0].Data.Encode())
+	}
+}
+
+func TestChallengeAI(t *testing.T) {
+	m := &mocks.GetPosterMock{PostFormFunc: postEmptyOK}
+	c := lichess.NewClient(m)
+	var days uint = 1
+	params := lichess.ParamsChallengeAI{
+		Level: 1,
+		ParamsChallenge: lichess.ParamsChallenge{
+			Color:   lichess.ColorWhite,
+			Days:    &days,
+			Variant: lichess.VariantKeyChess960,
+		},
+	}
+	err := c.ChallengeAI(params)
+	require.NoError(t, err)
+	calls := m.PostFormCalls()
+	if assert.Len(t, calls, 1) {
+		assert.Equal(t, "https://lichess.org/api/challenge/ai", calls[0].URI)
+		assert.Equal(t, "color=white&days=1&level=1&rated=false&variant=chess960", calls[0].Data.Encode())
 	}
 }
 
@@ -406,7 +430,14 @@ func TestErrors(t *testing.T) {
 			"ChallengeCreate",
 			func(client *lichess.Client) error {
 				var time uint = 600
-				return client.ChallengeCreate(lichess.ChallengeCreateParams{ClockLimitSeconds: &time})
+				return client.ChallengeCreate(lichess.ParamsChallengeCreate{ParamsChallenge: lichess.ParamsChallenge{ClockLimitSeconds: &time}})
+			},
+		},
+		{
+			"ChallengeAI",
+			func(client *lichess.Client) error {
+				var time uint = 600
+				return client.ChallengeAI(lichess.ParamsChallengeAI{ParamsChallenge: lichess.ParamsChallenge{ClockLimitSeconds: &time}})
 			},
 		},
 		{
