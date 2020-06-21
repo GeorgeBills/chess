@@ -55,7 +55,7 @@ func (h *EventHandler) GameStart(v *lichess.EventGameStart) {
 	eventch := make(chan interface{}, 100)
 	gh := NewGameHandler(v.Game.ID, h.client, h.logger, h.factory)
 	go StreamGameEvents(v.Game.ID, h.client, eventch, h.logger)
-	go lichess.HandleGameEvents(gh, h.logger, eventch)
+	go lichess.HandleGameEvents(gh, eventch)
 }
 
 func StreamGameEvents(gameID string, client Lichesser, eventch chan<- interface{}, logger *log.Logger) {

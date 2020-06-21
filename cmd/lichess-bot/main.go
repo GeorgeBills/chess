@@ -52,6 +52,6 @@ func main() {
 	factory := NewGameFactory()
 	h := internal.NewEventHandler(client, logger, factory)
 	go internal.StreamEvents(client, eventch, logger)
-	go lichess.HandleEvents(h, logger, eventch)
+	go lichess.HandleEvents(h, eventch)
 	wg.Wait()
 }

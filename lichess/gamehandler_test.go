@@ -1,8 +1,6 @@
 package lichess_test
 
 import (
-	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -18,7 +16,7 @@ func TestHandleGameEvents(t *testing.T) {
 		GameStateFunc: func(e *lichess.EventGameState) {},
 	}
 	eventch := make(chan interface{}, 10)
-	go lichess.HandleGameEvents(h, log.New(os.Stdout, "", 0), eventch)
+	go lichess.HandleGameEvents(h, eventch)
 
 	t.Run("chat line", func(t *testing.T) {
 		e := &lichess.EventChatLine{}

@@ -1,6 +1,6 @@
 package lichess
 
-import "log"
+import "fmt"
 
 //go:generate moq -out mocks/gamehandler.go -pkg mocks . GameHandler
 
@@ -10,7 +10,7 @@ type GameHandler interface {
 	ChatLine(e *EventChatLine)
 }
 
-func HandleGameEvents(h GameHandler, logger *log.Logger, eventch <-chan interface{}) {
+func HandleGameEvents(h GameHandler, eventch <-chan interface{}) {
 	for event := range eventch {
 		switch v := event.(type) {
 		case *EventGameFull:
@@ -20,7 +20,7 @@ func HandleGameEvents(h GameHandler, logger *log.Logger, eventch <-chan interfac
 		case *EventChatLine:
 			h.ChatLine(v)
 		default:
-			logger.Printf("ignoring unrecognized game event type: %T", v) // errch
+			panic(fmt.Errorf("unrecognized game event type: %T", v))
 		}
 	}
 }

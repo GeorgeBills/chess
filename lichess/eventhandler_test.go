@@ -1,8 +1,6 @@
 package lichess_test
 
 import (
-	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -17,7 +15,7 @@ func TestHandleEvents(t *testing.T) {
 		GameStartFunc: func(e *lichess.EventGameStart) {},
 	}
 	eventch := make(chan interface{}, 10)
-	go lichess.HandleEvents(h, log.New(os.Stdout, "", 0), eventch)
+	go lichess.HandleEvents(h, eventch)
 
 	t.Run("challenge", func(t *testing.T) {
 		e := &lichess.EventChallenge{}
